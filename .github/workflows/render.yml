@@ -1,0 +1,44 @@
+name: Render video
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+
+      - name: Get Persian font (Vazirmatn)
+        run: |
+          npm install --no-save @fontsource/vazirmatn
+          mkdir -p assets/fonts
+          ls node_modules/@fontsource/vazirmatn/files | grep arabic | head -20
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+
+      - name: Environment check
+        run: npx --yes hyperframes doctor
+        continue-on-error: true
+
+      - name: Lint composition
+        run: npx --yes hyperframes lint
+        continue-on-error: true
+
+      - name: Render
+        run: npx --yes hyperframes render index.html -o output.mp4 --fps 30 --quality standard --browser-args="--no-sandbox --disable-dev-shm-usage"
+
+      - name: Upload video
+        uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: output.mp4
