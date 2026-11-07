@@ -1,0 +1,149 @@
+name: Story Stage 0 (one-sentence test)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_free_tier:
+        description: "Choose YES only after checking the Gemini key is on the FREE tier (no billing attached)"
+        required: true
+        default: "NO"
+        type: choice
+        options:
+          - "NO"
+          - "YES"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: story-stage0
+  cancel-in-progress: false
+
+jobs:
+  stage0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Free-tier confirmation gate
+        env:
+          CONFIRM: ${{ inputs.confirm_free_tier }}
+        run: |
+          if [ "$CONFIRM" != "YES" ]; then
+            echo "::error::Stopped before any API request. Re-run and choose YES for confirm_free_tier after checking the key is on the free tier."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+
+      - name: Get Persian font (Vazirmatn)
+        run: |
+          npm install --no-save @fontsource/vazirmatn@5
+          mkdir -p assets/fonts
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+
+      - name: Record tool versions
+        run: |
+          node --version
+          python3 --version
+          ffmpeg -version | head -1
+          npm view hyperframes version || true
+
+      - name: Validate Stage 0 inputs (offline)
+        run: python3 scripts/story_stage0.py check
+
+      - name: Restore audio cache
+        id: audio-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
+
+      - name: Restore Whisper model cache
+        id: whisper-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/hyperframes
+          key: hyperframes-models-v1
+
+      - name: Generate narration (Gemini TTS, skipped on cache hit)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 scripts/story_stage0.py tts
+
+      - name: Save audio cache
+        if: steps.audio-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: .cache/story
+          key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
+
+      - name: Prepare audio
+        run: python3 scripts/story_stage0.py prepare
+
+      - name: Word timestamps (HyperFrames Whisper, Persian)
+        run: |
+          mkdir -p build/stage0/whisper
+          cd build/stage0/whisper
+          npx --yes hyperframes transcribe ../whisper_input.wav --model small --language fa
+          ls -la
+
+      - name: Save Whisper model cache
+        if: steps.whisper-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/hyperframes
+          key: hyperframes-models-v1
+
+      - name: Align script words to speech
+        run: python3 scripts/story_stage0.py align
+
+      - name: Build composition and SRT
+        run: python3 scripts/story_stage0.py compose
+
+      - name: Lint composition
+        working-directory: build/stage0/story
+        continue-on-error: true
+        run: npx --yes hyperframes lint
+
+      - name: Render MP4
+        working-directory: build/stage0/story
+        run: npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
+
+      - name: Verify MP4 (audio, duration, highlight frames)
+        run: python3 scripts/story_stage0.py verify
+
+      - name: Show report in the run summary
+        if: always()
+        run: |
+          if [ -f build/stage0/timing_report.md ]; then cat build/stage0/timing_report.md >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ -f build/stage0/verify.json ]; then
+            { echo; echo '```json'; cat build/stage0/verify.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Stage 0 results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: story-stage0
+          path: |
+            build/stage0/story.mp4
+            build/stage0/story.srt
+            build/stage0/timing.json
+            build/stage0/timing_report.md
+            build/stage0/verify.json
+            build/stage0/tts_meta.json
+            build/stage0/whisper/
+            build/stage0/frames/
+            build/stage0/story/index.html
+          if-no-files-found: warn
+          retention-days: 7
