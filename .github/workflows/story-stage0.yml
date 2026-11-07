@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_free_tier:
-        description: "Choose YES only after checking the Gemini key is on the FREE tier (no billing attached)"
+        description: "Choose YES only after verifying that Gemini API billing is not enabled"
         required: true
         default: "NO"
         type: choice
@@ -23,19 +23,13 @@ jobs:
   stage0:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
-      - name: Free-tier confirmation gate
-        env:
-          CONFIRM: ${{ inputs.confirm_free_tier }}
-        run: |
-          if [ "$CONFIRM" != "YES" ]; then
-            echo "::error::Stopped before any API request. Re-run and choose YES for confirm_free_tier after checking the key is on the free tier."
-            exit 1
-          fi
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -44,7 +38,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-noto-core
 
-      - name: Get Persian font (Vazirmatn)
+      - name: Install Vazirmatn font
         run: |
           npm install --no-save @fontsource/vazirmatn@5
           mkdir -p assets/fonts
@@ -56,7 +50,6 @@ jobs:
           node --version
           python3 --version
           ffmpeg -version | head -1
-          npm view hyperframes version || true
 
       - name: Validate Stage 0 inputs (offline)
         run: python3 scripts/story_stage0.py check
@@ -68,14 +61,17 @@ jobs:
           path: .cache/story
           key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
 
-      - name: Restore Whisper model cache
-        id: whisper-cache
-        uses: actions/cache/restore@v5
-        with:
-          path: ~/.cache/hyperframes
-          key: hyperframes-models-v1
+      - name: Free-tier confirmation gate
+        if: steps.audio-cache.outputs.cache-hit != 'true'
+        env:
+          CONFIRM: ${{ inputs.confirm_free_tier }}
+        run: |
+          if [ "$CONFIRM" != "YES" ]; then
+            echo "::error::Stopped before any Gemini API request. Verify billing status and explicitly choose YES."
+            exit 1
+          fi
 
-      - name: Generate narration (Gemini TTS, skipped on cache hit)
+      - name: Generate narration (Gemini TTS)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python3 scripts/story_stage0.py tts
@@ -90,7 +86,7 @@ jobs:
       - name: Prepare audio
         run: python3 scripts/story_stage0.py prepare
 
-      - name: Word timestamps (HyperFrames Whisper, Persian)
+      - name: Transcribe Persian speech with HyperFrames Whisper
         run: |
           mkdir -p build/stage0/whisper
           cd build/stage0/whisper
@@ -98,7 +94,7 @@ jobs:
           ls -la
 
       - name: Save Whisper model cache
-        if: steps.whisper-cache.outputs.cache-hit != 'true'
+        if: always()
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/hyperframes
@@ -112,22 +108,29 @@ jobs:
 
       - name: Lint composition
         working-directory: build/stage0/story
-        continue-on-error: true
         run: npx --yes hyperframes lint
 
       - name: Render MP4
         working-directory: build/stage0/story
         run: npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
 
-      - name: Verify MP4 (audio, duration, highlight frames)
+      - name: Verify MP4
         run: python3 scripts/story_stage0.py verify
 
-      - name: Show report in the run summary
+      - name: Add report to workflow summary
         if: always()
         run: |
-          if [ -f build/stage0/timing_report.md ]; then cat build/stage0/timing_report.md >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ -f build/stage0/timing_report.md ]; then
+            cat build/stage0/timing_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           if [ -f build/stage0/verify.json ]; then
-            { echo; echo '```json'; cat build/stage0/verify.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo
+              echo '```json'
+              cat build/stage0/verify.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload Stage 0 results
