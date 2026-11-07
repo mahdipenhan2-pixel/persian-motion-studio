@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Story Stage 0</title>
+<style>
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2");
+    font-weight: 700;
+  }
+  :root {
+    --ink: #0e1a2b;
+    --paper: #eef2f7;
+    --muted: #8aa0b8;
+    --sea: #4fd1c5;
+  }
+  body { margin: 0; background: var(--ink); }
+  #root {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--ink);
+    font-family: "Vazirmatn", "Noto Sans Arabic", sans-serif;
+    color: var(--paper);
+  }
+  #stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sentence {
+    width: 1500px;
+    text-align: center;
+    font-size: 96px;
+    font-weight: 700;
+    line-height: 1.8;
+    opacity: 0;
+  }
+  /* Constant padding/margin on every word so highlighting never moves the layout.
+     One span per WORD (never per letter) keeps Persian letter joining intact. */
+  .w {
+    color: var(--muted);
+    background-color: rgba(79, 209, 197, 0);
+    padding: 0 0.14em;
+    margin: 0 -0.14em;
+    border-radius: 0.22em;
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="__DURATION__">
+  <audio id="narration" src="narration.wav" data-start="0" data-duration="__DURATION__" data-track-index="2" data-volume="1"></audio>
+  <section id="stage" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="1">
+    __SENTENCES_HTML__
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+  const DATA = __TIMELINE_JSON__;
+  const OFF = { color: "rgb(138,160,184)", backgroundColor: "rgba(79,209,197,0)" };
+  const ON = { color: "rgb(14,26,43)", backgroundColor: "rgba(79,209,197,1)" };
+  const DONE = { color: "rgb(238,242,247)", backgroundColor: "rgba(79,209,197,0)" };
+
+  const tl = gsap.timeline({ paused: true });
+  DATA.sentences.forEach((s) => {
+    const el = document.getElementById("sent-" + s.id);
+    tl.fromTo(el, { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.25, ease: "power2.out", immediateRender: false },
+      Math.max(0, s.start - 0.25));
+    s.words.forEach((w) => {
+      const we = document.getElementById(w.id);
+      const hold = Math.max(0.06, w.end - w.start);
+      tl.fromTo(we, OFF, { ...ON, duration: 0.05, ease: "none", immediateRender: false }, w.start);
+      tl.fromTo(we, ON, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, w.start + hold);
+    });
+    tl.to(el, { opacity: 0, duration: 0.3, ease: "power1.in" }, s.end + 0.35);
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
