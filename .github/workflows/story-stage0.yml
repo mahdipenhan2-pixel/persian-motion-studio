@@ -103,9 +103,16 @@ jobs:
       - name: Transcribe Persian speech with HyperFrames Whisper
         run: |
           mkdir -p build/stage0/whisper
-          cd build/stage0/whisper
-          npx --yes hyperframes transcribe ../whisper_input.wav --model small --language fa
-          ls -la
+
+          npx --yes hyperframes transcribe \
+            build/stage0/whisper_input.wav \
+            --model small \
+            --language fa \
+            --dir build/stage0/whisper
+
+          ls -la build/stage0/whisper
+
+          test -f build/stage0/whisper/transcript.json
 
       # Save Whisper cache only when missing
       - name: Save Whisper model cache
