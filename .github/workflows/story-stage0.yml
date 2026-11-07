@@ -100,20 +100,62 @@ jobs:
           key: hyperframes-models-v1
 
       # Transcribe Persian speech
-      - name: Transcribe Persian speech with HyperFrames Whisper
+      - name: Transcribe Persian speech with faster-whisper
         run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1
+
           mkdir -p build/stage0/whisper
 
-          npx --yes hyperframes transcribe \
-            build/stage0/whisper_input.wav \
-            --model small \
-            --language fa \
-            --dir build/stage0/whisper
+          .venv-whisper/bin/python - <<'PY'
+          import json
+          from faster_whisper import WhisperModel
 
-          ls -la build/stage0/whisper
+          audio = "build/stage0/whisper_input.wav"
+          output = "build/stage0/whisper/transcript.json"
 
-          test -f build/stage0/whisper/transcript.json
+          print("Loading Persian Whisper model...")
 
+          model = WhisperModel(
+              "small",
+              device="cpu",
+              compute_type="int8"
+          )
+
+          segments, info = model.transcribe(
+              audio,
+              language="fa",
+              word_timestamps=True
+          )
+
+          result = []
+
+          for segment in segments:
+              for word in segment.words or []:
+                  result.append({
+                      "text": word.word,
+                      "start": float(word.start),
+                      "end": float(word.end)
+                  })
+
+          if not result:
+              raise RuntimeError("Whisper returned no word timestamps.")
+
+          with open(output, "w", encoding="utf-8") as f:
+              json.dump(
+                  {"segments": [{"words": result}]},
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print(f"Language: {info.language}")
+          print(f"Detected words: {len(result)}")
+          print(f"Saved: {output}")
+          PY
+
+          test -s build/stage0/whisper/transcript.json
       # Save Whisper cache only when missing
       - name: Save Whisper model cache
         if: steps.whisper-cache.outputs.cache-hit != 'true'
