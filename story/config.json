@@ -1,0 +1,22 @@
+{
+  "tts": {
+    "model": "gemini-3.8-flash-tts",
+    "voice": "Kore",
+    "style": "calm, clear narration",
+    "max_attempts": 4,
+    "max_requests_per_run": 4,
+    "timeout_sec": 120
+  },
+  "whisper": {
+    "model": "small",
+    "language": "fa"
+  },
+  "audio": {
+    "lead_in_ms": 300,
+    "tail_ms": 800
+  },
+  "alignment": {
+    "min_sentence_ratio": 0.85,
+    "min_word_match": 0.6
+  }
+}
