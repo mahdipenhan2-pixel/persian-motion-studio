@@ -75,7 +75,7 @@ jobs:
 
       # Generate audio only if cache is missing
       - name: Generate narration (Gemini TTS)
-        if: steps.audio-cache.outputs.cache-hit != 'true'
+
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python3 scripts/story_stage0.py tts
