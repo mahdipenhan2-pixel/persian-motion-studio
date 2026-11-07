@@ -1,5 +1,4 @@
 name: Story Stage 0 (one-sentence test)
-
 on:
   workflow_dispatch:
     inputs:
@@ -11,49 +10,39 @@ on:
         options:
           - "NO"
           - "YES"
-
 permissions:
   contents: read
-
 concurrency:
   group: story-stage0
   cancel-in-progress: false
-
 jobs:
   stage0:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 22
-
       - name: Install FFmpeg and fallback fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-noto-core
-
       - name: Install Vazirmatn font
         run: |
           npm install --no-save @fontsource/vazirmatn@5
           mkdir -p assets/fonts
           cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
           cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
-
       - name: Record tool versions
         run: |
           node --version
           python3 --version
           ffmpeg -version | head -1
-
       - name: Validate Stage 0 inputs (offline)
         run: python3 scripts/story_stage0.py check
-
       # Restore narration audio
       - name: Restore audio cache
         id: audio-cache
@@ -61,7 +50,6 @@ jobs:
         with:
           path: .cache/story
           key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
-
       # Free-tier safety confirmation
       - name: Free-tier confirmation gate
         if: steps.audio-cache.outputs.cache-hit != 'true'
@@ -72,14 +60,11 @@ jobs:
             echo "::error::Stopped before any Gemini API request. Verify billing status and explicitly choose YES."
             exit 1
           fi
-
-      # Generate audio only if cache is missing
+      # Ensure narration audio exists (use cache when available)
       - name: Generate narration (Gemini TTS)
-
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python3 scripts/story_stage0.py tts
-
       # Save narration cache
       - name: Save audio cache
         if: steps.audio-cache.outputs.cache-hit != 'true'
@@ -87,50 +72,39 @@ jobs:
         with:
           path: .cache/story
           key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
-
       - name: Prepare audio
         run: python3 scripts/story_stage0.py prepare
-
-      # Restore Whisper model cache
+      # Restore faster-whisper model cache
       - name: Restore Whisper model cache
         id: whisper-cache
         uses: actions/cache/restore@v5
         with:
-          path: ~/.cache/hyperframes
-          key: hyperframes-models-v1
-
-      # Transcribe Persian speech
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+      # Transcribe Persian speech with faster-whisper
       - name: Transcribe Persian speech with faster-whisper
         run: |
           python3 -m venv .venv-whisper
           .venv-whisper/bin/pip install --upgrade pip
           .venv-whisper/bin/pip install faster-whisper==1.2.1
-
           mkdir -p build/stage0/whisper
-
           .venv-whisper/bin/python - <<'PY'
           import json
           from faster_whisper import WhisperModel
-
           audio = "build/stage0/whisper_input.wav"
           output = "build/stage0/whisper/transcript.json"
-
           print("Loading Persian Whisper model...")
-
           model = WhisperModel(
               "small",
               device="cpu",
               compute_type="int8"
           )
-
           segments, info = model.transcribe(
               audio,
               language="fa",
               word_timestamps=True
           )
-
           result = []
-
           for segment in segments:
               for word in segment.words or []:
                   result.append({
@@ -138,10 +112,8 @@ jobs:
                       "start": float(word.start),
                       "end": float(word.end)
                   })
-
           if not result:
               raise RuntimeError("Whisper returned no word timestamps.")
-
           with open(output, "w", encoding="utf-8") as f:
               json.dump(
                   {"segments": [{"words": result}]},
@@ -149,38 +121,30 @@ jobs:
                   ensure_ascii=False,
                   indent=2
               )
-
           print(f"Language: {info.language}")
           print(f"Detected words: {len(result)}")
           print(f"Saved: {output}")
           PY
-
           test -s build/stage0/whisper/transcript.json
-      # Save Whisper cache only when missing
+      # Save faster-whisper model cache
       - name: Save Whisper model cache
         if: steps.whisper-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/huggingface/hub
           key: faster-whisper-small-v1
-
       - name: Align script words to speech
         run: python3 scripts/story_stage0.py align
-
       - name: Build composition and SRT
         run: python3 scripts/story_stage0.py compose
-
       - name: Lint composition
         working-directory: build/stage0/story
         run: npx --yes hyperframes lint
-
       - name: Render MP4
         working-directory: build/stage0/story
         run: npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
-
       - name: Verify MP4
         run: python3 scripts/story_stage0.py verify
-
       # Workflow report
       - name: Add report to workflow summary
         if: always()
@@ -188,7 +152,6 @@ jobs:
           if [ -f build/stage0/timing_report.md ]; then
             cat build/stage0/timing_report.md >> "$GITHUB_STEP_SUMMARY"
           fi
-
           if [ -f build/stage0/verify.json ]; then
             {
               echo
@@ -197,7 +160,6 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
-
       # Upload results
       - name: Upload Stage 0 results
         if: always()
