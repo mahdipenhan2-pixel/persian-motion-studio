@@ -2,91 +2,303 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Story Stage 0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NFP Story Studio - Stage 0</title>
+
 <style>
   @font-face {
     font-family: "Vazirmatn";
-    src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
+    src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2")
+         format("woff2");
     font-weight: 400;
+    font-style: normal;
+    font-display: swap;
   }
+
   @font-face {
     font-family: "Vazirmatn";
-    src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2");
+    src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2")
+         format("woff2");
     font-weight: 700;
+    font-style: normal;
+    font-display: swap;
   }
+
   :root {
     --ink: #0e1a2b;
     --paper: #eef2f7;
     --muted: #8aa0b8;
     --sea: #4fd1c5;
   }
-  body { margin: 0; background: var(--ink); }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  body {
+    font-family: "Vazirmatn", "Noto Sans Arabic", sans-serif;
+  }
+
   #root {
     position: relative;
     width: 1080px;
     height: 1920px;
     overflow: hidden;
     background: var(--ink);
-    font-family: "Vazirmatn", "Noto Sans Arabic", sans-serif;
     color: var(--paper);
+    direction: rtl;
   }
+
   #stage {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 100px 70px;
   }
+
   .sentence {
     width: 900px;
+    max-width: 100%;
     text-align: center;
+    direction: rtl;
+    font-family: "Vazirmatn", "Noto Sans Arabic", sans-serif;
     font-size: 72px;
     font-weight: 700;
     line-height: 1.8;
     opacity: 0;
+    overflow-wrap: break-word;
   }
-  /* Constant padding/margin on every word so highlighting never moves the layout.
-     One span per WORD (never per letter) keeps Persian letter joining intact. */
+
   .w {
+    display: inline;
     color: var(--muted);
     background-color: rgba(79, 209, 197, 0);
     padding: 0 0.14em;
     margin: 0 -0.14em;
     border-radius: 0.22em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 </style>
 </head>
+
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="__DURATION__">
-  <audio id="narration" src="narration.wav" data-start="0" data-duration="__DURATION__" data-track-index="2" data-volume="1"></audio>
-  <section id="stage" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="1">
+
+<div
+  id="root"
+  data-composition-id="main"
+  data-start="0"
+  data-width="1080"
+  data-height="1920"
+  data-duration="__DURATION__"
+>
+
+  <audio
+    id="narration"
+    src="narration.wav"
+    data-start="0"
+    data-duration="__DURATION__"
+    data-track-index="2"
+    data-volume="1"
+  ></audio>
+
+  <section
+    id="stage"
+    class="clip"
+    data-start="0"
+    data-duration="__DURATION__"
+    data-track-index="1"
+  >
     __SENTENCES_HTML__
   </section>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script>
-  const DATA = __TIMELINE_JSON__;
-  const OFF = { color: "rgb(138,160,184)", backgroundColor: "rgba(79,209,197,0)" };
-  const ON = { color: "rgb(14,26,43)", backgroundColor: "rgba(79,209,197,1)" };
-  const DONE = { color: "rgb(238,242,247)", backgroundColor: "rgba(79,209,197,0)" };
 
-  const tl = gsap.timeline({ paused: true });
-  DATA.sentences.forEach((s) => {
-    const el = document.getElementById("sent-" + s.id);
-    tl.fromTo(el, { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.25, ease: "power2.out", immediateRender: false },
-      Math.max(0, s.start - 0.25));
-    s.words.forEach((w) => {
-      const we = document.getElementById(w.id);
-      const hold = Math.max(0.06, w.end - w.start);
-      tl.fromTo(we, OFF, { ...ON, duration: 0.05, ease: "none", immediateRender: false }, w.start);
-      tl.fromTo(we, ON, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, w.start + hold);
-    });
-    tl.to(el, { opacity: 0, duration: 0.3, ease: "power1.in" }, s.end + 0.35);
+<script>
+(() => {
+  "use strict";
+
+  const DATA = __TIMELINE_JSON__;
+
+  const OFF = {
+    color: "rgb(138,160,184)",
+    backgroundColor: "rgba(79,209,197,0)"
+  };
+
+  const ON = {
+    color: "rgb(14,26,43)",
+    backgroundColor: "rgba(79,209,197,1)"
+  };
+
+  const DONE = {
+    color: "rgb(238,242,247)",
+    backgroundColor: "rgba(79,209,197,0)"
+  };
+
+  if (typeof gsap === "undefined") {
+    throw new Error("GSAP failed to load.");
+  }
+
+  if (
+    !DATA ||
+    !Array.isArray(DATA.sentences) ||
+    DATA.sentences.length === 0
+  ) {
+    throw new Error("Invalid or empty timeline data.");
+  }
+
+  const tl = gsap.timeline({
+    paused: true
   });
+
+  DATA.sentences.forEach((s) => {
+
+    const el = document.getElementById("sent-" + s.id);
+
+    if (!el) {
+      throw new Error(
+        "Sentence element not found: " + s.id
+      );
+    }
+
+    if (
+      !Array.isArray(s.words) ||
+      s.words.length === 0
+    ) {
+      throw new Error(
+        "No word timestamps for sentence: " + s.id
+      );
+    }
+
+    /*
+      All timestamps are absolute seconds
+      measured from the beginning of narration.wav.
+
+      Do not add lead-in offset here.
+      Python alignment already uses absolute timestamps.
+    */
+
+    const sentenceStart = Number(s.start);
+    const sentenceEnd = Number(s.end);
+
+    if (
+      !Number.isFinite(sentenceStart) ||
+      !Number.isFinite(sentenceEnd) ||
+      sentenceStart < 0 ||
+      sentenceEnd <= sentenceStart
+    ) {
+      throw new Error(
+        "Invalid sentence timing: " + s.id
+      );
+    }
+
+    tl.fromTo(
+      el,
+      {
+        opacity: 0,
+        y: 20
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.25,
+        ease: "power2.out",
+        immediateRender: false
+      },
+      Math.max(0, sentenceStart - 0.25)
+    );
+
+    s.words.forEach((w) => {
+
+      const we = document.getElementById(w.id);
+
+      if (!we) {
+        throw new Error(
+          "Word element not found: " + w.id
+        );
+      }
+
+      const start = Number(w.start);
+      const end = Number(w.end);
+
+      if (
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        start < 0 ||
+        end <= start
+      ) {
+        throw new Error(
+          "Invalid word timing: " + w.id
+        );
+      }
+
+      const hold = Math.max(
+        0.06,
+        end - start
+      );
+
+      /*
+        Word highlight begins at its absolute
+        timestamp in the padded narration audio.
+      */
+
+      tl.fromTo(
+        we,
+        OFF,
+        {
+          ...ON,
+          duration: 0.05,
+          ease: "none",
+          immediateRender: false
+        },
+        start
+      );
+
+      tl.fromTo(
+        we,
+        ON,
+        {
+          ...DONE,
+          duration: 0.12,
+          ease: "none",
+          immediateRender: false
+        },
+        start + hold
+      );
+
+    });
+
+    tl.to(
+      el,
+      {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power1.in"
+      },
+      sentenceEnd + 0.35
+    );
+
+  });
+
   window.__timelines = window.__timelines || {};
+
   window.__timelines["main"] = tl;
+
+})();
 </script>
+
 </body>
 </html>
