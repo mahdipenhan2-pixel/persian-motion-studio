@@ -94,7 +94,7 @@ jobs:
           ls -la
 
       - name: Save Whisper model cache
-        if: always()
+        if: if: steps.whisper-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/hyperframes
