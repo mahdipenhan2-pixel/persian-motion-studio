@@ -54,6 +54,7 @@ jobs:
       - name: Validate Stage 0 inputs (offline)
         run: python3 scripts/story_stage0.py check
 
+      # Restore narration audio
       - name: Restore audio cache
         id: audio-cache
         uses: actions/cache/restore@v5
@@ -61,6 +62,7 @@ jobs:
           path: .cache/story
           key: story-audio-v1-${{ hashFiles('story/script.stage0.json', 'story/config.json') }}
 
+      # Free-tier safety confirmation
       - name: Free-tier confirmation gate
         if: steps.audio-cache.outputs.cache-hit != 'true'
         env:
@@ -71,11 +73,14 @@ jobs:
             exit 1
           fi
 
+      # Generate audio only if cache is missing
       - name: Generate narration (Gemini TTS)
+        if: steps.audio-cache.outputs.cache-hit != 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python3 scripts/story_stage0.py tts
 
+      # Save narration cache
       - name: Save audio cache
         if: steps.audio-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
@@ -86,6 +91,15 @@ jobs:
       - name: Prepare audio
         run: python3 scripts/story_stage0.py prepare
 
+      # Restore Whisper model cache
+      - name: Restore Whisper model cache
+        id: whisper-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/hyperframes
+          key: hyperframes-models-v1
+
+      # Transcribe Persian speech
       - name: Transcribe Persian speech with HyperFrames Whisper
         run: |
           mkdir -p build/stage0/whisper
@@ -93,8 +107,9 @@ jobs:
           npx --yes hyperframes transcribe ../whisper_input.wav --model small --language fa
           ls -la
 
+      # Save Whisper cache only when missing
       - name: Save Whisper model cache
-        if: if: steps.whisper-cache.outputs.cache-hit != 'true'
+        if: steps.whisper-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/hyperframes
@@ -117,6 +132,7 @@ jobs:
       - name: Verify MP4
         run: python3 scripts/story_stage0.py verify
 
+      # Workflow report
       - name: Add report to workflow summary
         if: always()
         run: |
@@ -133,6 +149,7 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # Upload results
       - name: Upload Stage 0 results
         if: always()
         uses: actions/upload-artifact@v7
