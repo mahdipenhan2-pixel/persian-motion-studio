@@ -161,8 +161,8 @@ jobs:
         if: steps.whisper-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
-          path: ~/.cache/hyperframes
-          key: hyperframes-models-v1
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
 
       - name: Align script words to speech
         run: python3 scripts/story_stage0.py align
