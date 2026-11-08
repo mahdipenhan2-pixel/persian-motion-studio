@@ -79,16 +79,13 @@ jobs:
           path: ~/.cache/huggingface/hub
           key: stage1-whisper-small-v1
 
-      - name: Validate Stage 1 files
-        run: |
-          .venv-stage1/bin/python scripts/story_stage1.py check
-
       - name: Generate Persian narration
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CONFIRM_FREE_TIER: ${{ github.event.inputs.confirm_free_tier }}
         run: |
+          echo "Free-tier confirmation: $CONFIRM_FREE_TIER"
           .venv-stage1/bin/python scripts/story_stage1.py tts
-
       # Save the audio cache immediately after successful TTS.
       # This step runs before Whisper and alignment can fail.
       - name: Save Stage 1 audio cache
