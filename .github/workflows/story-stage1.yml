@@ -84,15 +84,16 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CONFIRM_FREE_TIER: ${{ github.event.inputs.confirm_free_tier }}
         run: |
-          if [ "$CONFIRM_FREE_TIER" = "true" ]; then
-            export CONFIRM_FREE_TIER=YES
-          fi
+          case "$CONFIRM_FREE_TIER" in
+            true|TRUE|yes|YES)
+              export CONFIRM_FREE_TIER=YES
+              ;;
+            *)
+              export CONFIRM_FREE_TIER=NO
+              ;;
+          esac
           echo "Free-tier confirmation: $CONFIRM_FREE_TIER"
           .venv-stage1/bin/python scripts/story_stage1.py tts
-      - name: Prepare audio
-        run: |
-          .venv-stage1/bin/python scripts/story_stage1.py prepare
-
       - name: Generate Whisper timestamps
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py transcribe
