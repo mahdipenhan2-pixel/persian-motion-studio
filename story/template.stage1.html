@@ -4,17 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NFP Story Studio - Stage 1</title>
+
 <style>
 @font-face {
     font-family: "Vazirmatn";
     src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
     font-weight: 400;
+    font-display: swap;
 }
+
 @font-face {
     font-family: "Vazirmatn";
     src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2");
     font-weight: 700;
+    font-display: swap;
 }
+
 :root {
     --ink: #07111f;
     --paper: #eef2f7;
@@ -22,33 +27,58 @@
     --cyan: #48c6ef;
     --gold: #f6bd60;
 }
+
 * {
     box-sizing: border-box;
 }
-html, body {
+
+html,
+body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     background: var(--ink);
 }
+
 body {
     font-family: "Vazirmatn", sans-serif;
 }
+
 #root {
     position: relative;
     width: 1080px;
     height: 1920px;
     overflow: hidden;
+
     background:
-        radial-gradient(circle at 20% 20%, #17365b 0%, transparent 40%),
-        radial-gradient(circle at 85% 75%, #153d45 0%, transparent 38%),
-        linear-gradient(145deg, #07111f, #101d32 55%, #07111f);
+        radial-gradient(
+            circle at 20% 20%,
+            #17365b 0%,
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 85% 75%,
+            #153d45 0%,
+            transparent 38%
+        ),
+        linear-gradient(
+            145deg,
+            #07111f,
+            #101d32 55%,
+            #07111f
+        );
+
     color: var(--paper);
 }
+
 #scene-container {
     position: absolute;
     inset: 0;
+    z-index: 1;
 }
+
 .scene {
     position: absolute;
     inset: 0;
@@ -57,33 +87,30 @@ body {
     opacity: 0;
     overflow: hidden;
 }
+
 .scene::before,
 .scene::after {
     content: "";
     position: absolute;
     border: 2px solid rgba(72,198,239,0.12);
     border-radius: 50%;
+    pointer-events: none;
 }
+
 .scene::before {
     width: 850px;
     height: 850px;
     top: 350px;
     left: 115px;
 }
+
 .scene::after {
     width: 620px;
     height: 620px;
     top: 465px;
     left: 230px;
 }
-.scene-number {
-    position: absolute;
-    top: 130px;
-    right: 90px;
-    color: rgba(255,255,255,0.12);
-    font-size: 150px;
-    font-weight: 700;
-}
+
 .node {
     position: absolute;
     width: 28px;
@@ -92,14 +119,17 @@ body {
     background: var(--cyan);
     box-shadow: 0 0 25px rgba(72,198,239,0.7);
 }
+
 .stage1-node-1 {
     background: var(--gold);
     box-shadow: 0 0 25px rgba(246,189,96,0.7);
 }
+
 .stage1-node-2 {
     background: #80ed99;
     box-shadow: 0 0 25px rgba(128,237,153,0.7);
 }
+
 .brand {
     position: absolute;
     top: 70px;
@@ -111,6 +141,7 @@ body {
     letter-spacing: 3px;
     z-index: 10;
 }
+
 #caption-area {
     position: absolute;
     left: 70px;
@@ -118,15 +149,19 @@ body {
     bottom: 230px;
     min-height: 230px;
     padding: 42px 45px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     background: rgba(5,13,26,0.90);
     border: 1px solid rgba(255,255,255,0.13);
     border-radius: 30px;
+
     box-shadow: 0 15px 55px rgba(0,0,0,0.3);
     z-index: 20;
 }
+
 .caption-sentence {
     width: 100%;
     color: var(--paper);
@@ -138,12 +173,14 @@ body {
     opacity: 0;
     visibility: hidden;
 }
+
 .caption-word {
     display: inline;
     color: var(--muted);
-    padding: 0 0.12em;
+    margin-inline: 0.08em;
     border-radius: 0.2em;
 }
+
 .bottom-line {
     position: absolute;
     bottom: 115px;
@@ -153,6 +190,7 @@ body {
     background: rgba(255,255,255,0.12);
     z-index: 10;
 }
+
 .bottom-line::after {
     content: "";
     display: block;
@@ -162,15 +200,17 @@ body {
 }
 </style>
 </head>
+
 <body>
+
 <div
     id="root"
     data-composition-id="stage1"
     data-start="0"
     data-width="1080"
     data-height="1920"
-    data-duration="__DURATION__"
 >
+
     <audio
         id="narration"
         src="narration.wav"
@@ -179,124 +219,215 @@ body {
         data-track-index="10"
         data-volume="1"
     ></audio>
-<div class="brand">NFP STORY STUDIO</div>
-<div id="scene-container">
-    __SCENES_HTML__
+
+    <div class="brand">
+        NFP STORY STUDIO
+    </div>
+
+    <div id="scene-container">
+        __SCENES_HTML__
+    </div>
+
+    <div id="caption-area"></div>
+
+    <div class="bottom-line"></div>
+
 </div>
-<div id="caption-area"></div>
-<div class="bottom-line"></div>
-</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
 <script>
 (() => {
     "use strict";
+
     const DATA = __TIMELINE_JSON__;
+
     if (typeof gsap === "undefined") {
         throw new Error("GSAP failed to load.");
     }
-    if (!DATA || !Array.isArray(DATA.sentences)) {
+
+    if (
+        !DATA ||
+        !Array.isArray(DATA.sentences)
+    ) {
         throw new Error("Invalid Stage 1 timeline.");
     }
-    const tl = gsap.timeline({ paused: true });
-    const captionArea = document.getElementById("caption-area");
+
+    const timeline = gsap.timeline({
+        paused: true
+    });
+
+    const captionArea = document.getElementById(
+        "caption-area"
+    );
+
     DATA.sentences.forEach((sentence) => {
+
         const scene = document.getElementById(
             "sent-" + sentence.id
         );
+
         if (!scene) {
-            throw new Error("Scene missing: " + sentence.id);
+            throw new Error(
+                "Scene missing: " + sentence.id
+            );
         }
+
         const start = Number(sentence.start);
         const end = Number(sentence.end);
+        const duration = end - start;
+
         if (
             !Number.isFinite(start) ||
             !Number.isFinite(end) ||
             start < 0 ||
-            end <= start
+            duration <= 0
         ) {
-            throw new Error("Invalid scene timing.");
+            throw new Error(
+                "Invalid scene timing: " + sentence.id
+            );
         }
-        tl.fromTo(
+
+        // Scene entrance starts exactly at clip start.
+
+        timeline.fromTo(
             scene,
-            { opacity: 0, scale: 0.97 },
+            {
+                opacity: 0,
+                scale: 0.97
+            },
             {
                 opacity: 1,
                 scale: 1,
-                duration: 0.4,
-                ease: "power2.out",
-                immediateRender: false
-            },
-            Math.max(0, start - 0.2)
-        );
-        const caption = document.createElement("div");
-        caption.className = "caption-sentence";
-        caption.dir = "rtl";
-        const words = [];
-        sentence.words.forEach((word) => {
-            const span = document.createElement("span");
-            span.className = "caption-word";
-            span.textContent = word.text;
-            caption.appendChild(span);
-            words.push({
-                element: span,
-                start: Number(word.start),
-                end: Number(word.end)
-            });
-        });
-        captionArea.appendChild(caption);
-        tl.fromTo(
-            caption,
-            { autoAlpha: 0, y: 20 },
-            {
-                autoAlpha: 1,
-                y: 0,
-                duration: 0.25,
+                duration: Math.min(0.35, duration),
                 ease: "power2.out",
                 immediateRender: false
             },
             start
         );
-        words.forEach((word) => {
+
+        // Create Persian caption.
+
+        const caption = document.createElement("div");
+
+        caption.className = "caption-sentence";
+        caption.dir = "rtl";
+
+        const words = [];
+
+        sentence.words.forEach((word) => {
+
+            const wordStart = Number(word.start);
+            const wordEnd = Number(word.end);
+
             if (
-                !Number.isFinite(word.start) ||
-                !Number.isFinite(word.end) ||
-                word.end <= word.start
+                !Number.isFinite(wordStart) ||
+                !Number.isFinite(wordEnd) ||
+                wordStart < 0 ||
+                wordEnd <= wordStart
             ) {
-                throw new Error("Invalid word timing.");
+                throw new Error(
+                    "Invalid word timing."
+                );
             }
-            tl.set(
+
+            const span = document.createElement("span");
+
+            span.className = "caption-word";
+            span.textContent = word.text;
+
+            caption.appendChild(span);
+
+            words.push({
+                element: span,
+                start: wordStart,
+                end: wordEnd
+            });
+        });
+
+        captionArea.appendChild(caption);
+
+        // Caption entrance.
+
+        timeline.fromTo(
+            caption,
+            {
+                autoAlpha: 0,
+                y: 20
+            },
+            {
+                autoAlpha: 1,
+                y: 0,
+                duration: Math.min(0.25, duration),
+                ease: "power2.out",
+                immediateRender: false
+            },
+            start
+        );
+
+        // Word-by-word highlighting.
+
+        words.forEach((word) => {
+
+            timeline.set(
                 word.element,
-                { color: "#f6bd60" },
+                {
+                    color: "#f6bd60"
+                },
                 word.start
             );
-            tl.set(
+
+            timeline.set(
                 word.element,
-                { color: "#ffffff" },
+                {
+                    color: "#ffffff"
+                },
                 word.end
             );
         });
-        tl.to(
+
+        // Fade out before the clip ends.
+
+        const fadeOutDuration = Math.min(
+            0.2,
+            duration
+        );
+
+        const fadeOutStart = Math.max(
+            start,
+            end - fadeOutDuration
+        );
+
+        timeline.to(
             caption,
             {
                 autoAlpha: 0,
                 y: -12,
-                duration: 0.2
+                duration: fadeOutDuration,
+                ease: "power1.in"
             },
-            Math.max(start, end - 0.2)
+            fadeOutStart
         );
-        tl.to(
+
+        timeline.to(
             scene,
             {
                 opacity: 0,
-                duration: 0.3,
+                duration: fadeOutDuration,
                 ease: "power1.in"
             },
-            end + 0.35
+            fadeOutStart
         );
     });
+
+    // Register the composition timeline.
+
     window.__timelines = window.__timelines || {};
-    window.__timelines["stage1"] = tl;
+
+    window.__timelines["stage1"] = timeline;
+
 })();
 </script>
+
 </body>
 </html>
