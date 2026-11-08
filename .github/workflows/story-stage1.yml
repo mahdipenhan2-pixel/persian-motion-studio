@@ -1,4 +1,5 @@
 name: NFP Story Studio - Stage 1
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,29 +11,37 @@ on:
           - NO
           - YES
         default: NO
+
 permissions:
   contents: read
+
 concurrency:
   group: nfp-story-stage1
   cancel-in-progress: false
+
 jobs:
   build-stage1:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+
     env:
       PYTHONUNBUFFERED: "1"
       CONFIRM_FREE_TIER: ${{ inputs.confirm_free_tier }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: "22"
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -43,6 +52,7 @@ jobs:
             fontconfig \
             python3-venv
           fc-cache -f
+
       - name: Create Python environment
         run: |
           python -m venv .venv-stage1
@@ -50,6 +60,7 @@ jobs:
           .venv-stage1/bin/python -m pip install \
             faster-whisper==1.2.1 \
             "av<19"
+
       - name: Restore Stage 1 audio cache
         uses: actions/cache@v4
         with:
@@ -57,30 +68,39 @@ jobs:
           key: stage1-audio-${{ hashFiles('story/script.stage1.json', 'story/config.stage1.json', 'scripts/story_stage1.py') }}
           restore-keys: |
             stage1-audio-
+
       - name: Restore Whisper model cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface/hub
           key: stage1-whisper-small-v1
+
       - name: Validate Stage 1 files
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py check
+
       - name: Generate Persian narration
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py tts
+
       - name: Prepare audio
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py prepare
+
       - name: Generate Whisper timestamps
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py transcribe
+
       - name: Align Persian words
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py align
+
       - name: Compose Stage 1 scenes
         run: |
+          .venv-stage1/bin/python scripts/story_stage1.py compose
+
       - name: Install and copy Vazirmatn fonts
         run: |
           npm install --no-save @fontsource/vazirmatn
@@ -95,7 +115,7 @@ jobs:
 
           test -s build/stage1/story/assets/fonts/vazirmatn-arabic-400-normal.woff2
           test -s build/stage1/story/assets/fonts/vazirmatn-arabic-700-normal.woff2
-          .venv-stage1/bin/python scripts/story_stage1.py compose
+
       - name: Render MP4 with HyperFrames
         working-directory: build/stage1/story
         run: |
@@ -103,9 +123,11 @@ jobs:
             --output ../story.mp4 \
             --fps 30 \
             --quality standard
+
       - name: Verify final MP4
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py verify
+
       - name: Upload Stage 1 production files
         if: always()
         uses: actions/upload-artifact@v4
