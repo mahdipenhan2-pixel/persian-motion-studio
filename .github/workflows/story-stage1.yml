@@ -81,6 +81,20 @@ jobs:
           .venv-stage1/bin/python scripts/story_stage1.py align
       - name: Compose Stage 1 scenes
         run: |
+      - name: Install and copy Vazirmatn fonts
+        run: |
+          npm install --no-save @fontsource/vazirmatn
+
+          mkdir -p assets/fonts
+          mkdir -p build/stage1/story/assets/fonts
+
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+
+          cp assets/fonts/*.woff2 build/stage1/story/assets/fonts/
+
+          test -s build/stage1/story/assets/fonts/vazirmatn-arabic-400-normal.woff2
+          test -s build/stage1/story/assets/fonts/vazirmatn-arabic-700-normal.woff2
           .venv-stage1/bin/python scripts/story_stage1.py compose
       - name: Render MP4 with HyperFrames
         working-directory: build/stage1/story
