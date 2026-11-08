@@ -334,27 +334,85 @@ def check() -> None:
 # ==================================================
 
 def extract_audio_from_response(data: dict) -> bytes:
+    """
+    Extract audio from Gemini Interactions API REST responses.
 
+    Supports:
+    - SDK-style output_audio
+    - Current REST steps[].content[] audio blocks
+    - Legacy outputs[] audio blocks
+    """
+
+    if not isinstance(data, dict):
+        die("Gemini returned an invalid response object.")
+
+    # Some responses may wrap the interaction object.
+    interaction = data.get("interaction")
+
+    if isinstance(interaction, dict):
+        data = interaction
+
+    audio_blocks = []
+
+    # SDK convenience-property format.
     output_audio = data.get("output_audio")
 
-    if not isinstance(output_audio, dict):
-        die("Gemini response has no output_audio object.")
+    if isinstance(output_audio, dict):
+        audio_blocks.append(output_audio)
 
-    encoded = output_audio.get("data")
+    # Current REST response format.
+    for step in data.get("steps", []):
+        if not isinstance(step, dict):
+            continue
 
-    if not isinstance(encoded, str) or not encoded:
-        die("Gemini response has no audio data.")
+        if step.get("type") != "model_output":
+            continue
 
-    try:
-        return base64.b64decode(
-            encoded,
-            validate=True
-        )
+        for content in step.get("content", []):
+            if (
+                isinstance(content, dict)
+                and content.get("type") == "audio"
+            ):
+                audio_blocks.append(content)
 
-    except Exception as exc:
-        die(f"Could not decode Gemini audio: {exc}")
+    # Legacy response format.
+    for output in data.get("outputs", []):
+        if (
+            isinstance(output, dict)
+            and output.get("type") == "audio"
+        ):
+            audio_blocks.append(output)
 
+    # Use the last generated audio block.
+    for block in reversed(audio_blocks):
+        encoded = block.get("data")
 
+        if not isinstance(encoded, str) or not encoded:
+            continue
+
+        try:
+            audio_bytes = base64.b64decode(
+                encoded,
+                validate=True
+            )
+
+            if audio_bytes:
+                return audio_bytes
+
+        except Exception as exc:
+            die(f"Could not decode Gemini audio: {exc}")
+
+    step_types = [
+        step.get("type")
+        for step in data.get("steps", [])
+        if isinstance(step, dict)
+    ]
+
+    die(
+        "Gemini response contains no usable inline audio data. "
+        f"Response status: {data.get('status', 'unknown')}; "
+        f"step types: {step_types}"
+    )
 def tts() -> None:
 
     info("Preparing Stage 1 narration...")
