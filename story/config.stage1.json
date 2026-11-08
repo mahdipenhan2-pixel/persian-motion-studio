@@ -1,56 +1,56 @@
 {
-“video”: {
-“width”: 1080,
-“height”: 1920,
-“fps”: 30,
-“duration_sec”: 60,
-“format”: “mp4”
-},
-“tts”: {
-“model”: “gemini-3.8-flash-tts”,
-“voice”: “Kore”,
-“style”: “calm, clear, engaging narration”,
-“max_attempts”: 4,
-“max_requests_per_run”: 4,
-“timeout_sec”: 120
-},
-“whisper”: {
-“model”: “small”,
-“language”: “fa”,
-“word_timestamps”: true
-},
-“audio”: {
-“lead_in_ms”: 300,
-“tail_ms”: 800,
-“sample_rate”: 48000
-},
-“alignment”: {
-“min_sentence_ratio”: 0.85,
-“min_word_match”: 0.6
-},
-“motion”: {
-“enabled”: true,
-“style”: “hybrid”,
-“camera”: {
-“zoom”: true,
-“pan”: true,
-“dynamic”: true
-},
-“transitions”: {
-“enabled”: true,
-“duration_sec”: 0.35
-},
-“animation”: {
-“pace”: “dynamic”,
-“scene_changes”: true,
-“smooth_motion”: true
-}
-},
-“subtitles”: {
-“enabled”: true,
-“language”: “fa”,
-“word_by_word”: true,
-“highlight_active_word”: true,
-“font”: “Vazirmatn”
-}
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "duration_sec": 60,
+    "format": "mp4"
+  },
+  "tts": {
+    "model": "gemini-3.8-flash-tts",
+    "voice": "Kore",
+    "style": "calm, clear, engaging narration",
+    "max_attempts": 1,
+    "max_requests_per_run": 1,
+    "timeout_sec": 120
+  },
+  "whisper": {
+    "model": "small",
+    "language": "fa",
+    "word_timestamps": true
+  },
+  "audio": {
+    "lead_in_ms": 300,
+    "tail_ms": 800,
+    "sample_rate": 48000
+  },
+  "alignment": {
+    "min_sentence_ratio": 0.85,
+    "min_word_match": 0.6
+  },
+  "motion": {
+    "enabled": true,
+    "style": "hybrid",
+    "camera": {
+      "zoom": true,
+      "pan": true,
+      "dynamic": true
+    },
+    "transitions": {
+      "enabled": true,
+      "duration_sec": 0.35
+    },
+    "animation": {
+      "pace": "dynamic",
+      "scene_changes": true,
+      "smooth_motion": true
+    }
+  },
+  "subtitles": {
+    "enabled": true,
+    "language": "fa",
+    "word_by_word": true,
+    "highlight_active_word": true,
+    "font": "Vazirmatn"
+  }
 }
