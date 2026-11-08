@@ -23,7 +23,7 @@
 :root {
     --ink: #07111f;
     --paper: #eef2f7;
-    --muted: #8aa0b8;
+    --muted: #a6b5c8;
     --cyan: #48c6ef;
     --gold: #f6bd60;
 }
@@ -73,62 +73,7 @@ body {
     color: var(--paper);
 }
 
-#scene-container {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-}
-
-.scene {
-    position: absolute;
-    inset: 0;
-    width: 1080px;
-    height: 1920px;
-    opacity: 0;
-    overflow: hidden;
-}
-
-.scene::before,
-.scene::after {
-    content: "";
-    position: absolute;
-    border: 2px solid rgba(72,198,239,0.12);
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.scene::before {
-    width: 850px;
-    height: 850px;
-    top: 350px;
-    left: 115px;
-}
-
-.scene::after {
-    width: 620px;
-    height: 620px;
-    top: 465px;
-    left: 230px;
-}
-
-.node {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 25px rgba(72,198,239,0.7);
-}
-
-.stage1-node-1 {
-    background: var(--gold);
-    box-shadow: 0 0 25px rgba(246,189,96,0.7);
-}
-
-.stage1-node-2 {
-    background: #80ed99;
-    box-shadow: 0 0 25px rgba(128,237,153,0.7);
-}
+/* BRAND */
 
 .brand {
     position: absolute;
@@ -139,39 +84,192 @@ body {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: 3px;
-    z-index: 10;
+    z-index: 30;
 }
+
+/* SCENES */
+
+#scene-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.scene {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    opacity: 0;
+    overflow: hidden;
+    transform-origin: center center;
+    will-change: transform, opacity;
+}
+
+.scene-0 {
+    background:
+        radial-gradient(
+            circle at 50% 40%,
+            rgba(72,198,239,0.13),
+            transparent 55%
+        );
+}
+
+.scene-1 {
+    background:
+        radial-gradient(
+            circle at 65% 45%,
+            rgba(246,189,96,0.12),
+            transparent 55%
+        );
+}
+
+.scene-2 {
+    background:
+        radial-gradient(
+            circle at 35% 55%,
+            rgba(128,237,153,0.11),
+            transparent 55%
+        );
+}
+
+.scene-3 {
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(160,130,255,0.12),
+            transparent 55%
+        );
+}
+
+.scene::before,
+.scene::after {
+    content: "";
+    position: absolute;
+    border: 2px solid rgba(72,198,239,0.15);
+    border-radius: 50%;
+    pointer-events: none;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+}
+
+.scene::before {
+    width: 850px;
+    height: 850px;
+}
+
+.scene::after {
+    width: 620px;
+    height: 620px;
+    border-color: rgba(246,189,96,0.13);
+}
+
+/* DECORATIVE GRID */
+
+.scene-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.13;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,0.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.08) 1px,
+            transparent 1px
+        );
+
+    background-size: 90px 90px;
+}
+
+/* NODES */
+
+.node {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow:
+        0 0 25px rgba(72,198,239,0.7),
+        0 0 60px rgba(72,198,239,0.2);
+
+    z-index: 5;
+    will-change: transform;
+}
+
+.stage1-node-1 {
+    background: var(--gold);
+    box-shadow:
+        0 0 25px rgba(246,189,96,0.7),
+        0 0 60px rgba(246,189,96,0.2);
+}
+
+.stage1-node-2 {
+    background: #80ed99;
+    box-shadow:
+        0 0 25px rgba(128,237,153,0.7),
+        0 0 60px rgba(128,237,153,0.2);
+}
+
+/* SUBTITLE BOX */
 
 #caption-area {
     position: absolute;
     left: 70px;
     right: 70px;
     bottom: 230px;
-    min-height: 230px;
-    padding: 42px 45px;
+    height: 290px;
+    padding: 35px 45px;
+
+    display: block;
+
+    background: rgba(5,13,26,0.94);
+    border: 1px solid rgba(255,255,255,0.17);
+    border-radius: 30px;
+
+    box-shadow:
+        0 15px 55px rgba(0,0,0,0.35),
+        0 0 30px rgba(72,198,239,0.07);
+
+    z-index: 20;
+    overflow: hidden;
+}
+
+/* EACH SENTENCE HAS ITS OWN LAYER */
+
+.caption-sentence {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 35px 45px;
 
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
 
-    background: rgba(5,13,26,0.90);
-    border: 1px solid rgba(255,255,255,0.13);
-    border-radius: 30px;
-
-    box-shadow: 0 15px 55px rgba(0,0,0,0.3);
-    z-index: 20;
-}
-
-.caption-sentence {
-    width: 100%;
     color: var(--paper);
     font-size: 43px;
     font-weight: 700;
     line-height: 1.9;
+
     text-align: center;
     direction: rtl;
+    unicode-bidi: plaintext;
+
     opacity: 0;
     visibility: hidden;
+
+    will-change: transform, opacity;
 }
 
 .caption-word {
@@ -179,25 +277,42 @@ body {
     color: var(--muted);
     margin-inline: 0.08em;
     border-radius: 0.2em;
+    transition: none;
 }
+
+/* PROGRESS BAR */
 
 .bottom-line {
     position: absolute;
     bottom: 115px;
     left: 90px;
     right: 90px;
-    height: 3px;
+    height: 5px;
+
     background: rgba(255,255,255,0.12);
-    z-index: 10;
+    border-radius: 10px;
+    overflow: hidden;
+
+    z-index: 30;
 }
 
-.bottom-line::after {
-    content: "";
-    display: block;
-    width: 35%;
-    height: 3px;
-    background: var(--cyan);
+#progress-fill {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        var(--cyan),
+        var(--gold)
+    );
+
+    transform: scaleX(0);
+    transform-origin: right center;
+    border-radius: 10px;
 }
+
 </style>
 </head>
 
@@ -230,7 +345,9 @@ body {
 
     <div id="caption-area"></div>
 
-    <div class="bottom-line"></div>
+    <div class="bottom-line">
+        <div id="progress-fill"></div>
+    </div>
 
 </div>
 
@@ -248,7 +365,8 @@ body {
 
     if (
         !DATA ||
-        !Array.isArray(DATA.sentences)
+        !Array.isArray(DATA.sentences) ||
+        DATA.sentences.length === 0
     ) {
         throw new Error("Invalid Stage 1 timeline.");
     }
@@ -261,7 +379,13 @@ body {
         "caption-area"
     );
 
-    DATA.sentences.forEach((sentence) => {
+    const progressFill = document.getElementById(
+        "progress-fill"
+    );
+
+    const allWords = [];
+
+    DATA.sentences.forEach((sentence, index) => {
 
         const scene = document.getElementById(
             "sent-" + sentence.id
@@ -288,30 +412,112 @@ body {
             );
         }
 
-        // Scene entrance starts exactly at clip start.
+        if (
+            !Array.isArray(sentence.words) ||
+            sentence.words.length === 0
+        ) {
+            throw new Error(
+                "No subtitle words for sentence: " +
+                sentence.id
+            );
+        }
+
+        /*
+         * SCENE ENTRANCE
+         */
+
+        const direction = index % 2 === 0 ? -1 : 1;
 
         timeline.fromTo(
             scene,
             {
                 opacity: 0,
-                scale: 0.97
+                scale: 1.04,
+                x: direction * 25
             },
             {
                 opacity: 1,
                 scale: 1,
-                duration: Math.min(0.35, duration),
+                x: 0,
+                duration: Math.min(0.4, duration),
                 ease: "power2.out",
                 immediateRender: false
             },
             start
         );
 
-        // Create Persian caption.
+        /*
+         * SLOW CAMERA MOVEMENT
+         */
+
+        const cameraDuration = Math.max(
+            0.1,
+            duration - Math.min(0.4, duration)
+        );
+
+        timeline.to(
+            scene,
+            {
+                scale: index % 2 === 0 ? 1.10 : 1.07,
+                x: index % 2 === 0 ? -18 : 18,
+                y: -20,
+                duration: cameraDuration,
+                ease: "none"
+            },
+            start + Math.min(0.4, duration)
+        );
+
+        /*
+         * DECORATIVE NODE ANIMATION
+         */
+
+        const nodes = scene.querySelectorAll(".node");
+
+        nodes.forEach((node, nodeIndex) => {
+
+            const movement = [
+                { x: 75, y: -45 },
+                { x: -65, y: 60 },
+                { x: 35, y: 85 }
+            ][nodeIndex % 3];
+
+            timeline.fromTo(
+                node,
+                {
+                    scale: 0.5,
+                    opacity: 0
+                },
+                {
+                    scale: 1,
+                    opacity: 1,
+                    duration: 0.35,
+                    ease: "back.out(1.7)"
+                },
+                start + 0.1
+            );
+
+            timeline.to(
+                node,
+                {
+                    x: movement.x,
+                    y: movement.y,
+                    scale: 1.35,
+                    duration: Math.max(0.2, duration * 0.75),
+                    ease: "sine.inOut"
+                },
+                start + 0.35
+            );
+        });
+
+        /*
+         * CREATE SUBTITLE SENTENCE
+         */
 
         const caption = document.createElement("div");
 
         caption.className = "caption-sentence";
         caption.dir = "rtl";
+        caption.lang = "fa";
 
         const words = [];
 
@@ -324,10 +530,13 @@ body {
                 !Number.isFinite(wordStart) ||
                 !Number.isFinite(wordEnd) ||
                 wordStart < 0 ||
-                wordEnd <= wordStart
+                wordEnd <= wordStart ||
+                typeof word.text !== "string" ||
+                !word.text.trim()
             ) {
                 throw new Error(
-                    "Invalid word timing."
+                    "Invalid subtitle word in sentence: " +
+                    sentence.id
                 );
             }
 
@@ -343,36 +552,48 @@ body {
                 start: wordStart,
                 end: wordEnd
             });
+
+            allWords.push({
+                element: span,
+                start: wordStart,
+                end: wordEnd
+            });
         });
 
         captionArea.appendChild(caption);
 
-        // Caption entrance.
+        /*
+         * SUBTITLE ENTRANCE
+         */
 
         timeline.fromTo(
             caption,
             {
                 autoAlpha: 0,
-                y: 20
+                y: 25
             },
             {
                 autoAlpha: 1,
                 y: 0,
-                duration: Math.min(0.25, duration),
+                duration: Math.min(0.3, duration),
                 ease: "power2.out",
                 immediateRender: false
             },
             start
         );
 
-        // Word-by-word highlighting.
+        /*
+         * WORD-BY-WORD HIGHLIGHTING
+         */
 
         words.forEach((word) => {
 
             timeline.set(
                 word.element,
                 {
-                    color: "#f6bd60"
+                    color: "#f6bd60",
+                    textShadow:
+                        "0 0 18px rgba(246,189,96,0.35)"
                 },
                 word.start
             );
@@ -380,13 +601,16 @@ body {
             timeline.set(
                 word.element,
                 {
-                    color: "#ffffff"
+                    color: "#ffffff",
+                    textShadow: "none"
                 },
                 word.end
             );
         });
 
-        // Fade out before the clip ends.
+        /*
+         * SUBTITLE EXIT
+         */
 
         const fadeOutDuration = Math.min(
             0.2,
@@ -402,12 +626,16 @@ body {
             caption,
             {
                 autoAlpha: 0,
-                y: -12,
+                y: -15,
                 duration: fadeOutDuration,
                 ease: "power1.in"
             },
             fadeOutStart
         );
+
+        /*
+         * SCENE EXIT
+         */
 
         timeline.to(
             scene,
@@ -420,11 +648,47 @@ body {
         );
     });
 
-    // Register the composition timeline.
+    /*
+     * GLOBAL PROGRESS BAR
+     */
+
+    const totalDuration = Number(DATA.duration);
+
+    if (
+        !Number.isFinite(totalDuration) ||
+        totalDuration <= 0
+    ) {
+        throw new Error("Invalid total video duration.");
+    }
+
+    timeline.fromTo(
+        progressFill,
+        {
+            scaleX: 0
+        },
+        {
+            scaleX: 1,
+            duration: totalDuration,
+            ease: "none"
+        },
+        0
+    );
+
+    /*
+     * REGISTER HYPERFRAMES TIMELINE
+     */
 
     window.__timelines = window.__timelines || {};
 
     window.__timelines["stage1"] = timeline;
+
+    console.log(
+        "Stage 1 ready:",
+        DATA.sentences.length,
+        "scenes;",
+        allWords.length,
+        "timed words."
+    );
 
 })();
 </script>
