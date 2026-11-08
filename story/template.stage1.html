@@ -4,18 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NFP Story Studio - Stage 1</title>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
 <style>
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2");
+    font-weight: 700;
+}
+:root {
+    --ink: #07111f;
+    --paper: #eef2f7;
+    --muted: #8aa0b8;
+    --cyan: #48c6ef;
+    --gold: #f6bd60;
+}
 * {
     box-sizing: border-box;
 }
 html, body {
     margin: 0;
     padding: 0;
-    width: 1080px;
-    height: 1920px;
     overflow: hidden;
-    background: #07111f;
+    background: var(--ink);
+}
+body {
     font-family: "Vazirmatn", sans-serif;
 }
 #root {
@@ -27,6 +43,11 @@ html, body {
         radial-gradient(circle at 20% 20%, #17365b 0%, transparent 40%),
         radial-gradient(circle at 85% 75%, #153d45 0%, transparent 38%),
         linear-gradient(145deg, #07111f, #101d32 55%, #07111f);
+    color: var(--paper);
+}
+#scene-container {
+    position: absolute;
+    inset: 0;
 }
 .scene {
     position: absolute;
@@ -34,26 +55,24 @@ html, body {
     width: 1080px;
     height: 1920px;
     opacity: 0;
-    visibility: hidden;
     overflow: hidden;
 }
-.scene::before {
+.scene::before,
+.scene::after {
     content: "";
     position: absolute;
+    border: 2px solid rgba(72,198,239,0.12);
+    border-radius: 50%;
+}
+.scene::before {
     width: 850px;
     height: 850px;
-    border: 2px solid rgba(80, 190, 255, 0.12);
-    border-radius: 50%;
     top: 350px;
     left: 115px;
 }
 .scene::after {
-    content: "";
-    position: absolute;
     width: 620px;
     height: 620px;
-    border: 2px solid rgba(80, 190, 255, 0.10);
-    border-radius: 50%;
     top: 465px;
     left: 230px;
 }
@@ -63,62 +82,23 @@ html, body {
     right: 90px;
     color: rgba(255,255,255,0.12);
     font-size: 150px;
-    font-weight: 800;
+    font-weight: 700;
 }
 .node {
     position: absolute;
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #48c6ef;
-    box-shadow:
-        0 0 20px rgba(72,198,239,0.8),
-        0 0 55px rgba(72,198,239,0.35);
-    z-index: 3;
+    background: var(--cyan);
+    box-shadow: 0 0 25px rgba(72,198,239,0.7);
 }
 .stage1-node-1 {
-    background: #f6bd60;
+    background: var(--gold);
     box-shadow: 0 0 25px rgba(246,189,96,0.7);
 }
 .stage1-node-2 {
     background: #80ed99;
     box-shadow: 0 0 25px rgba(128,237,153,0.7);
-}
-.caption-area {
-    position: absolute;
-    left: 70px;
-    right: 70px;
-    bottom: 230px;
-    min-height: 230px;
-    padding: 42px 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(5, 13, 26, 0.88);
-    border: 1px solid rgba(255,255,255,0.13);
-    border-radius: 30px;
-    box-shadow: 0 15px 55px rgba(0,0,0,0.3);
-    z-index: 20;
-}
-.caption-sentence {
-    width: 100%;
-    color: #ffffff;
-    font-size: 43px;
-    font-weight: 700;
-    line-height: 1.9;
-    text-align: center;
-    direction: rtl;
-    opacity: 0;
-    visibility: hidden;
-}
-.caption-word {
-    display: inline-block;
-    margin: 0 5px;
-    color: #ffffff;
-    transition: color 0.15s ease;
-}
-.caption-word.active {
-    color: #f6bd60;
 }
 .brand {
     position: absolute;
@@ -129,7 +109,40 @@ html, body {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: 3px;
-    z-index: 30;
+    z-index: 10;
+}
+#caption-area {
+    position: absolute;
+    left: 70px;
+    right: 70px;
+    bottom: 230px;
+    min-height: 230px;
+    padding: 42px 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5,13,26,0.90);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 30px;
+    box-shadow: 0 15px 55px rgba(0,0,0,0.3);
+    z-index: 20;
+}
+.caption-sentence {
+    width: 100%;
+    color: var(--paper);
+    font-size: 43px;
+    font-weight: 700;
+    line-height: 1.9;
+    text-align: center;
+    direction: rtl;
+    opacity: 0;
+    visibility: hidden;
+}
+.caption-word {
+    display: inline;
+    color: var(--muted);
+    padding: 0 0.12em;
+    border-radius: 0.2em;
 }
 .bottom-line {
     position: absolute;
@@ -138,14 +151,14 @@ html, body {
     right: 90px;
     height: 3px;
     background: rgba(255,255,255,0.12);
-    z-index: 25;
+    z-index: 10;
 }
 .bottom-line::after {
     content: "";
     display: block;
     width: 35%;
     height: 3px;
-    background: #48c6ef;
+    background: var(--cyan);
 }
 </style>
 </head>
@@ -154,152 +167,136 @@ html, body {
     id="root"
     data-composition-id="stage1"
     data-start="0"
-    data-duration="__DURATION__"
     data-width="1080"
     data-height="1920"
+    data-duration="__DURATION__"
 >
+    <audio
+        id="narration"
+        src="narration.wav"
+        data-start="0"
+        data-duration="__DURATION__"
+        data-track-index="10"
+        data-volume="1"
+    ></audio>
 <div class="brand">NFP STORY STUDIO</div>
 <div id="scene-container">
     __SCENES_HTML__
 </div>
-<div id="caption-area" class="caption-area"></div>
+<div id="caption-area"></div>
 <div class="bottom-line"></div>
-<audio
-    id="narration"
-    data-start="0"
-    data-duration="__DURATION__"
-    data-track-index="10"
-    src="narration.wav"
-    preload="auto"
-></audio>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
-window.__timelines = window.__timelines || {};
-const STORY_TIMING = __TIMELINE_JSON__;
-const timeline = gsap.timeline({
-    paused: true
-});
-const scenes = STORY_TIMING.sentences || [];
-const captionArea = document.getElementById("caption-area");
-const sceneElements = document.querySelectorAll(".scene");
-gsap.set(sceneElements, {
-    autoAlpha: 0,
-    scale: 0.97
-});
-function createCaption(sentence) {
-    const container = document.createElement("div");
-    container.className = "caption-sentence";
-    container.dir = "rtl";
-    const wordElements = [];
-    (sentence.words || []).forEach((word, index) => {
-        const span = document.createElement("span");
-        span.className = "caption-word";
-        span.textContent = word.text;
-        container.appendChild(span);
-        wordElements.push({
-            element: span,
-            start: Number(word.start),
-            end: Number(word.end)
-        });
-    });
-    captionArea.appendChild(container);
-    return {
-        container,
-        wordElements
-    };
-}
-scenes.forEach((sentence, index) => {
-    const start = Number(sentence.start);
-    const end = Number(sentence.end);
-    const scene = document.getElementById(
-        "sent-" + sentence.id
-    );
-    if (scene) {
-        timeline.fromTo(
+(() => {
+    "use strict";
+    const DATA = __TIMELINE_JSON__;
+    if (typeof gsap === "undefined") {
+        throw new Error("GSAP failed to load.");
+    }
+    if (!DATA || !Array.isArray(DATA.sentences)) {
+        throw new Error("Invalid Stage 1 timeline.");
+    }
+    const tl = gsap.timeline({ paused: true });
+    const captionArea = document.getElementById("caption-area");
+    DATA.sentences.forEach((sentence) => {
+        const scene = document.getElementById(
+            "sent-" + sentence.id
+        );
+        if (!scene) {
+            throw new Error("Scene missing: " + sentence.id);
+        }
+        const start = Number(sentence.start);
+        const end = Number(sentence.end);
+        if (
+            !Number.isFinite(start) ||
+            !Number.isFinite(end) ||
+            start < 0 ||
+            end <= start
+        ) {
+            throw new Error("Invalid scene timing.");
+        }
+        tl.fromTo(
             scene,
+            { opacity: 0, scale: 0.97 },
             {
-                autoAlpha: 0,
-                scale: 0.97
+                opacity: 1,
+                scale: 1,
+                duration: 0.4,
+                ease: "power2.out",
+                immediateRender: false
             },
+            Math.max(0, start - 0.2)
+        );
+        const caption = document.createElement("div");
+        caption.className = "caption-sentence";
+        caption.dir = "rtl";
+        const words = [];
+        sentence.words.forEach((word) => {
+            const span = document.createElement("span");
+            span.className = "caption-word";
+            span.textContent = word.text;
+            caption.appendChild(span);
+            words.push({
+                element: span,
+                start: Number(word.start),
+                end: Number(word.end)
+            });
+        });
+        captionArea.appendChild(caption);
+        tl.fromTo(
+            caption,
+            { autoAlpha: 0, y: 20 },
             {
                 autoAlpha: 1,
-                scale: 1,
-                duration: 0.55,
-                ease: "power2.out"
+                y: 0,
+                duration: 0.25,
+                ease: "power2.out",
+                immediateRender: false
             },
             start
         );
-        const nodes = scene.querySelectorAll(".node");
-        nodes.forEach((node, nodeIndex) => {
-            timeline.fromTo(
-                node,
-                {
-                    scale: 0,
-                    opacity: 0
-                },
-                {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 0.35,
-                    ease: "back.out(1.7)"
-                },
-                start + 0.3 + nodeIndex * 0.18
+        words.forEach((word) => {
+            if (
+                !Number.isFinite(word.start) ||
+                !Number.isFinite(word.end) ||
+                word.end <= word.start
+            ) {
+                throw new Error("Invalid word timing.");
+            }
+            tl.set(
+                word.element,
+                { color: "#f6bd60" },
+                word.start
+            );
+            tl.set(
+                word.element,
+                { color: "#ffffff" },
+                word.end
             );
         });
-        if (end - start > 0.4) {
-            timeline.to(
-                scene,
-                {
-                    autoAlpha: 0,
-                    duration: 0.35,
-                    ease: "power1.in"
-                },
-                Math.max(start + 0.55, end - 0.35)
-            );
-        }
-    }
-    const caption = createCaption(sentence);
-    timeline.fromTo(
-        caption.container,
-        {
-            autoAlpha: 0,
-            y: 25
-        },
-        {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.25,
-            ease: "power2.out"
-        },
-        start
-    );
-    timeline.to(
-        caption.container,
-        {
-            autoAlpha: 0,
-            y: -12,
-            duration: 0.2
-        },
-        Math.max(start, end - 0.2)
-    );
-    caption.wordElements.forEach(word => {
-        timeline.set(
-            word.element,
+        tl.to(
+            caption,
             {
-                color: "#f6bd60"
+                autoAlpha: 0,
+                y: -12,
+                duration: 0.2
             },
-            word.start
+            Math.max(start, end - 0.2)
         );
-        timeline.set(
-            word.element,
+        tl.to(
+            scene,
             {
-                color: "#ffffff"
+                opacity: 0,
+                duration: 0.3,
+                ease: "power1.in"
             },
-            word.end
+            end + 0.35
         );
     });
-});
-window.__timelines.stage1 = timeline;
+    window.__timelines = window.__timelines || {};
+    window.__timelines["stage1"] = tl;
+})();
 </script>
 </body>
 </html>
