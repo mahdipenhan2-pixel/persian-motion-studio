@@ -669,15 +669,24 @@ def make_sentence_html(
     sentence: dict,
     index: int
 ) -> str:
-    # Persian text is displayed only in the subtitle panel.
     scene_id = escape_html(str(sentence["id"]))
-    scene_class = f"scene-{index % 4}"
+    scene_class = f"scene scene-{index % 4}"
+
+    start = float(sentence["start"])
+    end = float(sentence["end"])
+    duration = end - start
+
+    if start < 0 or duration <= 0:
+        die(f"Invalid scene timing: {scene_id}")
+
     marker_positions = [
         (240, 340),
         (700, 480),
         (420, 700)
     ]
+
     markers = []
+
     for marker_index, (left, top) in enumerate(marker_positions):
         markers.append(
             '<span class="node '
@@ -685,11 +694,14 @@ def make_sentence_html(
             f'style="left:{left}px;top:{top}px">'
             '</span>'
         )
+
     return (
-        f'<section class="scene {scene_class}" '
+        f'<section class="{scene_class} clip" '
         f'id="sent-{scene_id}" '
+        f'data-start="{start:.3f}" '
+        f'data-duration="{duration:.3f}" '
+        f'data-track-index="1" '
         f'data-scene-index="{index}">'
-        f'<div class="scene-number">{index + 1:02d}</div>'
         + "".join(markers)
         + '</section>'
     )
