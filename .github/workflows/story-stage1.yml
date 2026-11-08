@@ -8,9 +8,9 @@ on:
         required: true
         type: choice
         options:
-          - false
-          - true
-        default: false
+          - NO
+          - YES
+        default: NO
 
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
 
     env:
       PYTHONUNBUFFERED: "1"
-      CONFIRM_FREE_TIER: ${{ inputs.confirm_free_tier == 'true' && 'YES' || 'NO' }}
+      CONFIRM_FREE_TIER: ${{ inputs.confirm_free_tier }}
 
     steps:
       - name: Checkout repository
@@ -61,8 +61,11 @@ jobs:
             faster-whisper==1.2.1 \
             "av<19"
 
+      # Restore Gemini audio cache.
+      # A cache hit prevents another Gemini TTS request.
       - name: Restore Stage 1 audio cache
-        uses: actions/cache@v4
+        id: audio-cache
+        uses: actions/cache/restore@v4
         with:
           path: .cache/story/stage1/audio
           key: stage1-audio-${{ hashFiles('story/script.stage1.json', 'story/config.stage1.json', 'scripts/story_stage1.py') }}
@@ -70,7 +73,8 @@ jobs:
             stage1-audio-
 
       - name: Restore Whisper model cache
-        uses: actions/cache@v4
+        id: whisper-cache
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cache/huggingface/hub
           key: stage1-whisper-small-v1
@@ -85,6 +89,15 @@ jobs:
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py tts
 
+      # Save the audio cache immediately after successful TTS.
+      # This step runs before Whisper and alignment can fail.
+      - name: Save Stage 1 audio cache
+        if: steps.audio-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/story/stage1/audio
+          key: stage1-audio-${{ hashFiles('story/script.stage1.json', 'story/config.stage1.json', 'scripts/story_stage1.py') }}
+
       - name: Prepare audio
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py prepare
@@ -93,6 +106,14 @@ jobs:
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py transcribe
 
+      # Save Whisper model cache before alignment.
+      - name: Save Whisper model cache
+        if: steps.whisper-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/huggingface/hub
+          key: stage1-whisper-small-v1
+
       - name: Align Persian words
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py align
@@ -100,21 +121,6 @@ jobs:
       - name: Compose Stage 1 scenes
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py compose
-
-      - name: Install and copy Vazirmatn fonts
-        run: |
-          npm install --no-save @fontsource/vazirmatn
-
-          mkdir -p assets/fonts
-          mkdir -p build/stage1/story/assets/fonts
-
-          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
-          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
-
-          cp assets/fonts/*.woff2 build/stage1/story/assets/fonts/
-
-          test -s build/stage1/story/assets/fonts/vazirmatn-arabic-400-normal.woff2
-          test -s build/stage1/story/assets/fonts/vazirmatn-arabic-700-normal.woff2
 
       - name: Render MP4 with HyperFrames
         working-directory: build/stage1/story
@@ -128,6 +134,7 @@ jobs:
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py verify
 
+      # Always upload the transcript, even when alignment fails.
       - name: Upload Stage 1 production files
         if: always()
         uses: actions/upload-artifact@v4
@@ -139,5 +146,6 @@ jobs:
             build/stage1/timing_report.md
             build/stage1/story.srt
             build/stage1/story/index.html
+            build/stage1/whisper/transcript.json
           if-no-files-found: ignore
           retention-days: 7
