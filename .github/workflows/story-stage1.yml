@@ -84,17 +84,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CONFIRM_FREE_TIER: ${{ github.event.inputs.confirm_free_tier }}
         run: |
+          if [ "$CONFIRM_FREE_TIER" = "true" ]; then
+            export CONFIRM_FREE_TIER=YES
+          fi
           echo "Free-tier confirmation: $CONFIRM_FREE_TIER"
           .venv-stage1/bin/python scripts/story_stage1.py tts
-      # Save the audio cache immediately after successful TTS.
-      # This step runs before Whisper and alignment can fail.
-      - name: Save Stage 1 audio cache
-        if: steps.audio-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: .cache/story/stage1/audio
-          key: stage1-audio-${{ hashFiles('story/script.stage1.json', 'story/config.stage1.json', 'scripts/story_stage1.py') }}
-
       - name: Prepare audio
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py prepare
