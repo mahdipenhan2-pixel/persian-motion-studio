@@ -844,9 +844,6 @@ def align() -> None:
     sentences = get_sentences()
     whisper_words = load_whisper_words()
 
-    # Preserve original script words for subtitles.
-    # Split normalized ZWNJ compounds only for matching.
-
     script_words = []
     script_units = []
 
@@ -918,11 +915,6 @@ def align() -> None:
     if not 0 < minimum <= 1:
         die("Invalid min_word_match setting.")
 
-    if similarity < minimum:
-        die(
-            f"Script/Whisper match too low: {similarity:.3f}"
-        )
-
     matched = {}
 
     for block in matcher.get_matching_blocks():
@@ -933,22 +925,24 @@ def align() -> None:
                 block.b + offset
             )
 
-    # Combine timing of multiple normalized parts
-    # into one original subtitle token.
-
     token_times = {}
+    matched_parts = {}
 
     for script_index, transcript_index in matched.items():
 
-        token_index = script_units[
-            script_index
-        ]["token_index"]
+        script_unit = script_units[script_index]
+
+        token_index = script_unit["token_index"]
 
         whisper_index = transcript_units[
             transcript_index
         ]["whisper_index"]
 
         source = whisper_words[whisper_index]
+
+        matched_parts.setdefault(token_index, set()).add(
+            script_index
+        )
 
         if token_index not in token_times:
 
@@ -969,6 +963,32 @@ def align() -> None:
                 source["end"]
             )
 
+    # Count only original words whose every normalized
+    # component was matched by Whisper.
+
+    required_parts = {}
+
+    for unit_index, unit in enumerate(script_units):
+
+        token_index = unit["token_index"]
+
+        required_parts.setdefault(
+            token_index,
+            set()
+        ).add(unit_index)
+
+    valid_token_times = {}
+
+    for token_index, required in required_parts.items():
+
+        found = matched_parts.get(token_index, set())
+
+        if required.issubset(found):
+            if token_index in token_times:
+                valid_token_times[token_index] = (
+                    token_times[token_index]
+                )
+
     audio_duration = validate_wav(
         AUDIO_FILE
     )["duration"]
@@ -986,7 +1006,7 @@ def align() -> None:
             if item["sentence_id"] != sentence["id"]:
                 continue
 
-            timing = token_times.get(token_index)
+            timing = valid_token_times.get(token_index)
 
             if timing is None:
                 continue
@@ -1035,15 +1055,25 @@ def align() -> None:
 
     match_ratio = matched_count / max(1, total_count)
 
+    info(
+        f"Sequence similarity: {similarity:.3f}"
+    )
+
+    info(
+        f"Actual script word coverage: {match_ratio:.3f}"
+    )
+
     if match_ratio < minimum:
         die(
-            f"Word match ratio too low: {match_ratio:.3f}"
+            f"Word match ratio too low: {match_ratio:.3f}. "
+            "Check Whisper transcript before rendering."
         )
 
     timing = {
         "language": "fa",
         "duration": audio_duration,
         "match_ratio": round(match_ratio, 4),
+        "sequence_similarity": round(similarity, 4),
         "sentences": result_sentences
     }
 
@@ -1059,6 +1089,7 @@ def align() -> None:
         f"- Script words: {total_count}",
         f"- Matched words: {matched_count}",
         f"- Match ratio: {match_ratio:.3f}",
+        f"- Sequence similarity: {similarity:.3f}",
         "",
         "## Sentence timing",
         ""
@@ -1077,12 +1108,7 @@ def align() -> None:
         encoding="utf-8"
     )
 
-    info(
-        f"Word match ratio: {match_ratio:.3f}"
-    )
-
     info("Alignment completed.")
-
 
 # ==================================================
 # SUBTITLE AND SCENE GENERATION
