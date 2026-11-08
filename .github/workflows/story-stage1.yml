@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_free_tier:
-        description: "Confirm that Gemini usage is verified as free and will not incur charges"
+        description: "Confirm Gemini usage is verified as free"
         required: true
         type: choice
         options:
@@ -61,8 +61,11 @@ jobs:
             faster-whisper==1.2.1 \
             "av<19"
 
-      # Restore Gemini audio cache.
-      # A cache hit prevents another Gemini TTS request.
+      - name: Validate Stage 1 inputs
+        run: |
+          .venv-stage1/bin/python scripts/story_stage1.py check
+
+      # Restore previously generated Gemini narration.
       - name: Restore Stage 1 audio cache
         id: audio-cache
         uses: actions/cache/restore@v4
@@ -72,6 +75,7 @@ jobs:
           restore-keys: |
             stage1-audio-
 
+      # Restore Whisper model.
       - name: Restore Whisper model cache
         id: whisper-cache
         uses: actions/cache/restore@v4
@@ -79,10 +83,10 @@ jobs:
           path: ~/.cache/huggingface/hub
           key: stage1-whisper-small-v1
 
+      # Generate narration or reuse cached audio.
       - name: Generate Persian narration
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          CONFIRM_FREE_TIER: ${{ github.event.inputs.confirm_free_tier }}
         run: |
           case "$CONFIRM_FREE_TIER" in
             true|TRUE|yes|YES)
@@ -92,13 +96,30 @@ jobs:
               export CONFIRM_FREE_TIER=NO
               ;;
           esac
+
           echo "Free-tier confirmation: $CONFIRM_FREE_TIER"
+
           .venv-stage1/bin/python scripts/story_stage1.py tts
+
+      # Save narration for future runs.
+      - name: Save Stage 1 audio cache
+        if: steps.audio-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/story/stage1/audio
+          key: stage1-audio-${{ hashFiles('story/script.stage1.json', 'story/config.stage1.json', 'scripts/story_stage1.py') }}
+
+      # Convert generated narration into the format Whisper expects.
+      - name: Prepare audio
+        run: |
+          .venv-stage1/bin/python scripts/story_stage1.py prepare
+
+      # Generate word-level timestamps.
       - name: Generate Whisper timestamps
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py transcribe
 
-      # Save Whisper model cache before alignment.
+      # Save downloaded Whisper model.
       - name: Save Whisper model cache
         if: steps.whisper-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -126,7 +147,7 @@ jobs:
         run: |
           .venv-stage1/bin/python scripts/story_stage1.py verify
 
-      # Always upload the transcript, even when alignment fails.
+      # Upload available production files, even if a later step fails.
       - name: Upload Stage 1 production files
         if: always()
         uses: actions/upload-artifact@v4
