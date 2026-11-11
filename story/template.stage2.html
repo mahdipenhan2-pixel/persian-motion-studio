@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFP Story Studio - Stage 2</title>
+<style>
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: block;
+  }
+  :root {
+    --ink: #0e1a2b;
+    --paper: #eef2f7;
+    --muted: #8aa0b8;
+    --sea: #4fd1c5;
+    --amber: #f6bd60;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; overflow: hidden; background: var(--ink); }
+  body { font-family: "Vazirmatn", "Noto Sans Arabic", sans-serif; }
+  #root {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--paper);
+    direction: rtl;
+  }
+  .layer { position: absolute; inset: 0; }
+
+  /* ---- background: always on screen, so there is never a blank frame ---- */
+  .orb { position: absolute; border-radius: 50%; }
+  .o1 { width: 1100px; height: 1100px; left: -300px; top: -250px;
+        background: radial-gradient(circle at 50% 50%, rgba(79,209,197,0.20), rgba(79,209,197,0) 65%); }
+  .o2 { width: 1000px; height: 1000px; left: 380px; top: 1000px;
+        background: radial-gradient(circle at 50% 50%, rgba(80,120,255,0.20), rgba(80,120,255,0) 65%); }
+  .o3 { width: 800px; height: 800px; left: 200px; top: 620px;
+        background: radial-gradient(circle at 50% 50%, rgba(246,189,96,0.10), rgba(246,189,96,0) 65%); }
+  #orbit { position: absolute; left: 320px; top: 90px; width: 440px; height: 440px; }
+  .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(138,160,184,0.14); }
+  .r1 { inset: 0; }
+  .r2 { inset: 70px; }
+  .dot { position: absolute; width: 24px; height: 24px; border-radius: 50%; }
+  .d1 { left: 208px; top: -12px; background: #38bdf8; }
+  .d2 { left: 340px; top: 120px; background: #f6bd60; }
+  .d3 { left: 100px; top: 360px; background: #6ee7a0; }
+
+  #title {
+    position: absolute; left: 90px; right: 90px; top: 590px;
+    text-align: center; font-size: 46px; font-weight: 700; color: var(--muted);
+  }
+  #track { position: absolute; left: 90px; right: 90px; bottom: 120px; height: 8px;
+           border-radius: 4px; background: rgba(138,160,184,0.18); overflow: hidden; }
+  #progress { position: absolute; inset: 0; background: var(--amber); transform-origin: right center; }
+
+  /* ---- captions ---- */
+  #stage { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 90px; }
+  .sentence {
+    grid-area: 1 / 1;
+    width: 900px;
+    max-width: 100%;
+    text-align: center;
+    direction: rtl;
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1.8;
+    opacity: 0;
+    overflow-wrap: break-word;
+  }
+  /* one span per WORD (never per letter) keeps Persian letter joining intact;
+     constant padding/margin means highlighting never moves the layout */
+  .w {
+    display: inline;
+    color: var(--muted);
+    background-color: rgba(79, 209, 197, 0);
+    padding: 0 0.14em;
+    margin: 0 -0.14em;
+    border-radius: 0.22em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="__DURATION__">
+  <audio id="narration" src="narration.wav" data-start="0" data-duration="__DURATION__" data-track-index="2" data-volume="1"></audio>
+  <section id="bg" class="layer clip" data-start="0" data-duration="__DURATION__" data-track-index="0">
+    <div class="orb o1" id="o1"></div>
+    <div class="orb o2" id="o2"></div>
+    <div class="orb o3" id="o3"></div>
+    <div id="orbit">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="dot d1"></div>
+      <div class="dot d2"></div>
+      <div class="dot d3"></div>
+    </div>
+    <div id="title">__TITLE_HTML__</div>
+    <div id="track"><div id="progress"></div></div>
+  </section>
+  <section id="stage" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="1">
+    __SENTENCES_HTML__
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const DATA = __TIMELINE_JSON__;
+  const OFF = { color: "rgb(138,160,184)", backgroundColor: "rgba(79,209,197,0)" };
+  const ON = { color: "rgb(14,26,43)", backgroundColor: "rgba(79,209,197,1)" };
+  const DONE = { color: "rgb(238,242,247)", backgroundColor: "rgba(79,209,197,0)" };
+
+  if (typeof gsap === "undefined") throw new Error("GSAP failed to load.");
+  if (!DATA || !Array.isArray(DATA.sentences) || DATA.sentences.length === 0) {
+    throw new Error("Invalid or empty timeline data.");
+  }
+  const total = Number(DATA.duration);
+  const fade = Number(DATA.fade);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(fade) || fade <= 0) {
+    throw new Error("Invalid duration or fade.");
+  }
+  const byId = (id) => {
+    const el = document.getElementById(id);
+    if (!el) throw new Error("Element not found: " + id);
+    return el;
+  };
+  const tl = gsap.timeline({ paused: true });
+
+  /* Background: single finite tweens that span the whole video (no infinite repeats). */
+  tl.to("#orbit", { rotation: 360, duration: total, ease: "none", transformOrigin: "50% 50%" }, 0);
+  tl.to("#o1", { x: 140, y: 110, duration: total, ease: "sine.inOut" }, 0);
+  tl.to("#o2", { x: -160, y: -120, duration: total, ease: "sine.inOut" }, 0);
+  tl.to("#o3", { x: 90, y: -70, duration: total, ease: "sine.inOut" }, 0);
+  tl.fromTo("#progress", { scaleX: 0 }, { scaleX: 1, duration: total, ease: "none" }, 0);
+
+  /* Captions. All times are absolute seconds from the start of narration.wav.
+     A sentence appears and disappears with its OWN audio window (never with its first word),
+     and fade-out always finishes before the next fade-in begins. */
+  DATA.sentences.forEach((s) => {
+    const el = byId("sent-" + s.id);
+    const start = Number(s.start);
+    const end = Number(s.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) {
+      throw new Error("Invalid sentence timing: " + s.id);
+    }
+    tl.fromTo(el, { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: fade, ease: "power2.out", immediateRender: false },
+      Math.max(0, start - fade));
+    (s.words || []).forEach((w) => {
+      const we = byId(w.id);
+      const ws = Number(w.start);
+      const wend = Number(w.end);
+      if (!Number.isFinite(ws) || !Number.isFinite(wend) || ws < 0 || wend < ws) {
+        throw new Error("Invalid word timing: " + w.id);
+      }
+      if (w.hl === false) {
+        /* no reliable timestamp: shown, never dropped, simply not highlighted */
+        tl.fromTo(we, OFF, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, ws);
+        return;
+      }
+      const hold = Math.max(0.06, wend - ws);
+      tl.fromTo(we, OFF, { ...ON, duration: 0.05, ease: "none", immediateRender: false }, ws);
+      tl.fromTo(we, ON, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, ws + hold);
+    });
+    tl.to(el, { opacity: 0, duration: fade, ease: "power1.in" }, end + 0.02);
+  });
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>
