@@ -1,0 +1,32 @@
+{
+  "tts": {
+    "model": "gemini-3.8-flash-tts",
+    "voice": "Kore",
+    "style": "calm, clear narration",
+    "max_attempts": 4,
+    "max_requests_per_run": 8,
+    "request_spacing_sec": 8,
+    "timeout_sec": 120
+  },
+  "audio": {
+    "lead_in_ms": 300,
+    "gap_ms": 350,
+    "tail_ms": 800,
+    "whisper_pad_ms": 250
+  },
+  "whisper": {
+    "model": "small",
+    "language": "fa",
+    "compute_type": "int8"
+  },
+  "alignment": {
+    "min_sentence_ratio": 0.85,
+    "min_word_match": 0.6,
+    "on_unmatched": "fail"
+  },
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  }
+}
