@@ -22,7 +22,7 @@
   "alignment": {
     "min_sentence_ratio": 0.85,
     "min_word_match": 0.6,
-    "on_unmatched": "fail"
+    "on_unmatched": "show_unhighlighted"
   },
   "video": {
     "width": 1080,
