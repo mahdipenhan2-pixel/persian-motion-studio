@@ -55,6 +55,10 @@ MAX_TEXT_CHARS = 160          # also keeps every sentence inside the caption are
 MAX_REQUESTS_LIMIT = 40
 MAX_TOTAL_SECONDS = 180
 TOL = 0.05
+BRACKET_MAX_RUN = 2           # at most this many consecutive unmatched words may be bracketed
+BRACKET_MIN_PER_WORD = 0.08   # seconds of gap required per bracketed word
+BRACKET_MAX_GAP = 1.5         # seconds
+EDGE_SNAP_MS = 0.15           # Whisper edge further than this from the measured speech edge is snapped
 
 
 def die(msg, code=1):
@@ -230,8 +234,15 @@ def load_inputs():
     a["_pad"] = num(a.get("whisper_pad_ms"), "audio.whisper_pad_ms", 100, 1000) / 1000
     al["_min_word"] = num(al.get("min_word_match"), "alignment.min_word_match", 0, 1)
     al["_min_sentence"] = num(al.get("min_sentence_ratio"), "alignment.min_sentence_ratio", 0, 1)
-    if al.get("on_unmatched") not in ("fail", "show_unhighlighted"):
-        die("alignment.on_unmatched must be 'fail' or 'show_unhighlighted'")
+    if al.get("on_unmatched") not in ("fail", "show_unhighlighted", "bracket"):
+        die("alignment.on_unmatched must be 'fail', 'show_unhighlighted' or 'bracket'")
+    wh = cfg["whisper"]
+    if wh.get("model") not in ("small", "medium", "large-v3"):
+        die("whisper.model must be 'small', 'medium' or 'large-v3'")
+    if not isinstance(wh.get("language"), str) or not re.fullmatch(r"[a-z]{2,3}", wh["language"]):
+        die("whisper.language must be a 2-3 letter code such as 'fa'")
+    if wh.get("compute_type") not in ("int8", "float32"):
+        die("whisper.compute_type must be 'int8' or 'float32'")
     if (v.get("width"), v.get("height"), v.get("fps")) != (1080, 1920, 30):
         die("Stage 2 template is fixed at 1080x1920 @ 30 fps")
     sents = script.get("sentences")
@@ -572,6 +583,53 @@ def align_words(toks, wwords, min_word_match):
     return rows, sm.ratio()
 
 
+def snap_edges(rows, onset, send):
+    """A word cannot begin before speech begins or end after speech ends.
+    Whisper often stretches the first/last word outward; clip it to the MEASURED speech edge."""
+    timed = [r for r in rows if r["start"] is not None]
+    if not timed or onset is None or send is None:
+        return
+    f, l = timed[0], timed[-1]
+    if f["start"] < onset - EDGE_SNAP_MS:
+        d = round((onset - f["start"]) * 1000)
+        f["start"] = max(0.0, onset - 0.03)
+        f["end"] = max(f["end"], f["start"] + 0.02)
+        f["notes"].append(f"start moved to the measured speech onset (Whisper was {d} ms early)")
+    if l["end"] > send + EDGE_SNAP_MS:
+        d = round((l["end"] - send) * 1000)
+        l["end"] = send + 0.03
+        l["start"] = min(l["start"], l["end"] - 0.02)
+        l["notes"].append(f"end moved to the measured speech end (Whisper was {d} ms late)")
+
+
+def bracket_unmatched(rows, onset, send, speech_dur):
+    """Opt-in (on_unmatched = bracket): a short run of words Whisper did not recognise gets the time
+    window between its two timed neighbours (or the measured speech edge). Always flagged."""
+    n, i = len(rows), 0
+    while i < n:
+        if rows[i]["status"] != "unmatched":
+            i += 1
+            continue
+        j = i
+        while j < n and rows[j]["status"] in ("unmatched", "skipped"):
+            j += 1
+        run_ = [r for r in rows[i:j] if r["status"] == "unmatched"]
+        left = next((rows[k]["end"] for k in range(i - 1, -1, -1) if rows[k]["end"] is not None),
+                    onset if onset is not None else 0.0)
+        right = next((rows[k]["start"] for k in range(j, n) if rows[k]["start"] is not None),
+                     send if send is not None else speech_dur)
+        gap = right - left
+        if len(run_) <= BRACKET_MAX_RUN and BRACKET_MIN_PER_WORD * len(run_) <= gap <= BRACKET_MAX_GAP:
+            weights = [max(1, len(norm(r["text"]))) for r in run_]
+            cur = left
+            for r, w in zip(run_, weights):
+                d = gap * w / sum(weights)
+                r["start"], r["end"], cur = cur, cur + d, cur + d
+                r["status"] = "bracketed"
+                r["notes"] = [f"not recognized by Whisper; time BRACKETED between neighbours (gap {gap * 1000:.0f} ms)"]
+        i = j
+
+
 def cmd_align(_a):
     cfg, script = load_inputs()
     meta = load_json(BUILD / "audio_meta.json")
@@ -594,12 +652,15 @@ def cmd_align(_a):
             ratio = 0.0
         else:
             rows, ratio = align_words(toks, words, al["_min_word"])
+        onset, send, rms, win = speech_bounds(BUILD / "audio" / f"{s['id']}.wav")
+        snap_edges(rows, onset, send)
+        if al["on_unmatched"] == "bracket":
+            bracket_unmatched(rows, onset, send, dur)
         for r in rows:
             r["abs_start"] = None if r["start"] is None else round(r["start"] + offset, 3)
             r["abs_end"] = None if r["end"] is None else round(r["end"] + offset, 3)
             r["start"] = None if r["start"] is None else round(r["start"], 3)
             r["end"] = None if r["end"] is None else round(r["end"], 3)
-        onset, send, rms, win = speech_bounds(BUILD / "audio" / f"{s['id']}.wav")
         timed = [r for r in rows if r["start"] is not None]
         means = []
         for r in timed:
@@ -613,14 +674,17 @@ def cmd_align(_a):
             r["energy_rel"] = round(e / med, 2) if med > 0 else None
             if r["energy_rel"] is not None and r["energy_rel"] < 0.25:
                 r["notes"].append("low audio energy in this window; check manually")
-        counts = {k: sum(1 for r in rows if r["status"] == k) for k in ("exact", "aligned", "unmatched", "skipped")}
+        counts = {k: sum(1 for r in rows if r["status"] == k) for k in ("exact", "aligned", "bracketed", "unmatched", "skipped")}
         status, reasons = "OK", list(notes)
         if counts["aligned"]:
             status = "WARN"
             reasons.append(f"{counts['aligned']} word(s) aligned with differences or estimates")
+        if counts["bracketed"]:
+            status = "WARN" if status == "OK" else status
+            reasons.append(f"{counts['bracketed']} word(s) not recognized by Whisper; time bracketed between neighbours")
         if counts["unmatched"]:
             reasons.append(f"{counts['unmatched']} word(s) could not be matched")
-            status = "FAIL" if al["on_unmatched"] == "fail" else "WARN"
+            status = "FAIL" if al["on_unmatched"] in ("fail", "bracket") else "WARN"
         if ratio < al["_min_sentence"]:
             status = "FAIL"
             reasons.append(f"match ratio {ratio:.2f} < {al['_min_sentence']}")
@@ -629,10 +693,11 @@ def cmd_align(_a):
             d0 = round((timed[0]["start"] - onset) * 1000)
             d1 = round((timed[-1]["end"] - send) * 1000)
             summ["first_word_vs_speech_onset_ms"], summ["last_word_vs_speech_end_ms"] = d0, d1
+            reasons.append(f"first word vs measured speech onset: {d0} ms; last word vs speech end: {d1} ms")
             if abs(d0) > 300 or abs(d1) > 300:
                 if status == "OK":
                     summ["status"] = status = "WARN"
-                reasons.append("first/last word is >300 ms away from detected speech edge")
+                reasons.append("first/last word is still >300 ms away from the measured speech edge")
         if status == "FAIL":
             overall = "FAIL"
         elif status == "WARN" and overall == "OK":
