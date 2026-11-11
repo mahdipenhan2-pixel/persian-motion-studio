@@ -1,0 +1,171 @@
+name: Story Stage 2 (multi-sentence video)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_free_tier:
+        description: "Choose YES only after verifying that Gemini API billing is not enabled (needed only when new audio must be generated)"
+        required: true
+        default: "NO"
+        type: choice
+        options:
+          - "NO"
+          - "YES"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: story-stage2
+  cancel-in-progress: false
+
+jobs:
+  stage2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+
+      - name: Install Vazirmatn font
+        run: |
+          npm install --no-save @fontsource/vazirmatn@5
+          mkdir -p assets/fonts
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+
+      - name: Record tool versions
+        run: |
+          node --version
+          python3 --version
+          ffmpeg -version | head -1
+
+      # Audio and Whisper results are content-addressed, so restoring the most recent
+      # cache is always safe: only sentences that changed are regenerated.
+      - name: Restore story cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-cache-v2-none
+          restore-keys: |
+            story-cache-v2-
+
+      - name: Validate inputs and list sentences that need the API
+        id: check
+        run: python3 scripts/story_stage2.py check
+
+      - name: Free-tier confirmation gate
+        if: steps.check.outputs.api_needed != '0'
+        env:
+          CONFIRM: ${{ inputs.confirm_free_tier }}
+        run: |
+          if [ "$CONFIRM" != "YES" ]; then
+            echo "::error::Stopped before any Gemini API request. Verify billing status and explicitly choose YES."
+            exit 1
+          fi
+
+      - name: Generate narration (Gemini TTS, cached sentences are skipped)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 scripts/story_stage2.py tts
+
+      - name: Prepare audio timeline
+        run: python3 scripts/story_stage2.py prepare
+
+      - name: Restore Whisper model cache
+        id: whisper-model
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - name: Word timestamps per sentence (faster-whisper, Persian)
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+          .venv-whisper/bin/python scripts/stage2_whisper.py
+
+      - name: Save Whisper model cache
+        if: steps.whisper-model.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      # Saved right away (and even after a failure) so generated audio is never paid for twice.
+      - name: Compute story cache key
+        id: cachekey
+        if: always()
+        run: |
+          mkdir -p .cache/story
+          echo "count=$(find .cache/story -type f | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "key=story-cache-v2-$(find .cache/story -type f | sort | sha256sum | cut -c1-24)" >> "$GITHUB_OUTPUT"
+
+      - name: Save story cache
+        if: always() && steps.cachekey.outputs.count != '0'
+        uses: actions/cache/save@v5
+        with:
+          path: .cache/story
+          key: ${{ steps.cachekey.outputs.key }}
+
+      - name: Align script words to speech
+        run: python3 scripts/story_stage2.py align
+
+      - name: Build composition and SRT
+        run: python3 scripts/story_stage2.py compose
+
+      - name: Lint composition
+        working-directory: build/stage2/story
+        run: npx --yes hyperframes lint
+
+      - name: Render MP4
+        working-directory: build/stage2/story
+        run: npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
+
+      - name: Verify MP4
+        run: python3 scripts/story_stage2.py verify
+
+      - name: Add report to workflow summary
+        if: always()
+        run: |
+          if [ -f build/stage2/timing_report.md ]; then
+            cat build/stage2/timing_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f build/stage2/verify.json ]; then
+            {
+              echo
+              echo '```json'
+              cat build/stage2/verify.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Stage 2 results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: story-stage2
+          path: |
+            build/stage2/story.mp4
+            build/stage2/story.srt
+            build/stage2/timing.json
+            build/stage2/timing_report.md
+            build/stage2/verify.json
+            build/stage2/tts_meta.json
+            build/stage2/audio_meta.json
+            build/stage2/whisper/
+            build/stage2/frames/
+            build/stage2/story/index.html
+          if-no-files-found: warn
+          retention-days: 7
