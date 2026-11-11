@@ -82,12 +82,22 @@ jobs:
       - name: Prepare audio timeline
         run: python3 scripts/story_stage2.py prepare
 
+      # The cache key contains the model name, so changing whisper.model in the config
+      # downloads the new model once and caches it (a fixed key would re-download it every run).
+      - name: Read Whisper model name from the config
+        id: wmodel
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          print("name=" + json.load(open("story/config.stage2.json", encoding="utf-8"))["whisper"]["model"])
+          PY
+
       - name: Restore Whisper model cache
         id: whisper-model
         uses: actions/cache/restore@v5
         with:
           path: ~/.cache/huggingface/hub
-          key: faster-whisper-small-v1
+          key: faster-whisper-${{ steps.wmodel.outputs.name }}-v1
 
       - name: Word timestamps per sentence (faster-whisper, Persian)
         run: |
@@ -101,7 +111,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/huggingface/hub
-          key: faster-whisper-small-v1
+          key: faster-whisper-${{ steps.wmodel.outputs.name }}-v1
 
       # Saved right away (and even after a failure) so generated audio is never paid for twice.
       - name: Compute story cache key
@@ -164,6 +174,7 @@ jobs:
             build/stage2/verify.json
             build/stage2/tts_meta.json
             build/stage2/audio_meta.json
+            build/stage2/narration.wav
             build/stage2/whisper/
             build/stage2/frames/
             build/stage2/story/index.html
