@@ -50,6 +50,9 @@ jobs:
           python3 --version
           ffmpeg -version | head -1
 
+      - name: Test Stage 2 Persian alignment (offline)
+        run: python3 scripts/test_stage2_alignment.py
+
       # Audio and Whisper results are content-addressed, so restoring the most recent
       # cache is always safe: only sentences that changed are regenerated.
       - name: Restore story cache
