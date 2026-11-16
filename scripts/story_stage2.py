@@ -525,62 +525,171 @@ def whisper_words(path, pad, speech_dur):
     return words, notes
 
 
+def _token_similarity(a, b):
+    """Normalized similarity for a small group of script/Whisper tokens."""
+    if not a or not b:
+        return 0.0
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).ratio()
+
+
 def align_words(toks, wwords, min_word_match):
-    s_owner = [ti for ti, t in enumerate(toks) for _ in t["norm"]]
-    r_owner = [(wi, k, len(w["norm"])) for wi, w in enumerate(wwords) for k in range(len(w["norm"]))]
-    S = "".join(t["norm"] for t in toks)
-    R = "".join(w["norm"] for w in wwords)
-    sm = difflib.SequenceMatcher(None, S, R, autojunk=False)
-    per = {i: [] for i in range(len(toks))}
-    for a, b, size in sm.get_matching_blocks():
-        for d in range(size):
-            ti = s_owner[a + d]
-            wi, k, L = r_owner[b + d]
-            w = wwords[wi]
-            span = w["end"] - w["start"]
-            per[ti].append((w["start"] + span * k / L, w["start"] + span * (k + 1) / L, wi))
-    users = {}
-    for ti, lst in per.items():
-        for _, _, wi in lst:
-            users.setdefault(wi, set()).add(ti)
-    rows = []
-    for ti, t in enumerate(toks):
-        n, lst = len(t["norm"]), per[ti]
-        row = {"i": ti, "text": t["text"], "start": None, "end": None, "recognized": [],
-               "matched_frac": None, "status": "skipped", "notes": []}
-        if n == 0:
-            row["notes"].append("punctuation only")
-        else:
-            frac = len(lst) / n
-            wis = sorted({wi for _, _, wi in lst})
-            row["matched_frac"] = round(frac, 3)
-            row["recognized"] = [wwords[wi]["text"] for wi in wis]
-            if frac < min_word_match:
-                row["status"] = "unmatched"
-                row["notes"].append("recognized text differs; NO timestamp assigned")
+    """
+    Sequence-align original script tokens to Whisper tokens.
+
+    Groups of up to three tokens on either side allow:
+      * one Persian script word split into several Whisper tokens;
+      * several script words merged into one Whisper token;
+      * minor ASR spelling differences.
+
+    A completely omitted script word remains UNRESOLVED: ASR timestamps cannot
+    prove where an unrecognized word occurred. Character-proportional boundaries
+    inside a merged/split recognized span are explicitly marked ESTIMATED.
+    """
+    n, m = len(toks), len(wwords)
+    rows = [{
+        "i": i, "text": t["text"], "start": None, "end": None,
+        "recognized": [], "matched_frac": 0.0 if t["norm"] else None,
+        "status": "unmatched" if t["norm"] else "skipped",
+        "timing_quality": "unresolved" if t["norm"] else "none",
+        "notes": ["not aligned to recognized speech"] if t["norm"] else ["punctuation only"],
+    } for i, t in enumerate(toks)]
+
+    # Dynamic-programming edit alignment. Exact and near-exact token groups
+    # are cheaper than deleting original words or ignoring recognized speech.
+    inf = float("inf")
+    dp = [[inf] * (m + 1) for _ in range(n + 1)]
+    back = [[None] * (m + 1) for _ in range(n + 1)]
+    dp[0][0] = 0.0
+    min_sim = max(0.78, min_word_match)
+
+    def update(ni, nj, cost, prev):
+        val = dp[prev[0]][prev[1]] + cost
+        if val < dp[ni][nj]:
+            dp[ni][nj] = val
+            back[ni][nj] = (prev[0], prev[1], prev[2])
+
+    for i in range(n + 1):
+        for j in range(m + 1):
+            if dp[i][j] == inf:
+                continue
+            if i < n:
+                # An original script word absent from ASR must remain visible.
+                update(i + 1, j, 1.0, (i, j, ("delete", 1, 0)))
+            if j < m:
+                # Ignore an ASR token that has no safe script counterpart.
+                update(i, j + 1, 0.65, (i, j, ("insert", 0, 1)))
+            for a in range(1, min(3, n - i) + 1):
+                left = "".join(x["norm"] for x in toks[i:i + a])
+                if not left:
+                    continue
+                for b in range(1, min(3, m - j) + 1):
+                    right = "".join(x["norm"] for x in wwords[j:j + b])
+                    if not right:
+                        continue
+                    sim = _token_similarity(left, right)
+                    if sim < min_sim:
+                        continue
+                    # Discourage broad group matches: they can swallow a missing word.
+                    group_penalty = 0.10 * (a + b - 2)
+                    cost = (1.0 - sim) * 1.5 + group_penalty
+                    update(i + a, j + b, cost, (i, j, ("match", a, b)))
+
+    # Recover ordered edit path.
+    ops = []
+    i, j = n, m
+    while i or j:
+        item = back[i][j]
+        if item is None:
+            # Defensive fallback; should only occur for malformed empty tokens.
+            if i:
+                ops.append(("delete", i - 1, 1, 0))
+                i -= 1
             else:
-                row["start"], row["end"] = min(x[0] for x in lst), max(x[1] for x in lst)
-                shared = any(len(users[wi]) > 1 for wi in wis)
-                exact = len(wis) == 1 and not shared and wwords[wis[0]]["norm"] == t["norm"]
-                row["status"] = "exact" if exact else "aligned"
-                if frac < 1:
-                    row["notes"].append("recognized text differs")
-                if shared:
-                    row["notes"].append("boundary ESTIMATED inside one recognized word")
-                if len(wis) > 1:
-                    row["notes"].append("spans several recognized words")
-        rows.append(row)
-    prev = None
-    for r in rows:
-        if r["start"] is None:
+                j -= 1
             continue
-        if r["end"] - r["start"] < 0.02:
-            r["end"] = r["start"] + 0.02
-            r["notes"].append("very short; end padded to 20 ms")
-        if prev is not None and r["start"] < prev - 0.05:
-            r["notes"].append("overlaps previous word")
-        prev = r["end"]
-    return rows, sm.ratio()
+        pi, pj, op = item
+        kind, a, b = op
+        ops.append((kind, pi, a, b))
+        i, j = pi, pj
+    ops.reverse()
+
+    # Map matched characters to their actual Whisper intervals. Any split/merge
+    # boundary is a proportional estimate, never labelled exact.
+    per = {i: [] for i in range(n)}
+    recognized_for = {i: set() for i in range(n)}
+    wi_cursor = 0
+    for kind, si, a, b in ops:
+        if kind == "insert":
+            wi_cursor += b
+            continue
+        if kind == "delete":
+            continue
+        script_group = toks[si:si + a]
+        whisper_group = wwords[wi_cursor:wi_cursor + b]
+        left = "".join(x["norm"] for x in script_group)
+        right = "".join(x["norm"] for x in whisper_group)
+        s_owner = [si + ti for ti, t in enumerate(script_group) for _ in t["norm"]]
+        r_owner = [(wi_cursor + wi, k, len(w["norm"]))
+                   for wi, w in enumerate(whisper_group) for k in range(len(w["norm"]))]
+        sm = difflib.SequenceMatcher(None, left, right, autojunk=False)
+        for aa, bb, size in sm.get_matching_blocks():
+            for d in range(size):
+                ti = s_owner[aa + d]
+                wi, k, length = r_owner[bb + d]
+                w = wwords[wi]
+                span = w["end"] - w["start"]
+                per[ti].append((w["start"] + span * k / length,
+                                w["start"] + span * (k + 1) / length))
+                recognized_for[ti].add(wi)
+        wi_cursor += b
+
+    # Finalize original script words. Unmatched words are deliberately not
+    # assigned fabricated intervals; compose keeps them visible without highlight.
+    for ti, t in enumerate(toks):
+        row = rows[ti]
+        if not t["norm"]:
+            continue
+        spans = per[ti]
+        if not spans:
+            row["notes"] = ["UNRESOLVED: no reliable Whisper token matched this script word"]
+            continue
+        chars = len(t["norm"])
+        frac = min(1.0, len(spans) / max(1, chars))
+        wis = sorted(recognized_for[ti])
+        row["recognized"] = [wwords[k]["text"] for k in wis]
+        row["matched_frac"] = round(frac, 3)
+        row["start"] = min(x[0] for x in spans)
+        row["end"] = max(x[1] for x in spans)
+        exact = (len(wis) == 1 and wwords[wis[0]]["norm"] == t["norm"]
+                 and frac >= 0.999)
+        row["status"] = "exact" if exact else "aligned"
+        row["timing_quality"] = "exact" if exact else "estimated"
+        if exact:
+            row["notes"] = ["exact normalized token match; Whisper word timestamp"]
+        else:
+            row["notes"] = ["ESTIMATED boundary from matched character positions; review audio"]
+        if len(wis) > 1:
+            row["notes"].append("script word spans multiple Whisper tokens")
+        if any(sum(1 for rr in recognized_for.values() if wi in rr) > 1 for wi in wis):
+            row["notes"].append("Whisper token shared across script words; internal boundary estimated")
+        if row["end"] - row["start"] < 0.02:
+            row["end"] = row["start"] + 0.02
+            row["notes"].append("very short; end padded to 20 ms")
+
+    # The sentence ratio is script-token coverage, not character similarity.
+    eligible = [r for r in rows if r["status"] != "skipped"]
+    ratio = (sum(1 for r in eligible if r["start"] is not None) / len(eligible)) if eligible else 1.0
+
+    # Preserve monotonic order and flag genuine overlaps; do not silently move
+    # timestamps because that would create false precision.
+    prev_end = None
+    for row in rows:
+        if row["start"] is None:
+            continue
+        if prev_end is not None and row["start"] < prev_end - 0.05:
+            row["notes"].append("overlaps previous script word; inspect timing")
+        prev_end = row["end"]
+    return rows, ratio
 
 
 def snap_edges(rows, onset, send):
@@ -626,6 +735,7 @@ def bracket_unmatched(rows, onset, send, speech_dur):
                 d = gap * w / sum(weights)
                 r["start"], r["end"], cur = cur, cur + d, cur + d
                 r["status"] = "bracketed"
+                r["timing_quality"] = "estimated"
                 r["notes"] = [f"not recognized by Whisper; time BRACKETED between neighbours (gap {gap * 1000:.0f} ms)"]
         i = j
 
@@ -648,6 +758,7 @@ def cmd_align(_a):
         if not words:
             rows = [{"i": t["i"], "text": t["text"], "start": None, "end": None, "recognized": [],
                      "matched_frac": 0, "status": "unmatched" if t["norm"] else "skipped",
+                     "timing_quality": "unresolved" if t["norm"] else "none",
                      "notes": ["no recognized words"]} for t in toks]
             ratio = 0.0
         else:
@@ -656,6 +767,16 @@ def cmd_align(_a):
         snap_edges(rows, onset, send)
         if al["on_unmatched"] == "bracket":
             bracket_unmatched(rows, onset, send, dur)
+        # Validate every assigned local interval before converting to narration time.
+        for r in rows:
+            if r["start"] is None:
+                continue
+            if (not math.isfinite(r["start"]) or not math.isfinite(r["end"])
+                    or r["start"] < 0 or r["end"] <= r["start"] or r["end"] > dur + TOL):
+                r["start"] = r["end"] = None
+                r["status"] = "unmatched"
+                r["timing_quality"] = "unresolved"
+                r["notes"].append("UNRESOLVED: rejected invalid timestamp interval")
         for r in rows:
             r["abs_start"] = None if r["start"] is None else round(r["start"] + offset, 3)
             r["abs_end"] = None if r["end"] is None else round(r["end"] + offset, 3)
@@ -675,20 +796,37 @@ def cmd_align(_a):
             if r["energy_rel"] is not None and r["energy_rel"] < 0.25:
                 r["notes"].append("low audio energy in this window; check manually")
         counts = {k: sum(1 for r in rows if r["status"] == k) for k in ("exact", "aligned", "bracketed", "unmatched", "skipped")}
+        quality_counts = {k: sum(1 for r in rows if r.get("timing_quality") == k)
+                          for k in ("exact", "estimated", "unresolved", "none")}
         status, reasons = "OK", list(notes)
+        if not any(r["start"] is not None for r in rows):
+            status = "FAIL"
+            reasons.append("no script words received usable timestamps")
         if counts["aligned"]:
-            status = "WARN"
-            reasons.append(f"{counts['aligned']} word(s) aligned with differences or estimates")
+            if status == "OK":
+                status = "WARN"
+            reasons.append(f"{counts['aligned']} word(s) aligned with differences or estimated boundaries")
         if counts["bracketed"]:
-            status = "WARN" if status == "OK" else status
+            if status == "OK":
+                status = "WARN"
             reasons.append(f"{counts['bracketed']} word(s) not recognized by Whisper; time bracketed between neighbours")
         if counts["unmatched"]:
-            reasons.append(f"{counts['unmatched']} word(s) could not be matched")
-            status = "FAIL" if al["on_unmatched"] in ("fail", "bracket") else "WARN"
+            reasons.append(f"{counts['unmatched']} word(s) could not be matched and remain unhighlighted")
+            if al["on_unmatched"] in ("fail", "bracket"):
+                status = "FAIL"
+            elif status == "OK":
+                status = "WARN"
         if ratio < al["_min_sentence"]:
-            status = "FAIL"
-            reasons.append(f"match ratio {ratio:.2f} < {al['_min_sentence']}")
-        summ = {"status": status, "reasons": reasons, "match_ratio": round(ratio, 3), "counts": counts}
+            reasons.append(f"script-token coverage {ratio:.2f} < {al['_min_sentence']}")
+            # In show_unhighlighted mode, missing ASR tokens remain visible and
+            # explicitly unresolved; this is a review warning, not a false hard failure.
+            if al["on_unmatched"] == "show_unhighlighted":
+                if status == "OK":
+                    status = "WARN"
+            else:
+                status = "FAIL"
+        summ = {"status": status, "reasons": reasons, "match_ratio": round(ratio, 3),
+                "counts": counts, "timing_quality_counts": quality_counts}
         if onset is not None and timed:
             d0 = round((timed[0]["start"] - onset) * 1000)
             d1 = round((timed[-1]["end"] - send) * 1000)
@@ -706,11 +844,13 @@ def cmd_align(_a):
                           "words": rows, "summary": summ})
         lines += [f"### {s['id']} - {status} (match {ratio:.2f})", ""]
         lines += [f"- {x}" for x in reasons] + [""]
-        lines += ["| # | script word | recognized | start s | end s | status | note |", "|---|---|---|---|---|---|---|"]
+        lines += ["| # | script word | recognized | start s | end s | status | timing quality | note |",
+                  "|---|---|---|---|---|---|---|---|"]
         for r in rows:
             lines.append(f"| {r['i']} | {r['text']} | {' + '.join(r['recognized'])} | "
                          f"{r['abs_start'] if r['abs_start'] is not None else '-'} | "
-                         f"{r['abs_end'] if r['abs_end'] is not None else '-'} | {r['status']} | {'; '.join(r['notes'])} |")
+                         f"{r['abs_end'] if r['abs_end'] is not None else '-'} | {r['status']} | "
+                         f"{r.get('timing_quality', 'none')} | {'; '.join(r['notes'])} |")
         lines.append("")
     timing = {"stage": 2, "timestamp_reference": "narration.wav", "audio": meta,
               "sentences": out_sents, "summary": {"status": overall,
@@ -758,7 +898,8 @@ def cmd_compose(_a):
             wid = f"w-{s['id']}-{r['i']}"
             spans.append(f'<span class="w" id="{wid}">{html.escape(r["text"])}</span>')
             if r["abs_start"] is not None:
-                words.append({"id": wid, "start": r["abs_start"], "end": r["abs_end"], "hl": True})
+                words.append({"id": wid, "start": r["abs_start"], "end": r["abs_end"], "hl": True,
+                              "quality": r.get("timing_quality", "unknown")})
             elif r["status"] == "unmatched":
                 # shown, never dropped; released (not highlighted) when the next timed word begins
                 nxt = next((x["abs_start"] for x in s["words"][r["i"] + 1:] if x["abs_start"] is not None),
