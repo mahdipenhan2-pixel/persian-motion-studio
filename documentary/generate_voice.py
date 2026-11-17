@@ -193,9 +193,19 @@ def generate_audio(text, api_key):
 
     # Extract generated audio
 
-    audio_data = (
-        result.get("output_audio", {}).get("data")
-    )
+    audio_data = result.get("output_audio", {}).get("data")
+
+if not audio_data:
+    response = result.get("interaction", result)
+
+    for step in response.get("steps", []):
+        if step.get("type") == "model_output":
+            for item in step.get("content", []):
+                if item.get("type") == "audio" and item.get("data"):
+                    audio_data = item["data"]
+
+if not audio_data:
+    raise RuntimeError("Gemini response contains no audio data")
 
     if not audio_data:
 
