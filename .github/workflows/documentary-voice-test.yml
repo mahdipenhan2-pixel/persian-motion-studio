@@ -1,0 +1,54 @@
+name: Documentary Voice Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scene_id:
+        description: "Scene ID to generate"
+        required: true
+        default: "scene_01"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentary-voice-test
+  cancel-in-progress: false
+
+jobs:
+  generate-voice:
+    name: Generate Documentary Voice
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore voice cache
+        uses: actions/cache@v4
+        with:
+          path: documentary/.cache/voice
+          key: documentary-voice-${{ hashFiles('documentary/script.json', 'documentary/generate_voice.py') }}
+          restore-keys: |
+            documentary-voice-
+
+      - name: Generate one scene
+        env:
+          GEMINI_DOCUMENTARY_API_KEY: ${{ secrets.GEMINI_DOCUMENTARY_API_KEY }}
+        run: |
+          python documentary/generate_voice.py --scene "${{ inputs.scene_id }}"
+
+      - name: Upload generated audio
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentary-voice-${{ inputs.scene_id }}
+          path: documentary/output/audio/${{ inputs.scene_id }}.wav
+          if-no-files-found: error
+          retention-days: 7
