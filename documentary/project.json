@@ -1,0 +1,88 @@
+{
+  "project": {
+    "id": "oceans-documentary-001",
+    "title": "روزی که اقیانوس‌ها خشک شوند",
+    "title_en": "THE DAY THE OCEANS DISAPPEARED",
+    "language": "fa",
+    "category": "scientific_documentary",
+    "production_mode": "cinematic",
+    "duration_seconds": 300,
+    "status": "approved"
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "aspect_ratio": "16:9",
+    "format": "mp4"
+  },
+  "narration": {
+    "language": "fa",
+    "voice_style": "deep_calm_documentary",
+    "script_status": "approved",
+    "word_sync_subtitles": true
+  },
+  "visual": {
+    "style": "photorealistic_cinematic",
+    "camera_motion": true,
+    "color_grading": "cinematic",
+    "transition": "cinematic_fade"
+  },
+  "scenes": [
+    {
+      "id": "scene_01",
+      "title": "The Blue Planet Dies",
+      "start": 0,
+      "end": 40,
+      "image": "assets/earth-orbit.png",
+      "status": "image_ready"
+    },
+    {
+      "id": "scene_02",
+      "title": "The Ocean's Power",
+      "start": 40,
+      "end": 80,
+      "image": null,
+      "status": "image_pending"
+    },
+    {
+      "id": "scene_03",
+      "title": "The Hidden World",
+      "start": 80,
+      "end": 130,
+      "image": "assets/dry-seabed-shipwreck.png",
+      "status": "image_ready"
+    },
+    {
+      "id": "scene_04",
+      "title": "The Water Cycle Collapses",
+      "start": 130,
+      "end": 190,
+      "image": null,
+      "status": "image_pending"
+    },
+    {
+      "id": "scene_05",
+      "title": "A Planet Out of Balance",
+      "start": 190,
+      "end": 255,
+      "image": "assets/dry-seabed-city.png",
+      "status": "image_ready"
+    },
+    {
+      "id": "scene_06",
+      "title": "The Final Message",
+      "start": 255,
+      "end": 300,
+      "image": "assets/earth-orbit.png",
+      "status": "image_ready"
+    }
+  ],
+  "quality_control": {
+    "check_audio": true,
+    "check_video_duration": true,
+    "check_resolution": true,
+    "check_subtitle_timing": true,
+    "check_missing_assets": true
+  }
+}
