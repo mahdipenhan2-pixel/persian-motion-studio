@@ -5,11 +5,9 @@ import json
 import os
 import shutil
 import sys
-import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parent
 
@@ -17,23 +15,24 @@ SCRIPT_FILE = ROOT / "script.json"
 OUTPUT_DIR = ROOT / "output" / "audio"
 CACHE_DIR = ROOT / ".cache" / "voice"
 
-MODEL = "gemini-3.8-flash-tts"
+MODEL = "gemini-3.8-flash-lite-tts"
 VOICE = "Charon"
 
 STYLE = (
+    "Speak in Persian (Farsi). "
     "Deep male cinematic documentary narrator. "
-    "Calm, serious, powerful and emotionally engaging. "
+    "Calm, serious, authoritative and emotionally engaging. "
     "Natural Persian pronunciation, clear articulation, "
-    "measured pace, dramatic pauses, professional narration."
+    "measured pace and professional documentary delivery."
 )
 
 API_URL = (
     "https://generativelanguage.googleapis.com/"
-    f"v1beta/models/{MODEL}:generateContent"
+    "v1beta/interactions"
 )
 
 
-def load_script():
+def load_scenes():
     if not SCRIPT_FILE.exists():
         raise FileNotFoundError("documentary/script.json not found")
 
@@ -59,10 +58,11 @@ def load_script():
     return scenes
 
 
-def cache_path(text):
-    content = f"{MODEL}|{VOICE}|{STYLE}|{text}"
+def cache_file(text):
+    source = f"{MODEL}|{VOICE}|{STYLE}|{text}"
+
     digest = hashlib.sha256(
-        content.encode("utf-8")
+        source.encode("utf-8")
     ).hexdigest()
 
     return CACHE_DIR / f"{digest}.wav"
@@ -70,22 +70,33 @@ def cache_path(text):
 
 def generate_audio(text, api_key):
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [{
-                "text": text,
-                "speechMetadata": {
-                    "style": STYLE
-                }
-            }]
-        }],
-        "generationConfig": {
-            "responseModalities": ["AUDIO"],
-            "speechConfig": {
-                "voiceConfig": {
+        "model": MODEL,
+        "input": [
+            {
+                "type": "user_input",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": text,
+                        "annotations": [
+                            {
+                                "type": "speech_metadata",
+                                "style": STYLE
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "response_format": {
+            "type": "audio"
+        },
+        "generation_config": {
+            "speech_config": [
+                {
                     "voice": VOICE
                 }
-            }
+            ]
         }
     }
 
@@ -102,7 +113,7 @@ def generate_audio(text, api_key):
     try:
         with urllib.request.urlopen(
             request,
-            timeout=180
+            timeout=240
         ) as response:
             result = json.loads(
                 response.read().decode("utf-8")
@@ -123,33 +134,26 @@ def generate_audio(text, api_key):
             f"Network error: {error.reason}"
         )
 
-    candidates = result.get("candidates", [])
+    audio_data = None
 
-    if not candidates:
-        raise RuntimeError("Gemini returned no audio")
+    for step in result.get("steps", []):
+        for item in step.get("content", []):
+            if item.get("type") == "audio" and item.get("data"):
+                audio_data = item["data"]
 
-    parts = (
-        candidates[0]
-        .get("content", {})
-        .get("parts", [])
-    )
-
-    for part in parts:
-        audio_data = (
-            part.get("inlineData", {}).get("data")
+    if not audio_data:
+        raise RuntimeError(
+            "Gemini response contains no audio data"
         )
 
-        if audio_data:
-            audio = base64.b64decode(audio_data)
+    audio = base64.b64decode(audio_data)
 
-            if not audio.startswith(b"RIFF"):
-                raise RuntimeError(
-                    "Expected WAV audio, but received another format"
-                )
+    if not audio.startswith(b"RIFF"):
+        raise RuntimeError(
+            "Expected WAV audio but received another format"
+        )
 
-            return audio
-
-    raise RuntimeError("No audio data found in response")
+    return audio
 
 
 def process_scene(scene, api_key):
@@ -159,15 +163,15 @@ def process_scene(scene, api_key):
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-    output_file = OUTPUT_DIR / f"{scene_id}.wav"
-    cached_file = cache_path(narration)
+    output = OUTPUT_DIR / f"{scene_id}.wav"
+    cached = cache_file(narration)
 
-    if cached_file.exists():
+    if cached.exists():
         print(f"[CACHE HIT] {scene_id}")
-        shutil.copy2(cached_file, output_file)
+        shutil.copy2(cached, output)
         return
 
-    if output_file.exists():
+    if output.exists():
         print(f"[EXISTS] {scene_id}")
         return
 
@@ -175,10 +179,10 @@ def process_scene(scene, api_key):
 
     audio = generate_audio(narration, api_key)
 
-    cached_file.write_bytes(audio)
-    shutil.copy2(cached_file, output_file)
+    cached.write_bytes(audio)
+    shutil.copy2(cached, output)
 
-    print(f"[SAVED] {output_file}")
+    print(f"[SAVED] {output}")
 
 
 def main():
@@ -200,12 +204,12 @@ def main():
     if args.scene and args.all:
         raise ValueError("Choose --scene or --all")
 
-    scenes = load_script()
+    scenes = load_scenes()
 
     if args.scene:
         scenes = [
-            s for s in scenes
-            if s["id"] == args.scene
+            scene for scene in scenes
+            if scene["id"] == args.scene
         ]
 
         if not scenes:
@@ -218,7 +222,7 @@ def main():
 
     if not api_key:
         raise RuntimeError(
-            "GEMINI_API_KEY is missing from environment"
+            "GEMINI_API_KEY is missing"
         )
 
     for scene in scenes:
