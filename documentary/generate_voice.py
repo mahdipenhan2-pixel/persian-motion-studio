@@ -134,17 +134,9 @@ def generate_audio(text, api_key):
             f"Network error: {error.reason}"
         )
 
-    audio_data = None
-
-    for step in result.get("steps", []):
-        for item in step.get("content", []):
-            if item.get("type") == "audio" and item.get("data"):
-                audio_data = item["data"]
-
-    if not audio_data:
-        raise RuntimeError(
-            "Gemini response contains no audio data"
-        )
+    audio_data = (
+       result.get("output_audio", {}).get("data").  
+    )
 
     audio = base64.b64decode(audio_data)
 
