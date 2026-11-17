@@ -11,21 +11,14 @@ import urllib.request
 from pathlib import Path
 
 
-DOC_DIR = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent
 
-SCRIPT_FILE = DOC_DIR / "script.json"
-OUTPUT_DIR = DOC_DIR / "output" / "audio"
-CACHE_DIR = DOC_DIR / ".cache" / "voice"
+SCRIPT_FILE = ROOT / "script.json"
+OUTPUT_DIR = ROOT / "output" / "audio"
+CACHE_DIR = ROOT / ".cache" / "voice"
 
-MODEL = os.getenv(
-    "GEMINI_TTS_MODEL",
-    "gemini-3.8-flash-tts"
-)
-
-VOICE = os.getenv(
-    "GEMINI_TTS_VOICE",
-    "Charon"
-)
+MODEL = "gemini-3.8-flash-tts"
+VOICE = "Charon"
 
 STYLE = (
     "Deep male cinematic documentary narrator. "
@@ -42,40 +35,32 @@ API_URL = (
 
 def load_script():
     if not SCRIPT_FILE.exists():
-        raise FileNotFoundError(
-            f"Missing script: {SCRIPT_FILE}"
-        )
+        raise FileNotFoundError("documentary/script.json not found")
 
-    with SCRIPT_FILE.open("r", encoding="utf-8") as file:
-        data = json.load(file)
+    with SCRIPT_FILE.open("r", encoding="utf-8") as f:
+        data = json.load(f)
 
     scenes = data.get("scenes")
 
     if not isinstance(scenes, list) or not scenes:
-        raise ValueError(
-            "script.json must contain a non-empty scenes list."
-        )
+        raise ValueError("script.json has no scenes")
 
     for scene in scenes:
         if not scene.get("id"):
-            raise ValueError("A scene is missing its id.")
+            raise ValueError("A scene is missing its id")
 
-        if not scene.get("narration", "").strip():
+        narration = scene.get("narration")
+
+        if not isinstance(narration, str) or not narration.strip():
             raise ValueError(
-                f"Scene {scene.get('id')} has no narration."
+                f"Scene {scene.get('id')} has no narration"
             )
 
     return scenes
 
 
-def cache_filename(text):
-    content = (
-        MODEL + "|" +
-        VOICE + "|" +
-        STYLE + "|" +
-        text
-    )
-
+def cache_path(text):
+    content = f"{MODEL}|{VOICE}|{STYLE}|{text}"
     digest = hashlib.sha256(
         content.encode("utf-8")
     ).hexdigest()
@@ -85,19 +70,15 @@ def cache_filename(text):
 
 def generate_audio(text, api_key):
     payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": text,
-                        "speechMetadata": {
-                            "style": STYLE
-                        }
-                    }
-                ]
-            }
-        ],
+        "contents": [{
+            "role": "user",
+            "parts": [{
+                "text": text,
+                "speechMetadata": {
+                    "style": STYLE
+                }
+            }]
+        }],
         "generationConfig": {
             "responseModalities": ["AUDIO"],
             "speechConfig": {
@@ -134,7 +115,7 @@ def generate_audio(text, api_key):
         )
 
         raise RuntimeError(
-            f"Gemini API error ({error.code}): {details}"
+            f"Gemini API error {error.code}: {details}"
         )
 
     except urllib.error.URLError as error:
@@ -145,9 +126,7 @@ def generate_audio(text, api_key):
     candidates = result.get("candidates", [])
 
     if not candidates:
-        raise RuntimeError(
-            "Gemini returned no audio candidates."
-        )
+        raise RuntimeError("Gemini returned no audio")
 
     parts = (
         candidates[0]
@@ -157,25 +136,20 @@ def generate_audio(text, api_key):
 
     for part in parts:
         audio_data = (
-            part.get("inlineData", {})
-            .get("data")
+            part.get("inlineData", {}).get("data")
         )
 
         if audio_data:
-            audio_bytes = base64.b64decode(
-                audio_data
-            )
+            audio = base64.b64decode(audio_data)
 
-            if not audio_bytes.startswith(b"RIFF"):
+            if not audio.startswith(b"RIFF"):
                 raise RuntimeError(
-                    "The returned audio is not a valid WAV file."
+                    "Expected WAV audio, but received another format"
                 )
 
-            return audio_bytes
+            return audio
 
-    raise RuntimeError(
-        "No audio data found in Gemini response."
-    )
+    raise RuntimeError("No audio data found in response")
 
 
 def process_scene(scene, api_key):
@@ -186,31 +160,25 @@ def process_scene(scene, api_key):
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     output_file = OUTPUT_DIR / f"{scene_id}.wav"
-    cached_file = cache_filename(narration)
+    cached_file = cache_path(narration)
 
     if cached_file.exists():
         print(f"[CACHE HIT] {scene_id}")
+        shutil.copy2(cached_file, output_file)
+        return
 
-        shutil.copy2(
-            cached_file,
-            output_file
-        )
-
+    if output_file.exists():
+        print(f"[EXISTS] {scene_id}")
         return
 
     print(f"[GENERATING] {scene_id}")
 
-    audio = generate_audio(
-        narration,
-        api_key
-    )
+    audio = generate_audio(narration, api_key)
 
     cached_file.write_bytes(audio)
     shutil.copy2(cached_file, output_file)
 
     print(f"[SAVED] {output_file}")
-
-    time.sleep(2)
 
 
 def main():
@@ -218,34 +186,30 @@ def main():
 
     parser.add_argument(
         "--scene",
-        help="Generate only one scene by its ID."
+        help="Generate one scene by ID"
     )
 
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Generate audio for all scenes."
+        help="Generate all scenes"
     )
 
     args = parser.parse_args()
 
-    scenes = load_script()
+    if args.scene and args.all:
+        raise ValueError("Choose --scene or --all")
 
-    if args.all and args.scene:
-        raise ValueError(
-            "Use either --all or --scene, not both."
-        )
+    scenes = load_script()
 
     if args.scene:
         scenes = [
-            scene for scene in scenes
-            if scene["id"] == args.scene
+            s for s in scenes
+            if s["id"] == args.scene
         ]
 
         if not scenes:
-            raise ValueError(
-                f"Scene not found: {args.scene}"
-            )
+            raise ValueError("Scene ID not found")
 
     elif not args.all:
         scenes = scenes[:1]
@@ -254,13 +218,13 @@ def main():
 
     if not api_key:
         raise RuntimeError(
-            "GEMINI_API_KEY environment variable is missing."
+            "GEMINI_API_KEY is missing from environment"
         )
 
     for scene in scenes:
         process_scene(scene, api_key)
 
-    print("\nVOICE GENERATION COMPLETED.")
+    print("\nVOICE GENERATION COMPLETED")
 
 
 if __name__ == "__main__":
