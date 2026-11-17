@@ -135,7 +135,7 @@ def generate_audio(text, api_key):
         )
 
     audio_data = (
-       result.get("output_audio", {}).get("data").  
+       result.get("output_audio", {}).get("data")
     )
 
     audio = base64.b64decode(audio_data)
