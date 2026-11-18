@@ -34,7 +34,7 @@
       "title": "The Blue Planet Dies",
       "start": 0,
       "end": 40,
-      "image": "assets/earth-orbit.png",
+      "image": "assets/earth-orbit.jpg",
       "status": "image_ready"
     },
     {
@@ -42,15 +42,15 @@
       "title": "The Ocean's Power",
       "start": 40,
       "end": 80,
-      "image": null,
-      "status": "image_pending"
+      "image": "assets/dry-seabed-shipwreck.jpg",
+      "status": "image_ready"
     },
     {
       "id": "scene_03",
       "title": "The Hidden World",
       "start": 80,
       "end": 130,
-      "image": "assets/dry-seabed-shipwreck.png",
+      "image": "assets/dry-seabed-city.jpg",
       "status": "image_ready"
     },
     {
@@ -58,15 +58,15 @@
       "title": "The Water Cycle Collapses",
       "start": 130,
       "end": 190,
-      "image": null,
-      "status": "image_pending"
+      "image": "assets/water-cycle-collapse.jpg",
+      "status": "image_ready"
     },
     {
       "id": "scene_05",
       "title": "A Planet Out of Balance",
       "start": 190,
       "end": 255,
-      "image": "assets/dry-seabed-city.png",
+      "image": "assets/planet-out-of-balance.jpg",
       "status": "image_ready"
     },
     {
@@ -74,7 +74,7 @@
       "title": "The Final Message",
       "start": 255,
       "end": 300,
-      "image": "assets/earth-orbit.png",
+      "image": "assets/final-earth.jpg",
       "status": "image_ready"
     }
   ],
