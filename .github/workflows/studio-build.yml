@@ -1,0 +1,209 @@
+name: Studio Build (scene-based reel / short)
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Folder name under studio/projects (for example wrinkled-palms-fa or demo-en)"
+        required: true
+        default: "wrinkled-palms-fa"
+        type: string
+      confirm_free_tier:
+        description: "Choose YES only after verifying that Gemini API billing is not enabled (needed only when new audio must be generated)"
+        required: true
+        default: "NO"
+        type: choice
+        options:
+          - "NO"
+          - "YES"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-build
+  cancel-in-progress: false
+
+env:
+  PROJECT: ${{ inputs.project }}
+
+jobs:
+  studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Validate project name
+        run: |
+          if ! [[ "$PROJECT" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "::error::Project name may only contain letters, digits and hyphens."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+
+      - name: Install fonts (Vazirmatn for Persian, Inter for Latin)
+        run: |
+          npm install --no-save @fontsource/vazirmatn@5 @fontsource/inter@5
+          mkdir -p assets/fonts
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 assets/fonts/ || echo "::warning::Inter 400 not found; Latin text falls back to Noto Sans"
+          cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 assets/fonts/ || echo "::warning::Inter 700 not found; Latin text falls back to Noto Sans"
+          ls assets/fonts
+
+      - name: Record tool versions
+        run: |
+          node --version
+          python3 --version
+          ffmpeg -version | head -1
+
+      # Guards: the locked Stage 2 core and the Studio layer must both be healthy before anything runs.
+      - name: Test locked core (Persian alignment, offline)
+        run: python3 scripts/test_stage2_alignment.py
+
+      - name: Test Studio layer (offline)
+        run: python3 studio/tests/test_studio.py
+
+      - name: Show project plan
+        run: python3 studio/engine/run.py plan --project "$PROJECT"
+
+      # Audio and Whisper results are content-addressed, so restoring the most recent cache is always safe.
+      - name: Restore story cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-cache-v2-none
+          restore-keys: |
+            story-cache-v2-
+
+      - name: Validate inputs and list sentences that need the API
+        id: check
+        run: python3 studio/engine/run.py check --project "$PROJECT"
+
+      - name: Free-tier confirmation gate
+        if: steps.check.outputs.api_needed != '0'
+        env:
+          CONFIRM: ${{ inputs.confirm_free_tier }}
+        run: |
+          if [ "$CONFIRM" != "YES" ]; then
+            echo "::error::Stopped before any Gemini API request. Verify billing status and explicitly choose YES."
+            exit 1
+          fi
+
+      - name: Generate narration (Gemini TTS, cached sentences are skipped)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 studio/engine/run.py tts --project "$PROJECT"
+
+      - name: Prepare audio timeline
+        run: python3 studio/engine/run.py prepare --project "$PROJECT"
+
+      - name: Read Whisper model name from the generated config
+        id: wmodel
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          p = os.environ["PROJECT"]
+          print("name=" + json.load(open(f"build/studio/{p}/config.json", encoding="utf-8"))["whisper"]["model"])
+          PY
+
+      - name: Restore Whisper model cache
+        id: whisper-model
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-${{ steps.wmodel.outputs.name }}-v1
+
+      - name: Word timestamps per sentence (faster-whisper)
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+          .venv-whisper/bin/python studio/engine/run.py whisper --project "$PROJECT"
+
+      - name: Save Whisper model cache
+        if: steps.whisper-model.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-${{ steps.wmodel.outputs.name }}-v1
+
+      # Saved right away (and even after a failure) so generated audio is never paid for twice.
+      - name: Compute story cache key
+        id: cachekey
+        if: always()
+        run: |
+          mkdir -p .cache/story
+          echo "count=$(find .cache/story -type f | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "key=story-cache-v2-$(find .cache/story -type f | sort | sha256sum | cut -c1-24)" >> "$GITHUB_OUTPUT"
+
+      - name: Save story cache
+        if: always() && steps.cachekey.outputs.count != '0'
+        uses: actions/cache/save@v5
+        with:
+          path: .cache/story
+          key: ${{ steps.cachekey.outputs.key }}
+
+      - name: Align script words to speech
+        run: python3 studio/engine/run.py align --project "$PROJECT"
+
+      - name: Build composition and SRT
+        run: python3 studio/engine/run.py compose --project "$PROJECT"
+
+      - name: Lint composition
+        working-directory: build/studio/${{ inputs.project }}/story
+        run: npx --yes hyperframes lint
+
+      - name: Render MP4
+        working-directory: build/studio/${{ inputs.project }}/story
+        run: npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
+
+      - name: Verify MP4
+        run: python3 studio/engine/run.py verify --project "$PROJECT"
+
+      - name: Add report to workflow summary
+        if: always()
+        run: |
+          B="build/studio/$PROJECT"
+          if [ -f "$B/timing_report.md" ]; then
+            cat "$B/timing_report.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$B/verify.json" ]; then
+            {
+              echo
+              echo '```json'
+              cat "$B/verify.json"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: studio-${{ inputs.project }}
+          path: |
+            build/studio/${{ inputs.project }}/story.mp4
+            build/studio/${{ inputs.project }}/story.srt
+            build/studio/${{ inputs.project }}/timing.json
+            build/studio/${{ inputs.project }}/timing_report.md
+            build/studio/${{ inputs.project }}/verify.json
+            build/studio/${{ inputs.project }}/tts_meta.json
+            build/studio/${{ inputs.project }}/audio_meta.json
+            build/studio/${{ inputs.project }}/narration.wav
+            build/studio/${{ inputs.project }}/whisper/
+            build/studio/${{ inputs.project }}/frames/
+            build/studio/${{ inputs.project }}/story/index.html
+          if-no-files-found: warn
+          retention-days: 7
