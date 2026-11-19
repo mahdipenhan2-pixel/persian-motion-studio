@@ -1,0 +1,223 @@
+name: Install Studio Phase 0 and 1
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose dry-run or install"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - install
+
+      zip_path:
+        description: "ZIP file path"
+        required: true
+        default: "studio-phase0-1.zip"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    outputs:
+      files: ${{ steps.inspect.outputs.files }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inspect ZIP
+        id: inspect
+        env:
+          ZIP_PATH: ${{ inputs.zip_path }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import zipfile
+          import stat
+          from pathlib import PurePosixPath
+
+          zp = os.environ["ZIP_PATH"]
+
+          if not os.path.isfile(zp):
+              raise SystemExit("ZIP file not found")
+
+          z = zipfile.ZipFile(zp)
+
+          if z.testzip():
+              raise SystemExit("ZIP file is corrupt")
+
+          files = []
+          seen = set()
+
+          for info in z.infolist():
+
+              if info.is_dir():
+                  continue
+
+              name = info.filename
+              path = PurePosixPath(name)
+
+              if "\\" in name or path.is_absolute() or ".." in path.parts:
+                  raise SystemExit("Unsafe path: " + name)
+
+              if name in seen:
+                  raise SystemExit("Duplicate file: " + name)
+
+              seen.add(name)
+
+              mode = info.external_attr >> 16
+
+              if stat.S_ISLNK(mode):
+                  raise SystemExit("Symbolic links are not allowed")
+
+              if name == ".github/workflows/studio-build.yml":
+                  print("Skipped manual workflow:", name)
+                  continue
+
+              if name == "CORE.md" or (
+                  path.parts and path.parts[0] == "studio"
+              ):
+                  files.append(name)
+              else:
+                  raise SystemExit("Unexpected file: " + name)
+
+          if not files:
+              raise SystemExit("No valid files found")
+
+          for name in files:
+              if os.path.lexists(name):
+                  raise SystemExit("File already exists: " + name)
+
+          result = json.dumps(files, separators=(",", ":"))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("files=" + result + "\n")
+
+          print("Approved files:")
+          for name in files:
+              print("+", name)
+
+          print("Total:", len(files))
+          PY
+
+      - name: Dry run result
+        run: |
+          echo "ZIP inspection successful."
+          echo "No files have been installed."
+
+  install:
+    needs: check
+
+    if: ${{ inputs.mode == 'install' }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract approved files
+        env:
+          ZIP_PATH: ${{ inputs.zip_path }}
+          FILES: ${{ needs.check.outputs.files }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import zipfile
+          from pathlib import Path
+
+          files = json.loads(os.environ["FILES"])
+          z = zipfile.ZipFile(os.environ["ZIP_PATH"])
+
+          for name in files:
+
+              path = Path(name)
+
+              if path.exists():
+                  raise SystemExit("Refusing overwrite: " + name)
+
+              path.parent.mkdir(parents=True, exist_ok=True)
+
+              with open(path, "xb") as f:
+                  f.write(z.read(name))
+
+          print("Files extracted:", len(files))
+          PY
+
+      - name: Verify only new approved files
+        env:
+          FILES: ${{ needs.check.outputs.files }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import subprocess
+
+          approved = set(json.loads(os.environ["FILES"]))
+
+          result = subprocess.check_output(
+              ["git", "status", "--porcelain"]
+          ).decode().splitlines()
+
+          actual = set()
+
+          for line in result:
+
+              if not line.startswith("?? "):
+                  raise SystemExit("Unexpected repository change: " + line)
+
+              actual.add(line[3:])
+
+          if actual != approved:
+              raise SystemExit("File list does not match approved ZIP files")
+
+          print("Safety check passed")
+          PY
+
+      - name: Commit new files
+        env:
+          FILES: ${{ needs.check.outputs.files }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import subprocess
+
+          files = json.loads(os.environ["FILES"])
+
+          subprocess.run(
+              ["git", "add", "--"] + files,
+              check=True
+          )
+
+          changes = subprocess.check_output(
+              ["git", "diff", "--cached", "--name-status"]
+          ).decode().splitlines()
+
+          if len(changes) != len(files):
+              raise SystemExit("Unexpected commit contents")
+
+          for change in changes:
+              if not change.startswith("A\t"):
+                  raise SystemExit("Only new files are allowed")
+
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git commit -m "Add NFP Studio Phase 0 and 1"
+
+          git push origin HEAD
