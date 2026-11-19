@@ -58,7 +58,6 @@ jobs:
           seen = set()
 
           for info in z.infolist():
-
               if info.is_dir():
                   continue
 
@@ -142,7 +141,6 @@ jobs:
           z = zipfile.ZipFile(os.environ["ZIP_PATH"])
 
           for name in files:
-
               path = Path(name)
 
               if path.exists():
@@ -156,6 +154,13 @@ jobs:
           print("Files extracted:", len(files))
           PY
 
+      - name: Run offline tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python3 scripts/test_stage2_alignment.py
+          python3 studio/tests/test_studio.py
+
       - name: Verify only new approved files
         env:
           FILES: ${{ needs.check.outputs.files }}
@@ -168,22 +173,26 @@ jobs:
           approved = set(json.loads(os.environ["FILES"]))
 
           result = subprocess.check_output(
-              ["git", "status", "--porcelain"]
+              ["git", "status", "--porcelain", "--untracked-files=all"]
           ).decode().splitlines()
 
           actual = set()
 
           for line in result:
-
               if not line.startswith("?? "):
                   raise SystemExit("Unexpected repository change: " + line)
 
               actual.add(line[3:])
 
           if actual != approved:
-              raise SystemExit("File list does not match approved ZIP files")
+              raise SystemExit(
+                  "File list does not match approved ZIP files\n"
+                  f"Expected: {sorted(approved)}\n"
+                  f"Found: {sorted(actual)}"
+              )
 
           print("Safety check passed")
+
           PY
 
       - name: Commit new files
