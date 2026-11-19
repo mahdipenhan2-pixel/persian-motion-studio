@@ -1,0 +1,9 @@
+{
+  "scripts/story_stage2.py": "83daf6312321b421f1aa38e63ad74a546bb929fc697115f13cd110da1e014d11",
+  "scripts/stage2_whisper.py": "d745bb706be126d47adbc203f973783e765725a79e16ec973c99cfd237c7f27f",
+  "scripts/test_stage2_alignment.py": "48ec06b8cdfb3b688d9e928c2bdacd6189065df7733e4be61be670496de6588b",
+  "story/template.stage2.html": "161fd728de0f2e1957f262bd7bb19827d5d64e40c742f6ddae312b1f6e5fdf7b",
+  "story/config.stage2.json": "93f926109b4c1e16546e00661eee37a04265f99573538329654a9230fbec201e",
+  "story/script.stage2.json": "72a11e02df298deb9e74aa16f5a9c5aab3bc7450066ecebfa951c27e5bebfcc6",
+  ".github/workflows/story-stage2.yml": "290ac1007c74b10a014d525d66bde11530b71217d4cbfb9612c9c8e4c0748db0"
+}

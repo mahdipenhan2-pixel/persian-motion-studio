@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="__LANG__" dir="__DIR__">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFP Studio</title>
+<style>
+__FONT_FACES__
+  :root {
+__THEME_VARS__
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; overflow: hidden; background: var(--bg); }
+  body { font-family: "Vazirmatn", "Inter", "Noto Sans", sans-serif; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden;
+          background: var(--bg); color: var(--cream); direction: __DIR__; }
+  .layer { position: absolute; inset: 0; }
+
+  /* ---- background: always on screen, so there is never a blank frame ---- */
+  .orb { position: absolute; border-radius: 50%; }
+  .o1 { width: 1200px; height: 1200px; left: -400px; top: -420px;
+        background: radial-gradient(circle at 50% 50%, rgba(143,214,168,0.10), rgba(143,214,168,0) 65%); }
+  .o2 { width: 1100px; height: 1100px; left: 300px; top: 1250px;
+        background: radial-gradient(circle at 50% 50%, rgba(201,166,90,0.10), rgba(201,166,90,0) 65%); }
+  #track { position: absolute; left: 70px; right: 70px; top: 64px; height: 8px;
+           border-radius: 4px; background: rgba(239,233,220,0.12); overflow: hidden; }
+  #progress { position: absolute; inset: 0; background: var(--gold); transform-origin: __PROGRESS_ORIGIN__ center; }
+  #handle { position: absolute; left: 0; right: 0; top: 1660px; text-align: center; direction: ltr;
+            font-family: "Inter", "Noto Sans", sans-serif; font-size: 34px; color: rgba(239,233,220,0.6); }
+
+  /* ---- scenes (top zone 110-540, bottom zone 1400-1630) ---- */
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .zt, .zb { position: absolute; left: 70px; right: 70px; display: flex; flex-direction: column;
+             align-items: center; justify-content: center; gap: 14px; text-align: center; }
+  .zt { top: 110px; height: 430px; }
+  .zb { top: 1400px; height: 230px; }
+  .deco { position: absolute; left: 0; right: 0; top: 1440px; display: flex; justify-content: center;
+          color: var(--accent); opacity: 0.07; }
+  .a { opacity: 0; transform: translateY(40px); }
+  svg { display: block; }
+
+  .t-icon { color: var(--accent); }
+  .t-title { font-size: 88px; font-weight: 700; line-height: 1.3; color: var(--cream); }
+  .t-sub { font-size: 40px; color: var(--gold); line-height: 1.4; }
+
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; width: 100%; }
+  .card { background: var(--card); border: 3px solid var(--card-line); border-radius: 36px; padding: 44px 20px;
+          display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .card.tone-ok { border-color: var(--accent); }
+  .card.tone-warn { border-color: var(--gold); }
+  .card .big { font-size: 88px; font-weight: 700; line-height: 1.3; }
+  .card.tone-ok .big { color: var(--accent); }
+  .card.tone-warn .big { color: var(--gold); }
+  .card .small { font-size: 48px; color: var(--cream); }
+  .c-icon { color: var(--cream); opacity: 0.85; }
+
+  .i-head { display: flex; align-items: center; gap: 18px; color: var(--gold); font-size: 60px; font-weight: 700; }
+  .i-head svg { color: var(--gold); }
+  .i-rows { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+  .i-row { display: flex; align-items: center; gap: 22px; background: var(--card); border: 3px solid var(--card-line);
+           border-radius: 28px; padding: 20px 32px; font-size: 44px; text-align: start; }
+  .i-row i { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); }
+
+  .s-head { font-size: 50px; font-weight: 700; color: var(--gold); }
+  .steps { display: grid; gap: 22px; width: 100%; }
+  .steps.n2 { grid-template-columns: repeat(2, 1fr); }
+  .steps.n3 { grid-template-columns: repeat(3, 1fr); }
+  .steps.n4 { grid-template-columns: repeat(4, 1fr); }
+  .step { background: var(--card); border: 3px solid var(--card-line); border-radius: 32px; padding: 28px 12px;
+          display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .s-icon { color: var(--accent); }
+  .s-text { font-size: 38px; line-height: 1.4; font-weight: 700; }
+  .n4 .s-text { font-size: 32px; }
+
+  .c-head { font-size: 76px; font-weight: 700; line-height: 1.3; color: var(--cream); }
+  .c-note { font-size: 38px; color: var(--gold); line-height: 1.5; max-width: 900px; }
+  .c-handle { font-size: 44px; font-weight: 700; color: var(--accent); direction: ltr; }
+
+  /* ---- captions: sit centred in the band y 560-1360 ---- */
+  #stage { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 90px; }
+  .sentence { grid-area: 1 / 1; width: 900px; max-width: 100%; text-align: center; direction: __DIR__;
+              font-size: __CAPTION_SIZE__px; font-weight: 700; line-height: __CAPTION_LH__; opacity: 0;
+              overflow-wrap: break-word; }
+  /* one span per WORD (never per letter) keeps Persian letter joining intact; constant padding/margin
+     means highlighting never moves the layout */
+  .w { display: inline; color: rgba(__CREAM__, 0.5); background-color: rgba(__HL__, 0);
+       padding: 0 0.14em; margin: 0 -0.14em; border-radius: 0.22em;
+       box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="__DURATION__">
+  <audio id="narration" src="narration.wav" data-start="0" data-duration="__DURATION__" data-track-index="2" data-volume="1"></audio>
+  <section id="bg" class="layer clip" data-start="0" data-duration="__DURATION__" data-track-index="0">
+    <div class="orb o1" id="o1"></div>
+    <div class="orb o2" id="o2"></div>
+    <div id="track"><div id="progress"></div></div>
+    __HANDLE_HTML__
+  </section>
+  <section id="scenes" class="layer clip" data-start="0" data-duration="__DURATION__" data-track-index="1">
+    __SCENES_HTML__
+  </section>
+  <section id="stage" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="3">
+    __SENTENCES_HTML__
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const DATA = __TIMELINE_JSON__;
+  const OFF = { color: "rgba(__CREAM__,0.5)", backgroundColor: "rgba(__HL__,0)" };
+  const ON = { color: "rgba(__INK__,1)", backgroundColor: "rgba(__HL__,1)" };
+  const DONE = { color: "rgba(__CREAM__,1)", backgroundColor: "rgba(__HL__,0)" };
+
+  if (typeof gsap === "undefined") throw new Error("GSAP failed to load.");
+  if (!DATA || !Array.isArray(DATA.sentences) || DATA.sentences.length === 0) throw new Error("Invalid or empty timeline data.");
+  const total = Number(DATA.duration);
+  const fade = Number(DATA.fade);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(fade) || fade <= 0) throw new Error("Invalid duration or fade.");
+  const byId = (id) => {
+    const el = document.getElementById(id);
+    if (!el) throw new Error("Element not found: " + id);
+    return el;
+  };
+  const tl = gsap.timeline({ paused: true });
+
+  /* Background: finite tweens spanning the whole video (no infinite repeats). */
+  tl.to("#o1", { x: 120, y: 90, duration: total, ease: "sine.inOut" }, 0);
+  tl.to("#o2", { x: -140, y: -100, duration: total, ease: "sine.inOut" }, 0);
+  tl.fromTo("#progress", { scaleX: 0 }, { scaleX: 1, duration: total, ease: "none" }, 0);
+
+  /* Scenes: cross-fade at the start of each scene's first sentence; children (.a) stagger in. */
+  DATA.scenes.forEach((sc, i) => {
+    const el = byId("scene-" + sc.id);
+    const start = Number(sc.start);
+    if (!Number.isFinite(start) || start < 0) throw new Error("Invalid scene timing: " + sc.id);
+    const inAt = i === 0 ? 0 : Math.max(0, start - fade);
+    tl.to(el, { opacity: 1, duration: fade, ease: "power1.out" }, inAt);
+    const kids = el.querySelectorAll(".a");
+    if (kids.length) tl.to(kids, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.14 }, inAt);
+    const next = DATA.scenes[i + 1];
+    if (next) tl.to(el, { opacity: 0, duration: fade, ease: "power1.in" }, Math.max(inAt + fade, Number(next.start) - fade));
+  });
+
+  /* Captions. All times are absolute seconds from the start of narration.wav. A sentence appears and
+     disappears with its OWN audio window, and fade-out always finishes before the next fade-in begins. */
+  DATA.sentences.forEach((s) => {
+    const el = byId("sent-" + s.id);
+    const start = Number(s.start);
+    const end = Number(s.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) throw new Error("Invalid sentence timing: " + s.id);
+    tl.fromTo(el, { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: fade, ease: "power2.out", immediateRender: false }, Math.max(0, start - fade));
+    (s.words || []).forEach((w) => {
+      const we = byId(w.id);
+      const ws = Number(w.start);
+      const wend = Number(w.end);
+      if (!Number.isFinite(ws) || !Number.isFinite(wend) || ws < 0 || wend < ws) throw new Error("Invalid word timing: " + w.id);
+      if (w.hl === false) {
+        tl.fromTo(we, OFF, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, ws);
+        return;
+      }
+      const hold = Math.max(0.06, wend - ws);
+      tl.fromTo(we, OFF, { ...ON, duration: 0.05, ease: "none", immediateRender: false }, ws);
+      tl.fromTo(we, ON, { ...DONE, duration: 0.12, ease: "none", immediateRender: false }, ws + hold);
+    });
+    tl.to(el, { opacity: 0, duration: fade, ease: "power1.in" }, end + 0.02);
+  });
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>

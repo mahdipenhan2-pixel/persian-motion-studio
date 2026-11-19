@@ -1,0 +1,16 @@
+{
+  "name": "dark-green",
+  "note": "Dark green / cream / gold, modelled on the sample reel. Decorations stay out of the caption band (y 560-1360) so the verify step can measure the caption highlight.",
+  "vars": {
+    "--bg": "#0f2a22",
+    "--bg2": "#16382d",
+    "--card": "#1b4337",
+    "--card-line": "rgba(239,233,220,0.14)",
+    "--cream": "#efe9dc",
+    "--gold": "#c9a65a",
+    "--accent": "#8fd6a8"
+  },
+  "cream_rgb": [239, 233, 220],
+  "ink_rgb": [11, 31, 24],
+  "highlight_rgb": [143, 214, 168]
+}

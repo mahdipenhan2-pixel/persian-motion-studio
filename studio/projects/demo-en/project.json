@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "title": "Wrinkled fingers",
+    "lang": "en",
+    "format": "9:16",
+    "theme": "dark-green",
+    "handle": "@yourhandle"
+  },
+  "voice": {
+    "voice": "Kore",
+    "style": "calm, clear narration"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "template": "title",
+      "narration": "Why do your fingers wrinkle in water?",
+      "on_screen": {
+        "icon": "hand",
+        "title": "Wrinkled fingers?",
+        "subtitle": "Here is why"
+      }
+    },
+    {
+      "id": "s2",
+      "template": "info",
+      "narration": "Your nervous system tightens the tiny blood vessels under the skin. The skin gets pulled into wrinkles.",
+      "on_screen": {
+        "icon": "info",
+        "heading": "What happens",
+        "lines": [
+          "Nerves tighten blood vessels",
+          "Skin is pulled inward"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "template": "cta",
+      "narration": "It usually appears after about ten minutes in water. Follow for more.",
+      "on_screen": {
+        "icon": "clock",
+        "heading": "About 10 minutes",
+        "handle": "@yourhandle"
+      }
+    }
+  ]
+}
