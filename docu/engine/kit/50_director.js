@@ -40,7 +40,7 @@
       const S = { id: o.id, el: g, t0, t1, dur: t1 - t0, actors: {}, D };
       S.at = (f) => snap(t0 + (t1 - t0) * f);
       S.ts = D.T;
-      S.q = (name) => { const e = g.querySelector(`[data-p="${name}"]`); if (!e) throw new Error(`shot ${o.id}: part '${name}' not found`); return e; };
+      S.q = (name) => { const e = g.querySelector('[data-p="' + name + '"]'); if (!e) throw new Error(`shot ${o.id}: part '${name}' not found`); return e; };
       S.layer = (svg, depth) => { const l = document.createElementNS("http://www.w3.org/2000/svg", "g"); l.setAttribute("class", "lay"); l.style.setProperty("--d", depth === undefined ? 1 : depth); l.innerHTML = svg; g.appendChild(l); return l; };
       S.key = (nameOrEl, prop, t, val, dur, ease) => key(typeof nameOrEl === "string" ? S.q(nameOrEl) : nameOrEl, prop, t, val, dur, ease);
       S.show = (name, t, on) => setv(S.q(name), { visibility: on === false ? "hidden" : "visible" }, t);
@@ -57,10 +57,10 @@
       S.actor = (id, spec, x, y, scale, opt) => {
         opt = opt || {};
         const wrap = S.layer(`<g data-p="${id}"><g transform="translate(${x} ${y}) scale(${scale || 1})">${K.chars.actor(spec)}</g></g>`, opt.depth === undefined ? 0.9 : opt.depth);
-        const root = wrap.querySelector(`[data-p="${id}"]`);
+        const root = wrap.querySelector('[data-p="' + id + '"]');
         const eyeEx = (K.chars.FACE[spec.build] || K.chars.FACE.child).ey;
         const A = { id, el: root, x, y, scale: scale || 1, spec, mouth: "neutral", t: t0 };
-        A.p = (n) => { const e = root.querySelector(`[data-p="${n}"]`); if (!e) throw new Error(`actor ${id}: no part ${n}`); return e; };
+        A.p = (n) => { const e = root.querySelector('[data-p="' + n + '"]'); if (!e) throw new Error(`actor ${id}: no part ${n}`); return e; };
         A.k = (part, prop, t, val, dur, ease) => key(part === "self" ? root : A.p(part), prop, t, val, dur, ease);
         A.move = (t, dx, dy, dur, ease) => { A.k("self", "--x", t, dx, dur, ease || "power2.inOut"); if (dy !== undefined) A.k("self", "--y", t, dy, dur, ease || "power2.inOut"); };
         A.appear = (t, dur) => { setv(root, { visibility: "visible" }, t); A.k("self", "--s", t, 0, 0); A.k("self", "--s", t, 1, dur || 0.4, "back.out(1.6)"); };
@@ -76,8 +76,8 @@
           if (tr) setv(tr, { display: e.tears ? "inline" : "none" }, t); if (sw) setv(sw, { display: e.sweat ? "inline" : "none" }, t);
           if (A.mouth !== e.mouth) { setv(A.q1(A.mouth), { display: "none" }, t); setv(A.q1(e.mouth), { display: "inline" }, t); A.mouth = e.mouth; }
         };
-        A.root_x = (n) => root.querySelector(`[data-x="${n}"]`);
-        A.q1 = (m) => root.querySelector(`[data-m="${m}"]`);
+        A.root_x = (n) => root.querySelector('[data-x="' + n + '"]');
+        A.q1 = (m) => root.querySelector('[data-m="' + m + '"]');
         A.face = A.faceNow;
         A.mouthOnly = (t, m) => { if (A.mouth !== m) { setv(A.q1(A.mouth), { display: "none" }, t); setv(A.q1(m), { display: "inline" }, t); A.mouth = m; } };
         A.look = (t, dx, dy, dur) => { A.k("irisL", "--x", t, dx, dur); A.k("irisR", "--x", t, dx, dur); A.k("irisL", "--y", t, 2 + dy, dur); A.k("irisR", "--y", t, 2 + dy, dur); };
@@ -165,7 +165,7 @@
       const dm = document.getElementById("vhsD"), tb = document.getElementById("vhsT");
       const amps = [60, 110, 40, 95, 30, 10, 0].map((v) => Math.round(v * str));
       amps.forEach((v, i) => { const t = snap(a + i * (b - a) / amps.length); tl.set(dm, { attr: { scale: v } }, t); tl.set(tb, { attr: { seed: 3 + Math.floor(r() * 90) } }, t); });
-      for (let i = 0; i < 6; i++) { const bar = ov.querySelector(`[data-p="vb${i}"]`); if (i >= nBars) { setv(bar, { visibility: "hidden" }, a); continue; }
+      for (let i = 0; i < 6; i++) { const bar = ov.querySelector('[data-p="vb' + i + '"]'); if (i >= nBars) { setv(bar, { visibility: "hidden" }, a); continue; }
         for (let k = 0, t = a; t < b; k++, t = snap(t + 0.066)) { key(bar, "--y", t, Math.round((r() - 0.5) * 700), 0); key(bar, "--x", t, Math.round((r() - 0.5) * 120), 0); } }
       if (year) { const y = document.createElementNS("http://www.w3.org/2000/svg", "text");
         ["x:1810", "y:150"].forEach((p) => { const [k, v] = p.split(":"); y.setAttribute(k, v); });
