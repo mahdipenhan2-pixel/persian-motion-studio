@@ -7,7 +7,7 @@ import wave
 from pathlib import Path
 
 ENGINE = Path(__file__).resolve().parent
-KIT = ["00_core", "10_chars", "20_backgrounds", "40_fx", "50_director"]
+KIT = ["00_core", "10_chars", "20_backgrounds", "21_scenes", "40_fx", "50_director"]
 FPS = 30
 
 

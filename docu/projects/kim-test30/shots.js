@@ -1,10 +1,18 @@
 /* Shots for the 30-second style test. Runs inside base.html with D (director), K (kit), DATA. */
-const YOU = (build, extra) => Object.assign({ build, skin: "#e0a275", hair: "wavy_long", hairColor: "#2b1a17", bow: "#e4483f",
-  top: "#f0b63a", pants: "#3b4a8c", shoe: "#2b2230", outfit: "kidtee", accent: "#e4483f" }, extra || {});
-const DAD = { build: "adult", skin: "#e8b896", hair: "short_man", hairColor: "#4a3426", top: "#2f3a4f", pants: "#262b3a", outfit: "suit", glasses: 1, accent: "#a63a3a" };
-const MOM = { build: "adult", skin: "#e5ae88", hair: "big80s", hairColor: "#241713", top: "#b4434a", pants: "#2b2230", outfit: "blazer", accent: "#f3c64a" };
-const BRUCE = { build: "adult", skin: "#e9b996", hair: "slick", hairColor: "#6a4a2e", top: "#3a6aa8", pants: "#2e3a5a", outfit: "track", accent: "#f6f2e8", shoe: "#f6f2e8" };
-const CREW = { build: "adult", skin: "#c98f6a", hair: "short_man", hairColor: "#1f1512", top: "#35353f", pants: "#22222a", outfit: "track", accent: "#6a6a78" };
+/* Kim, one identity (jet-black hair, strong brows, brown eyes, warm tan skin) with real age stages */
+const KIM = { skin: "#d99a73", hairColor: "#1c1210", eyeColor: "#5a3320", accent: "#e4483f" };
+const YOU = (stage, extra) => Object.assign({}, KIM, ({
+  baby:  { build: "baby",  hair: "baby_tuft",  outfit: "babygrow", top: "#f6e7a8", pants: "#f6e7a8", shoe: "#f6e7a8", legs: "pants", sleeve: "none" },
+  child: { build: "child", hair: "child_pony", outfit: "sweat80s", top: "#f2a7b8", pants: "#6a7ec2", shoe: "#f2efe8" },
+  teen:  { build: "teen",  hair: "teen_long",  outfit: "crop",     top: "#efe0cc", pants: "#4a6aa0", shoe: "#f2efe8", earrings: 1, sleeve: "short" },
+  w2007: { build: "woman", hair: "long_straight", outfit: "tee2007", top: "#2b2b33", pants: "#3b5a8a", shoe: "#2b2230", earrings: 1, sleeve: "short" },
+  w2025: { build: "woman", hair: "long_straight", outfit: "dress", top: "#b89b86", legs: "bare", shoe: "#c9a58a", shoeType: "pump", sleeve: "none", earrings: 1, lip: "#c4666b" },
+})[stage], extra || {});
+const DAD = { build: "man", skin: "#e8b896", hair: "short_man", hairColor: "#4a3426", top: "#2f3a4f", pants: "#262b3a", outfit: "suit", glasses: 1, accent: "#a63a3a" };
+const MOM = { build: "woman", skin: "#e5ae88", hair: "big80s", hairColor: "#241713", top: "#b4434a", pants: "#2b2230", outfit: "blazer", accent: "#f3c64a", earrings: 1, lip: "#b23a4a", sleeve: "long" };
+const BRUCE = { build: "man", skin: "#e9b996", hair: "slick", hairColor: "#6a4a2e", top: "#3a6aa8", pants: "#2e3a5a", outfit: "track", accent: "#f6f2e8", shoe: "#f6f2e8" };
+const CREW = { build: "man", skin: "#c98f6a", hair: "short_man", hairColor: "#1f1512", top: "#35353f", pants: "#22222a", outfit: "track", accent: "#6a6a78" };
+const NURSE = { build: "woman", skin: "#e9c0a0", hair: "bob", hairColor: "#5a3a26", top: "#e9f3f2", legs: "bare", outfit: "dress", shoe: "#f2efe8", sleeve: "none" };
 const FX = K.fx, PR = FX.props;
 const lab = (S, id, text, x, y, t, o) => { S.layer(FX.label(id, text, x, y, o), 1.15); S.pop(id, t, 0.38); };
 const FLOOR = 815;
@@ -28,13 +36,14 @@ const confetti = (S, t0, n, seed) => { const r = K.rng(seed); const cols = ["#f3
     S.key(e, "--y", st, 0, 0); S.key(e, "--y", st, 1180, d, "none"); S.key(e, "--x", st, 0, 0); S.key(e, "--x", st, (r() - 0.5) * 260, d, "sine.inOut"); S.key(e, "--r", st, 0, 0); S.key(e, "--r", st, (r() - 0.5) * 900, d, "none"); } };
 
 /* ===================== SHOT 1: Los Angeles, sunset (title + establishing) ===================== */
-D.shot({ id: "la", a: 0, b: [ "s1", 0.42 ], bg: K.bg.street({ sky1: "#ff7a4a", sky2: "#ffd08a", bld: "#4a3552", bld2: "#6e4a63", road: "#3a3340" }),
+D.shot({ id: "la", a: 0, b: [ "s1", 0.42 ], bg: K.bg.laStreet({ sky1: "#ff7a4a", sky2: "#ffd08a", bld: "#4a3552", bld2: "#6e4a63", road: "#3a3340" }),
   cam: { from: [-60, 10, 0.0], to: [70, -10, 0.12] },
   build(S) {
     S.layer(palm(-30, false), 1.5); S.layer(palm(1880, true), 1.55);
     S.layer(`<g transform="translate(0 868)"><g data-p="car1" ><g>${car("#c4453f")}</g></g></g>`, 0.9);
     S.key("car1", "--x", S.t0, -300, 0); S.key("car1", "--x", S.t0, 2300, S.dur * 1.25, "none");
     ["whA", "whB"].forEach((n) => { S.key(n, "--r", S.t0, 0, 0); S.key(n, "--r", S.t0, 1440, S.dur * 1.25, "none"); });
+    const nurse = S.actor("nurse", NURSE, 0, 800, 0.62, { depth: 0.85, seed: 77, idle: false }); nurse.k("self", "--x", S.t0, 380, 0); nurse.walk(S.t0 + 0.2, S.t1 - 0.2, 1240, { step: 0.34, amp: 18 }); nurse.face(S.t0, "happy", 0);
     S.layer(FX.glow(1450, 560, 700, 420, "#ffd7a0", 0.55), 0.1);
     // title card (pops in, holds, leaves)
     S.layer(`<g data-p="title"><g transform="translate(960 190)"><rect x="-640" y="-58" width="1280" height="116" rx="18" fill="#fff" stroke="#2a1820" stroke-width="7"/>
@@ -45,12 +54,12 @@ D.shot({ id: "la", a: 0, b: [ "s1", 0.42 ], bg: K.bg.street({ sky1: "#ff7a4a", s
 
 /* ===================== SHOT 2: the nursery - baby "you" in the crib ===================== */
 D.vhs(D.T("s1", 0.42), "1980");
-D.shot({ id: "crib", a: ["s1", 0.42], b: ["s2", 0.0], bg: K.bg.livingRoom({ wall: "#d9b48a", wall2: "#c99f74", floor: "#7a5238", rug: "#6fa0b8" }),
+D.shot({ id: "crib", a: ["s1", 0.42], b: ["s2", 0.0], bg: K.bg.nursery(),
   cam: { from: [40, 20, 0.02], to: [-30, -10, 0.13] },
   build(S) {
     S.layer(mobile(1000, 330), 0.75);
     S.layer(PR.crib(960, 900), 0.9);
-    const baby = S.actor("baby", YOU("kid", { outfit: "onesie", top: "#f0b63a", pants: "#f0b63a", hair: "wavy_long" }), 960, 872, 1.05, { depth: 0.9, seed: 4 });
+    const baby = S.actor("baby", YOU("baby"), 960, 884, 1.5, { depth: 0.9, seed: 4 });
     S.layer(PR.blanket(960, 905), 0.9);
     // mobile swings; baby follows it with her eyes and reaches up
     const sw = (n, dt) => { for (let i = 0, t = S.t0; t < S.t1; i++, t += 0.9) { S.key("mob" + n, "--r", t + dt, (i % 2 ? 14 : -14), 0.9, "sine.inOut"); } };
@@ -65,7 +74,7 @@ D.shot({ id: "crib", a: ["s1", 0.42], b: ["s2", 0.0], bg: K.bg.livingRoom({ wall
 
 /* ===================== SHOT 3: father walks into his office ===================== */
 D.vhs(D.T("s2", 0.0));
-D.shot({ id: "dadOffice", a: ["s2", 0.0], b: ["s2", 0.58], bg: K.bg.livingRoom({ wall: "#6f86a0", wall2: "#627a94", floor: "#3c3a46", rug: "#2c3d5a", warm: "#cfe0ff" }),
+D.shot({ id: "dadOffice", a: ["s2", 0.0], b: ["s2", 0.58], bg: K.bg.lawOffice(),
   cam: { from: [-90, 0, 0.0], to: [60, -10, 0.1] },
   build(S) {
     S.layer(PR.desk(1000, 880, 560), 0.92); S.layer(PR.scales(1450, 790), 0.8);
@@ -82,10 +91,9 @@ D.shot({ id: "dadOffice", a: ["s2", 0.0], b: ["s2", 0.58], bg: K.bg.livingRoom({
   }, grade: ["#9fb8dd", 0.25] });
 
 /* ===================== SHOT 4: handwritten note about the trial ===================== */
-D.shot({ id: "note", a: ["s2", 0.58], b: ["s3", 0.0], bg: K.bg.studio({ a: "#1d2236", b: "#3b3a58", light: "#8fb8ff" }),
+D.shot({ id: "note", a: ["s2", 0.58], b: ["s3", 0.0], bg: K.bg.courthouse(),
   cam: { from: [20, 0, 0.0], to: [-20, 0, 0.1] },
   build(S) {
-    S.layer(PR.scales(420, 880), 0.9);
     const dad = S.actor("dad2", DAD, 440, FLOOR + 40, 1.0, { seed: 12, expr: "neutral" });
     S.layer(FX.note("trial", ["O. J. Simpson", "defense team", "trial: 1995"], 1260, 450, { w: 620, size: 74, rot: -4 }), 1.0);
     S.fadeIn("trial", S.t0 + 0.2, 0.2); S.wipe("trial", S.t0 + 0.35, 1.0);
@@ -96,10 +104,10 @@ D.shot({ id: "note", a: ["s2", 0.58], b: ["s3", 0.0], bg: K.bg.studio({ a: "#1d2
 
 /* ===================== SHOT 5: age nine, the parents leave ===================== */
 D.vhs(D.T("s3", 0.0), "1989");
-D.shot({ id: "divorce", a: ["s3", 0.0], b: ["s4", 0.0], bg: K.bg.livingRoom({ wall: "#a8794f", wall2: "#98693f", floor: "#5a3a28", rug: "#8a3a3a" }),
+D.shot({ id: "divorce", a: ["s3", 0.0], b: ["s4", 0.0], bg: K.bg.home80s(),
   cam: { from: [0, 0, 0.0], to: [0, 20, 0.15] },
   build(S) {
-    const kid = S.actor("kid", YOU("kid"), 960, FLOOR + 20, 1.12, { seed: 5, expr: "worried" });
+    const kid = S.actor("kid", YOU("child"), 960, FLOOR + 20, 1.12, { seed: 5, expr: "worried" });
     const dad = S.actor("dadL", DAD, 560, FLOOR, 0.92, { seed: 21, idle: false });
     const mom = S.actor("momR", MOM, 1360, FLOOR, 0.92, { seed: 22, idle: false });
     S.layer(K.P("suit", 0, 0, PR.suitcase(0, 0)), 0.9);
@@ -121,12 +129,12 @@ D.shot({ id: "divorce", a: ["s3", 0.0], b: ["s4", 0.0], bg: K.bg.livingRoom({ wa
 
 /* ===================== SHOT 6: the new family ===================== */
 D.vhs(D.T("s4", 0.0), "1991");
-D.shot({ id: "wedding", a: ["s4", 0.0], b: ["s4", 0.55], bg: K.bg.livingRoom({ wall: "#c79a6a", wall2: "#b78859", floor: "#6a4630", rug: "#3d6a9c" }),
+D.shot({ id: "wedding", a: ["s4", 0.0], b: ["s4", 0.55], bg: K.bg.weddingYard(),
   cam: { from: [60, 0, 0.0], to: [-40, -10, 0.1] },
   build(S) {
     const mom = S.actor("mom", MOM, 880, FLOOR, 0.96, { seed: 31 });
     const br = S.actor("bruce", BRUCE, 1090, FLOOR, 0.98, { seed: 32 });
-    const kid = S.actor("kid2", YOU("kid"), 1480, FLOOR + 20, 1.1, { seed: 33, expr: "surprised" });
+    const kid = S.actor("kid2", YOU("child"), 1480, FLOOR + 20, 1.1, { seed: 33, expr: "surprised" });
     br.k("self", "--x", S.t0, 800, 0); br.move(S.t0, 0, undefined, 0.9, "power3.out");
     mom.k("self", "--x", S.t0, -600, 0); mom.move(S.t0, 0, undefined, 0.9, "power3.out");
     mom.face(S.t0 + 0.9, "happy", 0.3); br.face(S.t0 + 0.9, "happy", 0.3);
@@ -140,7 +148,7 @@ D.shot({ id: "wedding", a: ["s4", 0.0], b: ["s4", 0.55], bg: K.bg.livingRoom({ w
   }, grade: ["#ffc890", 0.22] });
 
 /* ===================== SHOT 7: the medal (quick insert) ===================== */
-D.shot({ id: "medal", a: ["s4", 0.55], b: ["s5", 0.0], bg: K.bg.studio({ a: "#3a2a12", b: "#a8782a", light: "#ffe08a" }),
+D.shot({ id: "medal", a: ["s4", 0.55], b: ["s5", 0.0], bg: K.bg.stadium(),
   cam: { from: [0, 0, 0.0], to: [0, 0, 0.16], ease: "power2.out" },
   build(S) {
     S.layer(`<g transform="translate(700 560) scale(4.2)">${PR.medal(0, 0)}</g>`, 1.0);
@@ -148,16 +156,17 @@ D.shot({ id: "medal", a: ["s4", 0.55], b: ["s5", 0.0], bg: K.bg.studio({ a: "#3a
     S.fadeIn("gold", S.t0 + 0.15, 0.2); S.wipe("gold", S.t0 + 0.3, 0.9);
     S.layer(PR.sparkle("sp1", 520, 380), 1.1); S.layer(PR.sparkle("sp2", 880, 700, "#fff"), 1.1); S.layer(PR.sparkle("sp3", 760, 330, "#ffd24a"), 1.1);
     ["sp1", "sp2", "sp3"].forEach((n, i) => { S.pop(n, S.t0 + 0.2 + i * 0.25, 0.3); S.key(n, "--r", S.t0 + 0.2 + i * 0.25, 90, 1.0, "none"); });
+    const run = S.actor("runner", BRUCE, 0, 905, 0.55, { depth: 0.95, seed: 88, idle: false }); run.k("self", "--x", S.t0, -200, 0); run.walk(S.t0 + 0.1, S.t1 - 0.05, 2250, { step: 0.2, amp: 34 }); run.face(S.t0, "determined", 0);
     S.layer(FX.glow(700, 560, 520, 420, "#fff3b0", 0.55), 0.3);
   } });
 
 /* ===================== SHOT 8: cameras move in ===================== */
 D.vhs(D.T("s5", 0.0), "2007");
-D.shot({ id: "crew", a: ["s5", 0.0], b: ["s5", 0.56], bg: K.bg.livingRoom({ wall: "#a8794f", wall2: "#98693f", floor: "#5a3a28", rug: "#9c3b3b" }),
+D.shot({ id: "crew", a: ["s5", 0.0], b: ["s5", 0.56], bg: K.bg.tvHome(),
   cam: { from: [90, 0, 0.0], to: [-30, 0, 0.1] },
   build(S) {
     S.layer(FX.cone(1920, 150, 1920, 520, 1000, 960, 1500, 940, "#fff1c4", 0.5), 0.6);
-    const you = S.actor("teen", YOU("teen"), 620, FLOOR + 10, 1.02, { seed: 41, expr: "neutral" });
+    const you = S.actor("teen", YOU("w2007"), 620, FLOOR + 10, 1.0, { seed: 41, expr: "neutral" });
     const crew = S.actor("crew", CREW, 1500, FLOOR, 0.95, { seed: 42, idle: false });
     crew.k("self", "--x", S.t0, 700, 0); crew.walk(S.t0 + 0.1, S.t0 + 1.7, -1130, { arms: false }); crew.face(S.t0, "neutral", 0);
     crew.arm("R", S.t0 + 0.05, -95, -105, 0.2); crew.arm("L", S.t0 + 0.05, 70, 70, 0.2);
@@ -172,14 +181,14 @@ D.shot({ id: "crew", a: ["s5", 0.0], b: ["s5", 0.56], bg: K.bg.livingRoom({ wall
   }, grade: ["#ffc890", 0.2] });
 
 /* ===================== SHOT 9: on camera ===================== */
-D.shot({ id: "onair", a: ["s5", 0.56], b: ["s6", 0.0], bg: K.bg.studio({ a: "#2a1a47", b: "#7a3d8f", light: "#ff8ad0" }),
+D.shot({ id: "onair", a: ["s5", 0.56], b: ["s6", 0.0], bg: K.bg.tvStage(),
   cam: { from: [0, 0, 0.12], to: [0, 0, 0.0], ease: "power2.out" },
   build(S) {
-    const you = S.actor("teen2", YOU("teen"), 960, FLOOR + 30, 1.15, { seed: 51, expr: "smirk" });
+    const you = S.actor("teen2", YOU("w2007"), 960, FLOOR + 30, 1.05, { seed: 51, expr: "smirk" });
     S.layer(PR.spot(300, 330, 10), 0.9); S.layer(PR.spot(1620, 330, 170), 0.9);
     S.layer(FX.cone(330, 330, 700, 880, 1200, 880, 370, 340, "#ffd9f0", 0.35), 0.8);
     S.layer(FX.cone(1590, 330, 1200, 880, 700, 880, 1550, 340, "#ffd9f0", 0.3), 0.8);
-    you.arm("R", S.t0 + 0.35, -150, -20, 0.4, "back.out(1.5)"); you.face(S.t0 + 0.4, "laugh", 0.3);
+    you.arm("R", S.t0 + 0.35, -150, -20, 0.4, "back.out(1.5)"); you.face(S.t0 + 0.4, "laugh", 0.3); you.talkWords("s5", D.T("s5", 0.62));
     for (let t = S.t0 + 0.8, i = 0; t < S.t1 - 0.2; t += 0.3, i++) you.arm("R", t, i % 2 ? -150 : -120, i % 2 ? -20 : -55, 0.3, "sine.inOut"); // waves
     S.layer(`<g transform="translate(1640 700) scale(2.4)">${PR.camera("fcam", 0, 0)}</g>`, 1.5);
     lab(S, "tvLabel", "REALITY TV", 960, 220, S.t0 + 0.25, { size: 68, rot: 2 });
@@ -187,11 +196,11 @@ D.shot({ id: "onair", a: ["s5", 0.56], b: ["s6", 0.0], bg: K.bg.studio({ a: "#2a
 
 /* ===================== SHOT 10: SKIMS ===================== */
 D.vhs(D.T("s6", 0.0), "2025");
-D.shot({ id: "skims", a: ["s6", 0.0], b: "end", bg: K.bg.studio({ a: "#14102a", b: "#4a2a6a", light: "#ffd24a" }),
+D.shot({ id: "skims", a: ["s6", 0.0], b: "end", bg: K.bg.boutique(),
   cam: { from: [0, 20, 0.0], to: [0, -10, 0.12] },
   build(S) {
-    const you = S.actor("teen3", YOU("teen"), 620, FLOOR + 20, 1.1, { seed: 61, expr: "happy" });
-    you.arm("L", S.t0 + 0.4, 150, 20, 0.5, "back.out(1.6)"); you.arm("R", S.t0 + 0.4, -150, -20, 0.5, "back.out(1.6)"); you.hop(S.t0 + 0.9, 30, 0.4); you.face(S.t0 + 0.9, "laugh", 0.3);
+    const you = S.actor("teen3", YOU("w2025"), 620, FLOOR + 20, 1.05, { seed: 61, expr: "happy" });
+    you.arm("L", S.t0 + 0.4, 150, 20, 0.5, "back.out(1.6)"); you.arm("R", S.t0 + 0.4, -150, -20, 0.5, "back.out(1.6)"); you.hop(S.t0 + 0.9, 30, 0.4); you.face(S.t0 + 0.9, "laugh", 0.3); you.talkWords("s6");
     for (let t = S.t0 + 1.9, i = 0; t < S.t1 - 1.2; t += 0.9, i++) { you.hop(t, 22 + (i % 2) * 8, 0.4); you.arm("L", t + 0.45, i % 2 ? 150 : 120, i % 2 ? 20 : 50, 0.4, "sine.inOut"); you.arm("R", t + 0.45, i % 2 ? -120 : -150, i % 2 ? -50 : -20, 0.4, "sine.inOut"); }
     lab(S, "skLabel", "SKIMS · 2025", 1290, 300, S.t0 + 0.3, { size: 72, rot: -2 });
     const vals = ["$0.5B", "$1B", "$2B", "$3B", "$4B", "$5B"]; const x = 1290, y = 560;

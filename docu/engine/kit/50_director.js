@@ -58,7 +58,7 @@
         opt = opt || {};
         const wrap = S.layer(`<g data-p="${id}"><g transform="translate(${x} ${y}) scale(${scale || 1})">${K.chars.actor(spec)}</g></g>`, opt.depth === undefined ? 0.9 : opt.depth);
         const root = wrap.querySelector(`[data-p="${id}"]`);
-        const eyeEx = (spec.eyes && spec.eyes.ey) || 22;
+        const eyeEx = (K.chars.FACE[spec.build] || K.chars.FACE.child).ey;
         const A = { id, el: root, x, y, scale: scale || 1, spec, mouth: "neutral", t: t0 };
         A.p = (n) => { const e = root.querySelector(`[data-p="${n}"]`); if (!e) throw new Error(`actor ${id}: no part ${n}`); return e; };
         A.k = (part, prop, t, val, dur, ease) => key(part === "self" ? root : A.p(part), prop, t, val, dur, ease);
@@ -72,8 +72,11 @@
           A.k("browL", "--r", t, -e.br, dur); A.k("browR", "--r", t, e.br, dur);
           A.k("eyeL", "--sy", t, e.ey, dur); A.k("eyeR", "--sy", t, e.ey, dur);
           A.k("blush", "opacity", t, e.blush, dur);
+          const tr = A.root_x("tears"), sw = A.root_x("sweat");
+          if (tr) setv(tr, { display: e.tears ? "inline" : "none" }, t); if (sw) setv(sw, { display: e.sweat ? "inline" : "none" }, t);
           if (A.mouth !== e.mouth) { setv(A.q1(A.mouth), { display: "none" }, t); setv(A.q1(e.mouth), { display: "inline" }, t); A.mouth = e.mouth; }
         };
+        A.root_x = (n) => root.querySelector(`[data-x="${n}"]`);
         A.q1 = (m) => root.querySelector(`[data-m="${m}"]`);
         A.face = A.faceNow;
         A.mouthOnly = (t, m) => { if (A.mouth !== m) { setv(A.q1(A.mouth), { display: "none" }, t); setv(A.q1(m), { display: "inline" }, t); A.mouth = m; } };
@@ -88,21 +91,38 @@
         A.blinkAt = (t) => { A.k("lidL", "--y", t, 2 * eyeEx + 2, 0.06, "power1.in"); A.k("lidR", "--y", t, 2 * eyeEx + 2, 0.06, "power1.in"); A.k("lidL", "--y", t + 0.08, 0, 0.1, "power1.out"); A.k("lidR", "--y", t + 0.08, 0, 0.1, "power1.out"); };
         A.autoBlink = (a, b, seed) => { const r = K.rng(seed || 1); for (let t = a + 0.6 + r() * 1.6; t < b - 0.3; t += 2.4 + r() * 2.2) A.blinkAt(snap(t)); };
         A.breathe = (a, b, amp) => { amp = amp || 0.022; let up = true; for (let t = a; t < b; t += 1.2) { A.k("torso", "--sy", t, up ? 1 + amp : 1, 1.2, "sine.inOut"); up = !up; } };
-        /** side-to-side walk: legs/arms swing, body bobs, root travels dx */
+        /** natural walk: opposite leg/arm swing, knee flex on the swing leg, foot lift, body bob + sway, head counter-tilt, hair lag */
         A.walk = (a, b, dx, o2) => {
-          o2 = o2 || {}; const step = o2.step || 0.27, amp = o2.amp || 24; const x0 = state.get(root) && state.get(root)["--x"] ? state.get(root)["--x"].v : 0;
+          o2 = o2 || {}; const step = o2.step || 0.3, amp = o2.amp || 20, dir = dx >= 0 ? 1 : -1, f = -dir; // hip rotation sign for "forward"
+          const x0 = state.get(root) && state.get(root)["--x"] ? state.get(root)["--x"].v : 0;
+          const hair = root.querySelector('[data-p="hairBack"]'), arms = o2.arms !== false;
           A.k("self", "--x", a, x0 + dx, b - a, "none");
-          let s = 1;
+          let s = 1; // s>0: left leg swings forward
           for (let t = a; t < b - 0.01; t += step) {
-            const d = Math.min(step, b - t), L = s > 0;
-            A.k("legL", "--y", t, L ? -18 : 0, d, "sine.inOut"); A.k("legR", "--y", t, L ? 0 : -18, d, "sine.inOut");
-            A.k("legL", "--r", t, L ? amp * 0.3 : -amp * 0.1, d, "sine.inOut"); A.k("legR", "--r", t, L ? amp * 0.1 : -amp * 0.3, d, "sine.inOut");
-            if (o2.arms !== false) { A.k("armL", "--r", t, 4 + s * amp * 0.5, d, "sine.inOut"); A.k("armR", "--r", t, -4 + s * amp * 0.5, d, "sine.inOut"); }
-            A.k("root", "--y", t, -9, d / 2, "power2.out"); A.k("root", "--y", t + d / 2, 0, d / 2, "power2.in");
-            A.k("torso", "--r", t, s * 2.4, d, "sine.inOut");
+            const d = Math.min(step, b - t), h = d / 2, sw = (side, fwd) => {
+              const th = "leg" + side, sh = "shin" + side, so = "shoe" + side;
+              if (fwd) { A.k(th, "--r", t, f * amp * 1.0, d, "sine.inOut"); A.k(sh, "--r", t, -f * amp * 1.3, h, "sine.out"); A.k(sh, "--r", t + h, 0, h, "sine.in"); A.k(so, "--r", t, -f * 10, h, "sine.out"); A.k(so, "--r", t + h, 0, h, "sine.in"); A.k(th, "--y", t, -12, h, "sine.out"); A.k(th, "--y", t + h, 0, h, "sine.in"); }
+              else { A.k(th, "--r", t, -f * amp * 0.8, d, "sine.inOut"); A.k(sh, "--r", t, 0, d, "none"); A.k(th, "--y", t, 0, d, "none"); A.k(so, "--r", t, f * 8, d, "sine.inOut"); }
+            };
+            sw("L", s > 0); sw("R", s < 0);
+            if (arms) { A.k("armL", "--r", t, 4 - s * f * amp * 1.1, d, "sine.inOut"); A.k("armR", "--r", t, -4 + s * f * amp * 1.1, d, "sine.inOut"); A.k("foreL", "--r", t, s > 0 ? 8 : 26, d, "sine.inOut"); A.k("foreR", "--r", t, s > 0 ? -26 : -8, d, "sine.inOut"); }
+            A.k("root", "--y", t, -10, h, "sine.out"); A.k("root", "--y", t + h, 0, h, "sine.in");
+            A.k("torso", "--r", t, s * 2.6, d, "sine.inOut"); A.k("head", "--r", t, -s * 1.6, d, "sine.inOut");
+            if (hair) A.k(hair, "--r", t + 0.05, -s * 4, d, "sine.inOut");
             s = -s;
           }
-          A.k("legL", "--r", b, 0, 0.18); A.k("legR", "--r", b, 0, 0.18); A.k("legL", "--y", b, 0, 0.18); A.k("legR", "--y", b, 0, 0.18); if (o2.arms !== false) { A.k("armL", "--r", b, 4, 0.18); A.k("armR", "--r", b, -4, 0.18); } A.k("torso", "--r", b, 0, 0.18);
+          ["legL", "legR", "shinL", "shinR", "shoeL", "shoeR"].forEach((n) => { A.k(n, "--r", b, 0, 0.2); });
+          A.k("legL", "--y", b, 0, 0.2); A.k("legR", "--y", b, 0, 0.2);
+          if (arms) { A.k("armL", "--r", b, 4, 0.2); A.k("armR", "--r", b, -4, 0.2); A.k("foreL", "--r", b, 4, 0.2); A.k("foreR", "--r", b, -4, 0.2); }
+          A.k("torso", "--r", b, 0, 0.2); A.k("head", "--r", b, 0, 0.2); if (hair) A.k(hair, "--r", b + 0.05, 0, 0.3);
+        };
+        /** word-timed mouth flaps for one sentence (lip-sync as far as 2D swap-mouths allow) */
+        A.talkWords = (sid, from, to) => {
+          const sn = byId[sid]; if (!sn) return; const shapes = ["open", "small", "o", "open", "small"];
+          sn.words.forEach((w, i) => { if (!w.hl) return; if (from !== undefined && w.start < from) return; if (to !== undefined && w.end > to) return;
+            const d = w.end - w.start, n = Math.max(1, Math.round(d / 0.13));
+            for (let k = 0; k < n; k++) { const t = snap(w.start + (d * k) / n); A.mouthOnly(t, shapes[(i + k) % shapes.length]); A.k("head", "--y", t, k % 2 ? 0 : 2, 0.06); A.mouthOnly(snap(Math.min(w.end, t + (d / n) * 0.62)), "small"); }
+            A.mouthOnly(snap(w.end + 0.02), "neutral"); });
         };
         // base pose
         A.k("armL", "--r", t0, 4, 0); A.k("armR", "--r", t0, -4, 0);

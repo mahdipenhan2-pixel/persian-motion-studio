@@ -222,5 +222,6 @@
     </g>`;
   }
 
+  BUILDS.kid = BUILDS.child; BUILDS.adult = BUILDS.man; FACE.kid = FACE.child; FACE.adult = FACE.man;
   K.chars = { actor, BUILDS, EXPR, FACE, HAIR };
 })(window.K);
