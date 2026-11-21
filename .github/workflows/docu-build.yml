@@ -37,6 +37,8 @@ concurrency:
 env:
   PROJECT: ${{ inputs.project || 'kim-test30' }}
   CHAPTER: ${{ inputs.chapter || 'c1' }}
+  # "1" = this run must reuse cached narration and never call Gemini (set to "0" when new audio is really wanted)
+  NO_NEW_TTS: "1"
 
 jobs:
   docu:
@@ -102,6 +104,12 @@ jobs:
       - name: Validate inputs and list sentences that need the API
         id: check
         run: python3 docu/engine/run.py check --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Refuse new Gemini requests (this run must reuse cached narration)
+        if: steps.check.outputs.api_needed != '0' && env.NO_NEW_TTS == '1'
+        run: |
+          echo "::error::Cached narration is missing (api_needed=${{ steps.check.outputs.api_needed }}). NO_NEW_TTS=1, so no Gemini request is made. Stopping."
+          exit 1
 
       - name: Free-tier confirmation gate
         if: steps.check.outputs.api_needed != '0'
@@ -172,7 +180,7 @@ jobs:
         working-directory: build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story
         run: npx --yes hyperframes lint
 
-      - name: Render MP4 (1920x1080, 30 fps)
+      - name: Render MP4 master (1920x1080, 30 fps)
         working-directory: build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story
         run: |
           START=$(date +%s)
@@ -181,6 +189,35 @@ jobs:
 
       - name: Verify MP4 (size, length, audio, caption sync, motion)
         run: python3 docu/engine/run.py verify --project "$PROJECT" --chapter "$CHAPTER"
+
+      # Verify above checks the 1920x1080 master (caption pixels are measured at that size).
+      # The deliverable story.mp4 is the same video scaled to exactly 1280x720; the master is kept out of the artifact.
+      - name: Make the 720p deliverable (story.mp4 = 1280x720, 16:9, 30 fps)
+        run: |
+          B="build/docu/$PROJECT/$CHAPTER"
+          mv "$B/story.mp4" "$B/story_1080p_master.mp4"
+          ffmpeg -y -v error -i "$B/story_1080p_master.mp4" \
+            -vf "scale=1280:720:flags=lanczos,format=yuv420p" -r 30 \
+            -c:v libx264 -preset slow -crf 20 -c:a copy -movflags +faststart "$B/story.mp4"
+          python3 - <<'PY'
+          import json, os, subprocess, sys
+          B = f"build/docu/{os.environ['PROJECT']}/{os.environ['CHAPTER']}"
+          def probe(f):
+              return json.loads(subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", f], capture_output=True, check=True, text=True).stdout)
+          m, o = probe(f"{B}/story_1080p_master.mp4"), probe(f"{B}/story.mp4")
+          v = next(s for s in o["streams"] if s["codec_type"] == "video"); a = [s for s in o["streams"] if s["codec_type"] == "audio"]
+          dm, do = float(m["format"]["duration"]), float(o["format"]["duration"])
+          res = {"file": "story.mp4", "width": v["width"], "height": v["height"], "fps": v["r_frame_rate"], "codec": v["codec_name"],
+                 "sample_aspect_ratio": v.get("sample_aspect_ratio"), "duration": round(do, 3), "master_duration": round(dm, 3),
+                 "audio": [a[0]["codec_name"]] if a else [], "size_bytes": int(o["format"]["size"]), "problems": []}
+          if (v["width"], v["height"]) != (1280, 720): res["problems"].append(f"resolution {v['width']}x{v['height']}, expected exactly 1280x720")
+          if v["r_frame_rate"] != "30/1": res["problems"].append(f"fps {v['r_frame_rate']}, expected 30/1")
+          if not a: res["problems"].append("no audio stream")
+          if abs(do - dm) > 0.1: res["problems"].append(f"duration {do:.2f}s differs from master {dm:.2f}s")
+          json.dump(res, open(f"{B}/final_720p.json", "w"), indent=2); print(json.dumps(res, indent=2))
+          if res["problems"]: sys.exit("720p CHECK FAILED: " + "; ".join(res["problems"]))
+          print("720p CHECK OK")
+          PY
 
       - name: Add report to workflow summary
         if: always()
@@ -204,6 +241,7 @@ jobs:
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing_report.md
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/verify.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/final_720p.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/tts_meta.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/audio_meta.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/narration.wav
