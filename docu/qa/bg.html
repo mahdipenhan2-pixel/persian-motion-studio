@@ -1,0 +1,5 @@
+<!doctype html><body style="margin:0"><svg id="s" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+<script src="../engine/kit/00_core.js"></script><script src="../engine/kit/10_chars.js"></script><script src="../engine/kit/20_backgrounds.js"></script>
+<script>const q=new URLSearchParams(location.search).get("b")||"livingRoom";
+const b=K.bg[q]();const you=K.chars.actor({build:"kid",skin:"#e0a275",hair:"wavy_long",hairColor:"#2b1a17",bow:"#e4483f",top:"#f0b63a",pants:"#3b4a8c",outfit:"kidtee"});
+s.innerHTML=b.layers.map(l=>l.svg).join("")+`<g transform="translate(900 990) scale(1.6)">${you}</g>`;</script>
