@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>story-lore</title>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Alegreya+Sans:wght@800&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#000}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:#000;font-family:'Vazirmatn','Alegreya Sans',system-ui,sans-serif;color:#fff3d6}
+.top{position:absolute;left:0;right:0;top:0;height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1}
+.t1{font-size:52px;font-weight:800;letter-spacing:.02em;text-shadow:0 4px 0 #000}
+.t2{font-family:'Pirata One',fantasy,serif;font-size:210px;color:#e0262c;-webkit-text-stroke:6px #2b0000;margin-top:10px}
+#stage{position:absolute;left:0;top:440px;width:1080px;height:900px;overflow:hidden}
+.sc{position:absolute;inset:0;opacity:0}
+.sc svg{display:block;width:100%;height:100%}
+#subs{position:absolute;left:0;right:0;top:1340px;height:580px}
+.sub{position:absolute;left:70px;right:70px;top:50%;margin-top:-90px;text-align:center;font-size:76px;line-height:1.2;font-weight:800;opacity:0;color:#fff;-webkit-text-stroke:10px #000;paint-order:stroke fill}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="story-lore" data-width="1080" data-height="1920" data-start="0" data-duration="45">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="vg" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".55"/></radialGradient></defs></svg>
+  <div class="top" id="top"><div class="t1" id="t1"></div><div class="t2" id="t2"></div></div>
+  <div id="stage"></div>
+  <div id="subs"></div>
+</div>
+<script type="application/json" id="scenes">
+{"title":["WHAT IF YOU WERE BORN AS","A Star?"],"scenes":[
+{"dur":4,"text":"You’re born into a loud, loving house.","loc":"living_room","time":"day","chars":[{"x":150,"mood":"happy"}],"objs":[{"t":"tv","x":60}],"label":{"t":"AGE 6"}},
+{"dur":5,"text":"Until one night, a stranger shows up.","loc":"living_room","time":"night","chars":[{"x":130,"mood":"scared"},{"kind":"adult","x":268,"mood":"normal","shirt":"#17181f","skin":"#8a5a3c","hair":"#0b0b0f"}],"objs":[{"t":"tv","x":60}],"label":{"t":"DAD?","c":"red","x":268}},
+{"dur":4,"text":"Nine years old, and everything changes.","loc":"living_room","time":"night","chars":[{"x":180,"mood":"sad","shirt":"#c9a15a","hair":"#2a1a10"}],"label":{"t":"AGE 9"}},
+{"dur":5,"text":"Moving day brings a new city.","loc":"street","time":"day","chars":[{"x":110,"mood":"normal","shirt":"#e07a5f"},{"kind":"adult","x":190,"mood":"normal","shirt":"#3d5a80","hair":"#2a1a10"}],"objs":[{"t":"car","x":290}],"label":{"t":"MOVING DAY"}},
+{"dur":5,"text":"Then a night nobody saw coming.","loc":"street","time":"dusk","chars":[{"kind":"adult","x":110,"mood":"angry","shirt":"#2f2f3a","skin":"#c58f68","hair":"#111"}],"objs":[{"t":"car","x":250},{"t":"fire","x":318}],"label":{"t":"THE ACCIDENT","c":"red"}},
+{"dur":4,"text":"You run. You don’t look back.","loc":"street","time":"night","chars":[{"x":120,"mood":"scared","pose":"up","shirt":"#e07a5f"}],"objs":[{"t":"fire","x":250}]},
+{"dur":4,"text":"Then a phone call changes everything.","loc":"office","time":"day","chars":[{"kind":"adult","x":130,"mood":"normal","shirt":"#6a4c93","skin":"#d9a07a","hair":"#3a2a1a"}],"objs":[{"t":"phone","x":250}],"label":{"t":"THE CALL"}},
+{"dur":4,"text":"Your first big break arrives.","loc":"office","time":"day","chars":[{"x":140,"mood":"happy","pose":"up","shirt":"#f2c14e"}],"objs":[{"t":"camera","x":260}],"label":{"t":"FIRST BREAK"}},
+{"dur":5,"text":"But every deal has a price.","loc":"office","time":"dusk","chars":[{"kind":"adult","x":110,"mood":"angry","shirt":"#2f2f3a","hair":"#111"},{"kind":"adult","x":250,"mood":"sad","shirt":"#8d99ae","skin":"#c58f68","hair":"#3a2a1a"}],"label":{"t":"THE DEAL"}},
+{"dur":5,"text":"And suddenly, the whole world knows your name.","loc":"street","time":"dusk","chars":[{"kind":"adult","x":150,"mood":"happy","pose":"up","shirt":"#e63946","skin":"#d9a07a","hair":"#3a2a1a"}],"objs":[{"t":"camera","x":60},{"t":"car","x":290}],"label":{"t":"FAME"}}
+]}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+/* ===== Scene kit v0 (same drawing code as the preview page) ===== */
+var T={day:['#000',0],dusk:['#ff6a1a',.28],night:['#050a2a',.55]};
+var BS='stroke="#3a2416" stroke-width="3" stroke-linecap="round" fill="none"';
+function face(m,cy,r){var e=r*.36,my=r*.32;
+ function dot(x){return '<circle cx="'+x+'" r="4.5" fill="#1a1a1a"/>'}
+ function wide(x){return '<circle cx="'+x+'" r="7" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="'+x+'" cy="1" r="2.6" fill="#111"/>'}
+ var eyes=m==='scared'?wide(-e)+wide(e):dot(-e)+dot(e),brow='';
+ if(m==='scared'||m==='sad')brow='<path d="M'+(-e-8)+' -13L'+(-e+4)+' -18M'+(e-4)+' -18L'+(e+8)+' -13" '+BS+'/>';
+ if(m==='angry')brow='<path d="M'+(-e-8)+' -18L'+(-e+4)+' -12M'+(e-4)+' -12L'+(e+8)+' -18" '+BS+'/>';
+ var mouth={normal:'<path d="M-5 '+my+'H5" '+BS+'/>',happy:'<path d="M-9 '+(my-2)+'Q0 '+(my+10)+' 9 '+(my-2)+'" '+BS+'/>',scared:'<ellipse cy="'+(my+3)+'" rx="5" ry="7" fill="#7a2e2e"/>',angry:'<path d="M-8 '+(my+5)+'Q0 '+(my-3)+' 8 '+(my+5)+'" '+BS+'/>',sad:'<path d="M-7 '+(my+5)+'Q0 '+(my-1)+' 7 '+(my+5)+'" '+BS+'/>'}[m]||'';
+ return '<g transform="translate(0 '+cy+')">'+eyes+brow+mouth+'</g>';}
+function char(c){var A=c.kind==='adult',sk=c.skin||'#f3cba5',hr=c.hair||'#4a2c1a',sh=c.shirt||'#7fa9d8',up=c.pose==='up';
+ var hy=A?-160:-92,r=A?30:36,sy=A?-124:-54,sx=A?31:18,ay=up?(A?-176:-100):(A?-66:-22),ax=up?(A?38:32):(A?36:26);
+ var arms='<path d="M'+(-sx)+' '+sy+'L'+(-ax)+' '+ay+'M'+sx+' '+sy+'L'+ax+' '+ay+'" stroke="'+sh+'" stroke-width="10" stroke-linecap="round"/><circle cx="'+(-ax)+'" cy="'+ay+'" r="6" fill="'+sk+'"/><circle cx="'+ax+'" cy="'+ay+'" r="6" fill="'+sk+'"/>';
+ var body=A?'<rect x="-24" y="-52" width="18" height="52" fill="#15161c"/><rect x="6" y="-52" width="18" height="52" fill="#15161c"/><rect x="-31" y="-132" width="62" height="86" rx="11" fill="'+sh+'"/>':'<rect x="-14" y="-14" width="11" height="14" rx="3" fill="#2c2c34"/><rect x="3" y="-14" width="11" height="14" rx="3" fill="#2c2c34"/><rect x="-18" y="-62" width="36" height="50" rx="9" fill="'+sh+'"/>';
+ var hair=A?'<path d="M-30 '+(hy-4)+'Q-26 '+(hy-34)+' 0 '+(hy-32)+'Q26 '+(hy-34)+' 30 '+(hy-4)+'Q8 '+(hy-18)+' -30 '+(hy-4)+'Z" fill="'+hr+'"/>':'<path d="M-36 -96Q-32 -132 0 -130Q32 -132 36 -96Q12 -114 -36 -96Z" fill="'+hr+'"/>';
+ return '<g class="ch"><g transform="translate('+c.x+' 240)"><ellipse cy="3" rx="'+(A?40:34)+'" ry="7" fill="#000" opacity=".25"/><g class="br">'+body+arms+'<circle cx="'+(-r)+'" cy="'+(hy+2)+'" r="8" fill="'+sk+'"/><circle cx="'+r+'" cy="'+(hy+2)+'" r="8" fill="'+sk+'"/><circle cy="'+hy+'" r="'+r+'" fill="'+sk+'"/>'+hair+face(c.mood||'normal',hy,r)+'</g></g></g>';}
+function wins(x,y,w,h){var s='';for(var i=0;i<w;i+=22)for(var j=0;j<h;j+=26)s+='<rect x="'+(x+i+6)+'" y="'+(y+j+8)+'" width="12" height="16" fill="#ffe9a8" opacity=".75"/>';return s}
+var L={
+ living_room:function(){return '<rect width="360" height="220" fill="#b9794f"/><rect y="150" width="360" height="70" fill="#9c613f"/><rect y="220" width="360" height="80" fill="#6b2f2a"/><rect x="150" y="40" width="82" height="68" fill="#243b66" stroke="#5a3a22" stroke-width="6"/><path d="M191 40v68M150 74h82" stroke="#5a3a22" stroke-width="4"/><rect x="40" y="52" width="46" height="56" fill="#d9c08a" stroke="#5a3a22" stroke-width="5"/><circle cx="63" cy="78" r="12" fill="#7a9a5a"/>'},
+ street:function(){return '<rect width="360" height="175" fill="#8cc8f0"/><rect x="0" y="60" width="85" height="115" fill="#8a5a4a"/><rect x="95" y="90" width="70" height="85" fill="#6c7a8c"/><rect x="175" y="40" width="90" height="135" fill="#a0674d"/><rect x="275" y="80" width="85" height="95" fill="#5f6e80"/>'+wins(0,60,85,115)+wins(95,90,70,85)+wins(175,40,90,135)+wins(275,80,85,95)+'<rect y="175" width="360" height="47" fill="#9a9a9a"/><rect y="222" width="360" height="78" fill="#3b3b44"/><path d="M0 268H360" stroke="#d8d0a0" stroke-width="4" stroke-dasharray="24 18"/>'},
+ office:function(){return '<rect width="360" height="220" fill="#cfd6df"/><rect y="170" width="360" height="50" fill="#bcc4cf"/><rect y="220" width="360" height="80" fill="#5a4a3a"/><rect x="40" y="40" width="110" height="90" fill="#9fc7e8" stroke="#6b7480" stroke-width="6"/><path d="M40 62H150M40 84H150M40 106H150" stroke="#6b7480" stroke-width="4"/><rect x="215" y="196" width="130" height="12" fill="#6b4423"/><rect x="222" y="208" width="10" height="32" fill="#6b4423"/><rect x="328" y="208" width="10" height="32" fill="#6b4423"/><rect x="18" y="195" width="26" height="30" rx="4" fill="#8a5a3a"/><path d="M31 195Q14 165 20 150M31 195Q31 160 31 140M31 195Q50 165 44 150" stroke="#4f8a4a" stroke-width="7" stroke-linecap="round" fill="none"/>'}
+};
+var O={
+ tv:function(x){return '<rect x="'+(x-34)+'" y="190" width="68" height="50" rx="5" fill="#2a2320"/><rect x="'+(x-27)+'" y="196" width="54" height="34" rx="3" fill="#8fc6d6"/>'},
+ car:function(x){return '<path d="M'+(x-66)+' 232V212Q'+(x-66)+' 204 '+(x-56)+' 204H'+(x-38)+'L'+(x-22)+' 184H'+(x+28)+'L'+(x+44)+' 204H'+(x+58)+'Q'+(x+66)+' 204 '+(x+66)+' 212V232Z" fill="#c0392b"/><path d="M'+(x-18)+' 188L'+(x-32)+' 204H'+(x+8)+'V188ZM'+(x+14)+' 188V204H'+(x+38)+'L'+(x+26)+' 188Z" fill="#cfe9ff"/><circle cx="'+(x-38)+'" cy="234" r="13" fill="#111"/><circle cx="'+(x+38)+'" cy="234" r="13" fill="#111"/><circle cx="'+(x-38)+'" cy="234" r="5" fill="#999"/><circle cx="'+(x+38)+'" cy="234" r="5" fill="#999"/>'},
+ camera:function(x){return '<path d="M'+x+' 206L'+(x-20)+' 240M'+x+' 206L'+(x+20)+' 240M'+x+' 206V240" stroke="#222" stroke-width="4" stroke-linecap="round"/><rect x="'+(x-17)+'" y="180" width="34" height="26" rx="4" fill="#222"/><circle cx="'+(x+17)+'" cy="193" r="9" fill="#444"/><circle cx="'+(x+17)+'" cy="193" r="4" fill="#8cf"/><circle cx="'+(x-9)+'" cy="187" r="2.5" fill="#e33"/>'},
+ phone:function(x){return '<g class="fo"><circle cx="'+x+'" cy="170" r="42" fill="#8cf" opacity=".18"/><rect x="'+(x-15)+'" y="142" width="30" height="56" rx="7" fill="#111" stroke="#8cf" stroke-width="3"/><rect x="'+(x-11)+'" y="148" width="22" height="42" rx="3" fill="#cfe9ff"/></g>'},
+ fire:function(x){return '<g class="fl"><path d="M'+(x-26)+' 240Q'+(x-30)+' 208 '+(x-10)+' 192Q'+(x-10)+' 214 '+x+' 204Q'+(x+4)+' 182 '+(x+16)+' 170Q'+(x+12)+' 204 '+(x+28)+' 214Q'+(x+34)+' 230 '+(x+26)+' 240Z" fill="#ff6a1a"/><path d="M'+(x-12)+' 240Q'+(x-14)+' 222 '+(x-2)+' 214Q'+x+' 226 '+(x+8)+' 220Q'+(x+16)+' 230 '+(x+12)+' 240Z" fill="#ffd84a"/></g>'}
+};
+function label(l){var w=l.t.length*10.5+22,c=l.c==='red';return '<g transform="translate('+(l.x||180)+' 38)"><g class="lab"><rect x="'+(-w/2)+'" y="-16" width="'+w+'" height="28" rx="7" fill="'+(c?'#e0262c':'#fff3d6')+'" stroke="#111" stroke-width="3"/><text y="5" text-anchor="middle" font-family="Alegreya Sans,system-ui,sans-serif" font-weight="800" font-size="17" fill="'+(c?'#fff3d6':'#111')+'">'+l.t+'</text></g></g>'}
+function scene(s){var tn=T[s.time||'day'];
+ var g='<g class="cam">'+L[s.loc]();
+ (s.objs||[]).forEach(function(o){g+=O[o.t](o.x)});
+ (s.chars||[]).forEach(function(c){g+=char(c)});
+ if(s.label)g+=label(s.label);
+ g+='</g><rect class="tint" width="360" height="300" fill="'+tn[0]+'" opacity="0" data-o="'+tn[1]+'"/><rect width="360" height="300" fill="url(#vg)"/>';
+ return '<svg viewBox="0 0 360 300" preserveAspectRatio="xMidYMid slice">'+g+'</svg>'}
+
+/* ===== Timeline (deterministic, seekable: no random, no CSS animation) ===== */
+var data=JSON.parse(document.getElementById('scenes').textContent);
+document.getElementById('t1').textContent=data.title[0];
+document.getElementById('t2').textContent=data.title[1];
+var stage=document.getElementById('stage'),subs=document.getElementById('subs');
+var tl=gsap.timeline({paused:true}),t0=0;
+tl.fromTo('#top',{opacity:0,y:-40},{opacity:1,y:0,duration:.6,ease:'power2.out'},0);
+data.scenes.forEach(function(s){
+ var d=s.dur,w=document.createElement('div');w.className='sc';w.innerHTML=scene(s);stage.appendChild(w);
+ var q=function(sel){return w.querySelectorAll(sel)};
+ tl.fromTo(w,{opacity:0},{opacity:1,duration:.2,ease:'none'},t0);
+ tl.set(w,{opacity:0},t0+d);
+ tl.fromTo(q('.cam'),{scale:1,svgOrigin:'180 150'},{scale:1.14,svgOrigin:'180 150',duration:d,ease:'none'},t0);
+ q('.br').forEach(function(el){tl.fromTo(el,{scaleX:1,scaleY:1,transformOrigin:'50% 100%'},{scaleX:1.02,scaleY:1.035,transformOrigin:'50% 100%',duration:1.2,ease:'sine.inOut',yoyo:true,repeat:Math.max(1,Math.round(d/1.2))-1},t0)});
+ q('.ch').forEach(function(el,i){tl.fromTo(el,{x:i%2?60:-60,opacity:0},{x:0,opacity:1,duration:.5,ease:'power3.out'},t0+.15+i*.35)});
+ q('.lab').forEach(function(el){tl.fromTo(el,{scale:0,transformOrigin:'50% 50%'},{scale:1,transformOrigin:'50% 50%',duration:.45,ease:'back.out(2)'},t0+.7)});
+ q('.fl').forEach(function(el){tl.fromTo(el,{scaleY:.9,transformOrigin:'50% 100%'},{scaleY:1.12,transformOrigin:'50% 100%',duration:.3,ease:'sine.inOut',yoyo:true,repeat:Math.round(d/.3)-1},t0)});
+ q('.fo').forEach(function(el){tl.fromTo(el,{y:0},{y:-5,duration:1,ease:'sine.inOut',yoyo:true,repeat:Math.max(1,Math.round(d))-1},t0)});
+ q('.tint').forEach(function(el){tl.to(el,{opacity:parseFloat(el.getAttribute('data-o')),duration:.9,ease:'power1.inOut'},t0+.4)});
+ var sb=document.createElement('div');sb.className='sub';sb.textContent=s.text;subs.appendChild(sb);
+ tl.fromTo(sb,{opacity:0,y:30},{opacity:1,y:0,duration:.3,ease:'power2.out'},t0+.2);
+ tl.to(sb,{opacity:0,duration:.25},t0+d-.3);
+ t0+=d;
+});
+window.__timelines=window.__timelines||{};
+window.__timelines['story-lore']=tl;
+/* browser preview only: open this file with ?preview at the end of the address */
+if(location.search.indexOf('preview')>-1){tl.play();tl.repeat(-1)}
+</script>
+</body>
+</html>
