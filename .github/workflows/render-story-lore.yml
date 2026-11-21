@@ -1,0 +1,349 @@
+name: Render Story Lore (Test)
+on:
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: "Render quality"
+        type: choice
+        options:
+          - standard
+          - draft
+          - high
+        default: standard
+      fps:
+        description: "Frames per second"
+        type: choice
+        options:
+          - "30"
+          - "24"
+          - "60"
+        default: "30"
+permissions:
+  contents: read
+concurrency:
+  group: render-story-lore
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COMP: story-lore.html
+      QUALITY: ${{ inputs.quality }}
+      FPS: ${{ inputs.fps }}
+      BUILD_DIR: _story_build
+      OUT_DIR: story_out
+      EXPECT_W: "1080"
+      EXPECT_H: "1920"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install FFmpeg and system fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-core
+      - name: Check source composition
+        run: |
+          mkdir -p "$OUT_DIR"
+          if [ ! -f "$COMP" ]; then
+            echo "::error::$COMP not found in repository root."
+            ls -la
+            exit 1
+          fi
+          echo "Source composition found: $COMP"
+      - name: Prepare isolated build directory
+        run: |
+          mkdir -p "$BUILD_DIR"
+          cp "$COMP" "$BUILD_DIR/index.html"
+          if [ -f hyperframes.json ]; then
+            cp hyperframes.json "$BUILD_DIR/"
+          fi
+          echo "Temporary build directory:"
+          ls -la "$BUILD_DIR"
+      - name: Static composition checks
+        run: |
+          python3 - <<'PY' 2>&1 | tee "$OUT_DIR/contract-check.txt"
+          import json
+          import os
+          import re
+          import sys
+          path = os.environ["BUILD_DIR"] + "/index.html"
+          with open(path, encoding="utf-8") as f:
+              html = f.read()
+          errors = []
+          warnings = []
+          def check(condition, message):
+              if not condition:
+                  errors.append(message)
+          cid_match = re.search(
+              r'data-composition-id="([^"]+)"',
+              html
+          )
+          check(cid_match is not None, "Missing composition ID")
+          cid = cid_match.group(1) if cid_match else None
+          check(
+              re.search(r'data-width="1080"', html) is not None,
+              "Composition width must be 1080"
+          )
+          check(
+              re.search(r'data-height="1920"', html) is not None,
+              "Composition height must be 1920"
+          )
+          duration_match = re.search(
+              r'data-duration="([\d.]+)"',
+              html
+          )
+          check(
+              duration_match is not None,
+              "Missing composition duration"
+          )
+          duration = (
+              float(duration_match.group(1))
+              if duration_match else None
+          )
+          check(
+              re.search(r'data-start="0"', html) is not None,
+              "Composition start must be 0"
+          )
+          check(
+              "window.__timelines" in html,
+              "Missing HyperFrames timeline registry"
+          )
+          if cid:
+              timeline_pattern = (
+                  r"__timelines\[\s*['\"]"
+                  + re.escape(cid)
+                  + r"['\"]\s*\]"
+              )
+              check(
+                  re.search(timeline_pattern, html) is not None,
+                  "Timeline not registered under composition ID"
+              )
+          check(
+              re.search(r'gsap\.timeline', html) is not None,
+              "GSAP timeline creation not found"
+          )
+          check(
+              re.search(r'paused\s*:\s*true', html) is not None,
+              "Timeline must be created paused"
+          )
+          if "Math.random" in html:
+              warnings.append("Math.random detected")
+          if "Date.now" in html:
+              warnings.append("Date.now detected")
+          if "requestAnimationFrame" in html:
+              warnings.append("requestAnimationFrame detected")
+          if re.search(r'repeat\s*[:(]\s*-1', html):
+              warnings.append("Infinite repeat detected")
+          if re.search(r'setInterval|setTimeout', html):
+              warnings.append("Timer function detected")
+          if re.search(r'fonts\.googleapis\.com', html):
+              warnings.append(
+                  "Google Fonts detected; local font fallback will be used"
+              )
+          scenes_match = re.search(
+              r'<script[^>]*id="scenes"[^>]*>(.*?)</script>',
+              html,
+              re.S
+          )
+          if scenes_match and duration is not None:
+              try:
+                  scene_data = json.loads(scenes_match.group(1))
+                  scenes = scene_data["scenes"]
+                  total = sum(
+                      float(scene.get("dur", 0))
+                      for scene in scenes
+                  )
+                  check(
+                      abs(total - duration) < 0.01,
+                      "Scene durations do not match composition duration"
+                  )
+                  print("Scene count:", len(scenes))
+                  print("Total scene duration:", total)
+              except Exception as exc:
+                  errors.append("Could not validate scene JSON: " + str(exc))
+          print("Composition ID:", cid)
+          print("Composition duration:", duration)
+          for warning in warnings:
+              print("WARNING:", warning)
+          for error in errors:
+              print("ERROR:", error)
+          sys.exit(1 if errors else 0)
+          PY
+      - name: Install local Vazirmatn font
+        run: |
+          mkdir -p "$RUNNER_TEMP/font-install"
+          cd "$RUNNER_TEMP/font-install"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund @fontsource/vazirmatn
+          SRC="$RUNNER_TEMP/font-install/node_modules/@fontsource/vazirmatn"
+          DEST="$GITHUB_WORKSPACE/$BUILD_DIR/assets/fonts"
+          mkdir -p "$DEST"
+          cp "$SRC/files/vazirmatn-arabic-400-normal.woff2" "$DEST/"
+          cp "$SRC/files/vazirmatn-arabic-700-normal.woff2" "$DEST/"
+          export FONT_CSS="$GITHUB_WORKSPACE/$BUILD_DIR/font-local.css"
+          python3 - <<'PY'
+          import os
+          css = """
+          @font-face {
+            font-family: 'Vazirmatn';
+            src: url('assets/fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+          }
+          @font-face {
+            font-family: 'Vazirmatn';
+            src: url('assets/fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+          }
+          html, body {
+            font-family: 'Vazirmatn', sans-serif;
+          }
+          """
+          with open(os.environ["FONT_CSS"], "w", encoding="utf-8") as f:
+              f.write(css)
+          print("Local Vazirmatn CSS created.")
+          PY
+          export BUILD_INDEX="$GITHUB_WORKSPACE/$BUILD_DIR/index.html"
+          python3 - <<'PY'
+          import os
+          path = os.environ["BUILD_INDEX"]
+          with open(path, encoding="utf-8") as f:
+              html = f.read()
+          tag = '<link rel="stylesheet" href="font-local.css">'
+          if tag not in html:
+              if "</head>" not in html:
+                  raise SystemExit("HTML head closing tag not found")
+              html = html.replace(
+                  "</head>",
+                  tag + "\n</head>",
+                  1
+              )
+              with open(path, "w", encoding="utf-8") as f:
+                  f.write(html)
+          print("Local font stylesheet injected into build copy.")
+          PY
+          ls -lh "$DEST"
+      - name: HyperFrames environment report
+        working-directory: ${{ env.BUILD_DIR }}
+        continue-on-error: true
+        run: |
+          node -v
+          ffmpeg -version | head -1
+          npx --yes hyperframes --version \
+            2>&1 | tee "$GITHUB_WORKSPACE/$OUT_DIR/version.txt"
+          npx --yes hyperframes doctor \
+            2>&1 | tee "$GITHUB_WORKSPACE/$OUT_DIR/doctor.txt"
+      - name: HyperFrames lint
+        working-directory: ${{ env.BUILD_DIR }}
+        continue-on-error: true
+        run: |
+          npx --yes hyperframes lint \
+            2>&1 | tee "$GITHUB_WORKSPACE/$OUT_DIR/lint.txt"
+      - name: Capture snapshots
+        working-directory: ${{ env.BUILD_DIR }}
+        continue-on-error: true
+        run: |
+          npx --yes hyperframes snapshot \
+            --at 1,6,11,16,21,26,31,36,42 \
+            2>&1 | tee "$GITHUB_WORKSPACE/$OUT_DIR/snapshot.txt"
+          find . -iname '*.png' \
+            -not -path './node_modules/*' \
+            -exec cp {} "$GITHUB_WORKSPACE/$OUT_DIR/" \;
+      - name: Render MP4
+        working-directory: ${{ env.BUILD_DIR }}
+        run: |
+          set -o pipefail
+          npx --yes hyperframes render . \
+            -o "$GITHUB_WORKSPACE/$OUT_DIR/story-lore.mp4" \
+            --fps "$FPS" \
+            --quality "$QUALITY" \
+            2>&1 | tee "$GITHUB_WORKSPACE/$OUT_DIR/render.log"
+      - name: Verify rendered video
+        run: |
+          python3 - <<'PY' 2>&1 | tee "$OUT_DIR/verify.txt"
+          import json
+          import os
+          import subprocess
+          import sys
+          path = os.environ["OUT_DIR"] + "/story-lore.mp4"
+          if not os.path.isfile(path):
+              print("ERROR: MP4 file not found")
+              sys.exit(1)
+          result = subprocess.check_output([
+              "ffprobe",
+              "-v", "error",
+              "-show_streams",
+              "-show_format",
+              "-of", "json",
+              path
+          ])
+          data = json.loads(result)
+          video = next(
+              stream for stream in data["streams"]
+              if stream["codec_type"] == "video"
+          )
+          numerator, denominator = video["r_frame_rate"].split("/")
+          fps = float(numerator) / float(denominator)
+          duration = float(data["format"]["duration"])
+          size = int(data["format"]["size"]) / 1_000_000
+          width = int(video["width"])
+          height = int(video["height"])
+          print("Resolution:", width, "x", height)
+          print("Codec:", video["codec_name"])
+          print("FPS:", fps)
+          print("Duration:", duration)
+          print("File size:", round(size, 2), "MB")
+          errors = []
+          if width != int(os.environ["EXPECT_W"]):
+              errors.append("Incorrect video width")
+          if height != int(os.environ["EXPECT_H"]):
+              errors.append("Incorrect video height")
+          if abs(duration - 45) > 1:
+              errors.append("Video duration is not approximately 45 seconds")
+          if abs(fps - float(os.environ["FPS"])) > 0.5:
+              errors.append("Unexpected FPS")
+          if size < 0.2:
+              errors.append("Video file is suspiciously small")
+          for error in errors:
+              print("ERROR:", error)
+          sys.exit(1 if errors else 0)
+          PY
+      - name: Create run summary
+        if: always()
+        run: |
+          {
+            echo "## Story Lore Render Report"
+            echo ""
+            echo "Composition: $COMP"
+            echo "Quality: $QUALITY"
+            echo "FPS: $FPS"
+            echo ""
+            for file in version doctor contract-check lint snapshot render verify; do
+              if [ -f "$OUT_DIR/$file.txt" ] || [ -f "$OUT_DIR/$file.log" ]; then
+                echo "### $file"
+                echo '```text'
+                if [ -f "$OUT_DIR/$file.txt" ]; then
+                  tail -40 "$OUT_DIR/$file.txt"
+                else
+                  tail -40 "$OUT_DIR/$file.log"
+                fi
+                echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload video and diagnostic files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-lore-render
+          path: story_out/
+          if-no-files-found: warn
+          retention-days: 7
