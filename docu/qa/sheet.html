@@ -1,0 +1,13 @@
+<!doctype html><body style="margin:0;background:#cdb9a0"><svg id="s" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+<style>[data-p]{transform-origin:0 0}</style>
+<script src="../engine/kit/00_core.js"></script><script src="../engine/kit/10_chars.js"></script>
+<script>
+const KIM={skin:"#d99a73",hairColor:"#1c1210",eyeColor:"#5a3320"};
+const A=(o)=>K.chars.actor(Object.assign({},KIM,o));
+const baby=A({build:"baby",hair:"baby_tuft",outfit:"babygrow",top:"#f6e7a8",pants:"#f6e7a8",shoeType:"none",legs:"pants"});
+const child=A({build:"child",hair:"child_pony",outfit:"sweat80s",top:"#f2a7b8",pants:"#6a7ec2",shoe:"#f2efe8"});
+const teen=A({build:"teen",hair:"teen_long",outfit:"crop",top:"#efe0cc",pants:"#4a6aa0",shoe:"#f2efe8",earrings:1,sleeve:"short"});
+const w07=A({build:"woman",hair:"long_straight",outfit:"tee2007",top:"#2b2b33",pants:"#3b5a8a",shoe:"#2b2230",earrings:1,sleeve:"short"});
+const w25=A({build:"woman",hair:"long_straight",outfit:"dress",top:"#b89b86",legs:"bare",shoe:"#c9a58a",shoeType:"pump",sleeve:"none",earrings:1,lip:"#c4666b"});
+s.innerHTML=`<rect y="880" width="1920" height="200" fill="#8d7a63"/>`+[[220,baby,1.6,"1980"],[560,child,1.2,"1989"],[930,teen,1.1,"~1995"],[1300,w07,1.0,"2007"],[1660,w25,1.0,"2025"]].map(([x,c,sc,t])=>`<g transform="translate(${x} 900) scale(${sc})">${c}</g><text x="${x}" y="1020" text-anchor="middle" font-size="40" font-family="sans-serif">${t}</text>`).join("");
+</script></body>
