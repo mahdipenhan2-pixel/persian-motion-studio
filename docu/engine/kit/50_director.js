@@ -154,24 +154,25 @@
     D.shot = shot;
 
     /* ---------- VHS transition at a cut ---------- */
-    D.vhs = (tCut, year) => {
+    D.vhs = (tCut, year, o) => {
+      o = o || {}; const str = o.strength === undefined ? 1 : o.strength, nBars = o.bars === undefined ? 6 : o.bars;
       const ov = document.getElementById("vhsov"), r = K.rng(Math.round(tCut * 100) + 11);
-      const a = snap(tCut - 0.1), b = snap(tCut + 0.3);
+      const a = snap(tCut - (o.pre === undefined ? 0.1 : o.pre)), b = snap(tCut + (o.post === undefined ? 0.3 : o.post));
       setv(ov, { visibility: "visible" }, a); setv(ov, { visibility: "hidden" }, b);
       setv(world, { filter: "url(#vhs)" }, a); setv(world, { filter: "none" }, b);
       const flash = document.getElementById("vhsflash");
-      key(flash, "opacity", a, 0, 0); key(flash, "opacity", tCut, 0.55, 0.05); key(flash, "opacity", tCut + 0.05, 0, 0.18);
+      key(flash, "opacity", a, 0, 0); key(flash, "opacity", tCut, 0.55 * str, 0.05); key(flash, "opacity", tCut + 0.05, 0, 0.18);
       const dm = document.getElementById("vhsD"), tb = document.getElementById("vhsT");
-      const amps = [60, 110, 40, 95, 30, 10, 0];
+      const amps = [60, 110, 40, 95, 30, 10, 0].map((v) => Math.round(v * str));
       amps.forEach((v, i) => { const t = snap(a + i * (b - a) / amps.length); tl.set(dm, { attr: { scale: v } }, t); tl.set(tb, { attr: { seed: 3 + Math.floor(r() * 90) } }, t); });
-      for (let i = 0; i < 6; i++) { const bar = ov.querySelector(`[data-p="vb${i}"]`);
+      for (let i = 0; i < 6; i++) { const bar = ov.querySelector(`[data-p="vb${i}"]`); if (i >= nBars) { setv(bar, { visibility: "hidden" }, a); continue; }
         for (let k = 0, t = a; t < b; k++, t = snap(t + 0.066)) { key(bar, "--y", t, Math.round((r() - 0.5) * 700), 0); key(bar, "--x", t, Math.round((r() - 0.5) * 120), 0); } }
       if (year) { const y = document.createElementNS("http://www.w3.org/2000/svg", "text");
         ["x:1810", "y:150"].forEach((p) => { const [k, v] = p.split(":"); y.setAttribute(k, v); });
         y.setAttribute("text-anchor", "end"); y.setAttribute("font-family", K.fx.FONT); y.setAttribute("font-weight", "800"); y.setAttribute("font-size", "84");
         y.setAttribute("fill", "#fff"); y.setAttribute("stroke", "#000"); y.setAttribute("stroke-width", "3"); y.setAttribute("letter-spacing", "3");
         y.textContent = year; y.style.visibility = "hidden"; ov.appendChild(y);
-        setv(y, { visibility: "visible" }, snap(tCut - 0.03)); setv(y, { visibility: "hidden" }, snap(tCut + 0.5)); }
+        setv(y, { visibility: "visible" }, snap(tCut - 0.03)); setv(y, { visibility: "hidden" }, snap(tCut + (o.year === undefined ? 0.5 : o.year))); }
     };
 
     /* ---------- grain: pre-rendered tile jumped 10x per second ---------- */
