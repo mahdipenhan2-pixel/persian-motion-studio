@@ -1,0 +1,14 @@
+<!doctype html><html><body style="margin:0;background:#c9b79c">
+<svg id="s" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+<script src="../engine/kit/00_core.js"></script><script src="../engine/kit/10_chars.js"></script>
+<script>
+const A=K.chars.actor;
+const you=A({build:"kid",skin:"#e0a275",hair:"wavy_long",hairColor:"#2b1a17",bow:"#e4483f",top:"#f0b63a",pants:"#3b4a8c",outfit:"kidtee",skirt:"#d9534f"});
+const teen=A({build:"teen",skin:"#d99a6c",hair:"bob",hairColor:"#1f1512",top:"#5b7fa8",pants:"#2e3550",outfit:"track",accent:"#f6f2e8"});
+const man=A({build:"adult",skin:"#e8b896",hair:"short_man",hairColor:"#4a3426",top:"#2f3a4f",pants:"#262b3a",outfit:"suit",glasses:1});
+const mom=A({build:"adult",skin:"#e5ae88",hair:"big80s",hairColor:"#241713",top:"#b4434a",pants:"#2b2230",outfit:"blazer",accent:"#f3c64a"});
+const bab=A({build:"kid",skin:"#e8b48e",hair:"baby_tuft",hairColor:"#3b2118",top:"#cfe3f0",outfit:"onesie",pants:"#cfe3f0"});
+document.getElementById("s").innerHTML=
+ `<rect y="860" width="1920" height="220" fill="#8d7a63"/>`+
+ [[260,you,1.2],[620,teen,1.1],[980,man,0.95],[1340,mom,0.95],[1680,bab,1.0]].map(([x,c,s])=>`<g transform="translate(${x} 930) scale(${s})">${c}</g>`).join("");
+</script></body></html>
