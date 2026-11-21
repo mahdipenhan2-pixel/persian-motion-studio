@@ -1,0 +1,92 @@
+name: Docu caption evidence (reads an existing run's artifact; no render, no Gemini)
+
+on:
+  push:
+    branches: ["docu-16x9-test30"]
+    paths: [".github/workflows/docu-frames.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  frames:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_RUN: "44958644391"
+    steps:
+      - name: Download the already-built artifact of the earlier run (no new render, no API)
+        uses: actions/download-artifact@v7
+        with:
+          name: docu-kim-test30-c1
+          run-id: ${{ env.SOURCE_RUN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: src
+
+      - name: Install ffmpeg, numpy, Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-numpy python3-pil
+          ls -la src; find src -maxdepth 3 -type f | head -30
+
+      - name: Extract caption frames and measure highlight pixels (same method as verify.py)
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, glob, os
+          import numpy as np
+          from PIL import Image, ImageDraw
+          mp4 = glob.glob("src/**/story.mp4", recursive=True)[0]
+          tj = glob.glob("src/**/timing.json", recursive=True)[0]
+          timing = json.load(open(tj))
+          HL = (255, 214, 90)
+          os.makedirs("out", exist_ok=True)
+          def frame(t):
+              raw = subprocess.run(["ffmpeg","-v","error","-ss",f"{max(t,0):.3f}","-i",mp4,"-frames:v","1","-f","image2pipe","-vcodec","png","-"],capture_output=True,check=True).stdout
+              p = "/tmp/f.png"; open(p,"wb").write(raw); return Image.open(p).convert("RGB")
+          def hl(img):  # identical to verify.hl_pixels: crop band, downscale to 480x65, count colour match
+              c = img.crop((0,820,1920,1080)).resize((480,65), Image.BILINEAR)
+              a = np.asarray(c).astype(int)
+              return int((np.abs(a-np.array(HL)).max(axis=2) < 30).sum())
+          def hl_full(img):
+              a = np.asarray(img.crop((0,820,1920,1080))).astype(int)
+              return int((np.abs(a-np.array(HL)).max(axis=2) < 30).sum())
+          rows, report = [], []
+          for s in timing["sentences"]:
+              ws = [r for r in s["words"] if r.get("abs_start") is not None]
+              w0 = ws[0]; t0 = w0["abs_start"]
+              name = lambda r: str(r.get("text") or r.get("word") or r.get("script") or r.get("token") or "?")
+              dur = (w0.get("abs_end") or t0) - t0
+              item = {"sentence": s["id"], "first_word": name(w0), "first_word_chars": len(name(w0)), "t0": round(t0,3), "first_word_duration_s": round(dur,3), "keys": sorted(w0.keys())}
+              imgs = {}
+              for lab, dt in (("before",-0.12),("t0",0.0),("after",0.12)):
+                  im = frame(t0+dt); imgs[lab] = im
+                  item[lab] = {"verify_scale_px": hl(im), "fullres_px": hl_full(im), "time": round(t0+dt,3)}
+              # a later, longer word of the same sentence for comparison
+              if len(ws) > 3:
+                  w3 = max(ws[1:], key=lambda r: len(name(r))); tm = (w3["abs_start"] + (w3.get("abs_end") or w3["abs_start"]))/2
+                  im = frame(tm); imgs["longword"] = im
+                  item["longest_other_word"] = {"word": name(w3), "verify_scale_px": hl(im), "fullres_px": hl_full(im), "time": round(tm,3)}
+              report.append(item); rows.append((s["id"], name(w0), imgs))
+              for lab, im in imgs.items():
+                  im.crop((0,820,1920,1080)).save(f"out/{s['id']}_{lab}.png")
+          # contact sheet: rows = sentences, cols = before / at first word / after / longest word
+          W, H = 960, 130; cols = ["before","t0","after","longword"]
+          sheet = Image.new("RGB", (W*len(cols), (H+22)*len(rows)), (20,20,20)); d = ImageDraw.Draw(sheet)
+          for i,(sid,w,imgs) in enumerate(rows):
+              for j,c in enumerate(cols):
+                  if c in imgs:
+                      sheet.paste(imgs[c].crop((0,820,1920,1080)).resize((W,H)), (j*W, i*(H+22)+22))
+                  d.text((j*W+6, i*(H+22)+4), f"{sid} first word '{w}' - {c}", fill=(255,255,255))
+          sheet.save("out/caption_contact_sheet.png")
+          json.dump(report, open("out/caption_evidence.json","w"), indent=1)
+          print(json.dumps(report, indent=1))
+          PY
+
+      - name: Upload small evidence artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docu-kim-test30-caption-evidence
+          path: out/
+          retention-days: 7
