@@ -51,10 +51,13 @@
 
   function studio(pal) {
     pal = Object.assign({ a: "#2a2147", b: "#6a3d8f", light: "#ff6fae" }, pal);
-    const lights = Array.from({ length: 7 }, (_, i) => `<path d="M${200 + i * 260} 0 L${120 + i * 260} 800 L${300 + i * 260} 800 Z" fill="${pal.light}" opacity="${0.07 + (i % 2) * 0.05}"/>`).join("");
-    const back = `<defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pal.a}"/><stop offset="1" stop-color="${pal.b}"/></linearGradient></defs><rect width="1920" height="1080" fill="url(#stg)"/>${lights}
-      <g ${stroke(6)} fill="#15101f"><rect x="520" y="230" width="880" height="420" rx="12"/></g><rect x="548" y="258" width="824" height="364" fill="${pal.light}" opacity=".25"/>`;
-    const floor = `<rect y="800" width="1920" height="280" fill="#1a1328"/><path d="M0 820H1920" stroke="${pal.light}" stroke-width="6" opacity=".7"/>`;
+    const lights = Array.from({ length: 7 }, (_, i) => `<path d="M${200 + i * 260} 0 L${120 + i * 260} 800 L${300 + i * 260} 800 Z" fill="${pal.light}" opacity="${0.06 + (i % 2) * 0.05}"/>`).join("");
+    const curt = Array.from({ length: 16 }, (_, i) => `<rect x="${i * 120}" y="0" width="60" height="800" fill="${shade(pal.a, i % 2 ? 0.1 : -0.12)}" opacity=".55"/>`).join("");
+    const back = `<defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pal.a}"/><stop offset="1" stop-color="${pal.b}"/></linearGradient>
+      <radialGradient id="stg2"><stop offset="0" stop-color="${pal.light}" stop-opacity=".55"/><stop offset="1" stop-color="${pal.light}" stop-opacity="0"/></radialGradient></defs>
+      <rect width="1920" height="1080" fill="url(#stg)"/>${curt}${lights}<ellipse cx="960" cy="520" rx="900" ry="420" fill="url(#stg2)"/>`;
+    const floor = `<rect y="800" width="1920" height="280" fill="#150f22"/><rect y="800" width="1920" height="10" fill="${pal.light}" opacity=".6"/>
+      <ellipse cx="960" cy="880" rx="820" ry="70" fill="${pal.light}" opacity=".12"/>`;
     return { layers: [{ name: "back", depth: 0.2, svg: back }, { name: "floor", depth: 0.7, svg: floor }] };
   }
 

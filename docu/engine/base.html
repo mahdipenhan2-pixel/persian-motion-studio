@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFP Docu</title>
+<style>
+__FONT_FACES__
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #0a0508; }
+  body { font-family: "Inter", "Noto Sans", "DejaVu Sans", sans-serif; }
+  #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #0a0508; }
+  #art, #subs { position: absolute; inset: 0; }
+  svg { display: block; }
+  /* Registered with inherits:false, otherwise a parent's --x/--y/--r would leak into every nested part */
+  @property --x  { syntax: "<number>"; inherits: false; initial-value: 0; }
+  @property --y  { syntax: "<number>"; inherits: false; initial-value: 0; }
+  @property --r  { syntax: "<number>"; inherits: false; initial-value: 0; }
+  @property --s  { syntax: "<number>"; inherits: false; initial-value: 1; }
+  @property --sx { syntax: "<number>"; inherits: false; initial-value: 1; }
+  @property --sy { syntax: "<number>"; inherits: false; initial-value: 1; }
+  /* every animated part: custom properties -> transform around the part's own origin (its pivot) */
+  [data-p] { transform-origin: 0 0;
+    transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)) rotate(calc(var(--r) * 1deg))
+               scale(calc(var(--s) * var(--sx)), calc(var(--s) * var(--sy))); }
+  /* parallax layer: camera vars live on the shot group; depth d decides how much each layer follows */
+  .lay { transform-origin: 960px 540px;
+    transform: translate(calc(var(--cx, 0) * var(--d, 1) * -1px), calc(var(--cy, 0) * var(--d, 1) * -1px))
+               scale(calc(1 + var(--cz, 0) * var(--d, 1))); }
+  [data-m] { }
+  /* subtitles: bottom band, English, current word highlighted (synced to the voice) */
+  #subs { pointer-events: none; }
+  #band { position: absolute; left: 0; right: 0; bottom: 0; height: 250px;
+          background: linear-gradient(to top, rgba(6,3,5,.88), rgba(6,3,5,0)); }
+  .sentence { position: absolute; left: 160px; right: 160px; bottom: 62px; text-align: center; opacity: 0;
+              font-size: 56px; font-weight: 700; line-height: 1.32; color: #fff; text-shadow: 0 3px 10px rgba(0,0,0,.7); }
+  .w { display: inline; color: rgba(255,255,255,.62); background-color: rgba(255,214,90,0);
+       padding: 0 .12em; margin: 0 -.12em; border-radius: .2em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="__DURATION__">
+  <audio id="narration" src="narration.wav" data-start="0" data-duration="__DURATION__" data-track-index="2" data-volume="1"></audio>
+  <section id="art" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="0">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <g id="world"></g>
+      <g id="post"></g>
+    </svg>
+  </section>
+  <section id="subs" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="3">
+    <div id="band"></div>
+    __SENTENCES_HTML__
+  </section>
+</div>
+__GSAP__
+<script>
+window.K = {};
+__KIT__
+</script>
+<script>
+(() => {
+  "use strict";
+  const DATA = __TIMELINE_JSON__;
+  if (typeof gsap === "undefined") throw new Error("GSAP failed to load.");
+  const tl = gsap.timeline({ paused: true });
+  const world = document.getElementById("world");
+  const post = document.getElementById("post");
+  // global look: vignette, scan lines, VHS overlay, film grain (post layers sit above every shot)
+  post.innerHTML = K.fx.globalDefs() + K.fx.overlays() + K.fx.vhsOverlay() +
+    `<g style="mix-blend-mode:overlay" opacity=".55"><defs><pattern id="grainp" width="256" height="256" patternUnits="userSpaceOnUse"><image href="assets/noise.png" width="256" height="256"/></pattern></defs>
+       <g data-p="grain" id="grain"><rect x="-256" y="-256" width="2432" height="1592" fill="url(#grainp)"/></g></g>`;
+  const D = K.Director(DATA, tl, world);
+  D.grain(document.getElementById("grain"));
+
+  /* ===== project shots ===== */
+__SHOTS__
+  /* ===== end of shots ===== */
+
+  /* Subtitles: a sentence shows with its own audio window; the current word is highlighted */
+  const OFF = { color: "rgba(255,255,255,0.62)", backgroundColor: "rgba(255,214,90,0)" };
+  const ON = { color: "rgba(30,18,10,1)", backgroundColor: "rgba(255,214,90,1)" };
+  const DONE = { color: "rgba(255,255,255,1)", backgroundColor: "rgba(255,214,90,0)" };
+  const fade = DATA.fade;
+  DATA.sentences.forEach((s) => {
+    const el = document.getElementById("sent-" + s.id);
+    tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: fade, ease: "power2.out", immediateRender: false }, Math.max(0, s.start - fade));
+    s.words.forEach((w) => {
+      const we = document.getElementById(w.id);
+      if (!w.hl) { tl.fromTo(we, OFF, Object.assign({ duration: 0.12, ease: "none", immediateRender: false }, DONE), w.start); return; }
+      const hold = Math.max(0.06, w.end - w.start);
+      tl.fromTo(we, OFF, Object.assign({ duration: 0.05, ease: "none", immediateRender: false }, ON), w.start);
+      tl.fromTo(we, ON, Object.assign({ duration: 0.12, ease: "none", immediateRender: false }, DONE), w.start + hold);
+    });
+    tl.fromTo(el, { opacity: 1 }, { opacity: 0, duration: fade, ease: "power1.in", immediateRender: false }, s.end + 0.02);
+  });
+  // keep the master timeline exactly as long as the video
+  tl.set(document.getElementById("band"), { opacity: 1 }, DATA.duration - 0.001);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+  window.__docuWarnings = D.warns;
+})();
+</script>
+</body>
+</html>

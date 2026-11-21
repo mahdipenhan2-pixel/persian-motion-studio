@@ -1,0 +1,213 @@
+name: Docu Build (16:9 documentary / style test)
+
+on:
+  # Manual run (appears in the Actions tab once this file is on the default branch)
+  # and an automatic run when the test branch is pushed (works without touching main).
+  push:
+    branches: ["docu-16x9-test30"]
+    paths: ["docu/**", ".github/workflows/docu-build.yml"]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Folder under docu/projects (default: the 30-second style test)"
+        required: true
+        default: "kim-test30"
+        type: string
+      chapter:
+        description: "Chapter id inside the project (kim-test30 has only c1)"
+        required: true
+        default: "c1"
+        type: string
+      confirm_free_tier:
+        description: "Choose YES only after verifying that Gemini API billing is NOT enabled (needed only when new audio must be generated)"
+        required: true
+        default: "NO"
+        type: choice
+        options:
+          - "NO"
+          - "YES"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docu-build
+  cancel-in-progress: false
+
+env:
+  PROJECT: ${{ inputs.project || 'kim-test30' }}
+  CHAPTER: ${{ inputs.chapter || 'c1' }}
+
+jobs:
+  docu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Validate names
+        run: |
+          for v in "$PROJECT" "$CHAPTER"; do
+            if ! [[ "$v" =~ ^[A-Za-z0-9-]+$ ]]; then
+              echo "::error::Names may only contain letters, digits and hyphens."
+              exit 1
+            fi
+          done
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg, numpy and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core python3-numpy
+
+      - name: Install fonts (Inter for text, Caveat for the handwritten notes)
+        run: |
+          npm install --no-save @fontsource/inter@5 @fontsource/caveat@5
+          mkdir -p assets/fonts
+          for f in inter-latin-400-normal inter-latin-700-normal inter-latin-800-normal; do
+            cp "node_modules/@fontsource/inter/files/$f.woff2" assets/fonts/ || echo "::warning::$f not found"
+          done
+          cp node_modules/@fontsource/caveat/files/caveat-latin-700-normal.woff2 assets/fonts/ || echo "::warning::Caveat not found; notes fall back to a cursive system font"
+          ls assets/fonts
+
+      - name: Record tool versions
+        run: |
+          node --version
+          python3 --version
+          ffmpeg -version | head -1
+
+      # Guards: the locked core is not modified; the documentary layer has its own offline tests.
+      - name: Test locked core (offline)
+        run: python3 scripts/test_stage2_alignment.py
+
+      - name: Test documentary layer (offline, incl. chapter-join sync arithmetic)
+        run: python3 docu/tests/test_docu.py
+
+      - name: Show project plan
+        run: python3 docu/engine/run.py plan --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Restore story cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-cache-v2-none
+          restore-keys: |
+            story-cache-v2-
+
+      - name: Validate inputs and list sentences that need the API
+        id: check
+        run: python3 docu/engine/run.py check --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Free-tier confirmation gate
+        if: steps.check.outputs.api_needed != '0'
+        env:
+          # manual run: the dropdown; automatic run: repository variable GEMINI_FREE_TIER_CONFIRMED must be YES
+          CONFIRM: ${{ inputs.confirm_free_tier || vars.GEMINI_FREE_TIER_CONFIRMED }}
+        run: |
+          if [ "$CONFIRM" != "YES" ]; then
+            echo "::error::Stopped before any Gemini API request. Verify billing status and explicitly choose YES."
+            exit 1
+          fi
+
+      - name: Generate narration (Gemini TTS free tier, cached sentences are skipped)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 docu/engine/run.py tts --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Check that the narration fits the target length
+        run: python3 docu/engine/run.py fit --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Prepare audio timeline
+        run: python3 docu/engine/run.py prepare --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Restore Whisper model cache
+        id: whisper-model
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - name: Word timestamps per sentence (faster-whisper)
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+          .venv-whisper/bin/python docu/engine/run.py whisper --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Save Whisper model cache
+        if: steps.whisper-model.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      # Saved right away (and even after a failure) so generated audio is never requested twice.
+      - name: Compute story cache key
+        id: cachekey
+        if: always()
+        run: |
+          mkdir -p .cache/story
+          echo "count=$(find .cache/story -type f | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "key=story-cache-v2-$(find .cache/story -type f | sort | sha256sum | cut -c1-24)" >> "$GITHUB_OUTPUT"
+
+      - name: Save story cache
+        if: always() && steps.cachekey.outputs.count != '0'
+        uses: actions/cache/save@v5
+        with:
+          path: .cache/story
+          key: ${{ steps.cachekey.outputs.key }}
+
+      - name: Align script words to speech
+        run: python3 docu/engine/run.py align --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Build 16:9 composition and SRT
+        run: python3 docu/engine/run.py compose --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Lint composition
+        working-directory: build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story
+        run: npx --yes hyperframes lint
+
+      - name: Render MP4 (1920x1080, 30 fps)
+        working-directory: build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story
+        run: |
+          START=$(date +%s)
+          npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
+          echo "render_seconds=$(( $(date +%s) - START ))" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify MP4 (size, length, audio, caption sync, motion)
+        run: python3 docu/engine/run.py verify --project "$PROJECT" --chapter "$CHAPTER"
+
+      - name: Add report to workflow summary
+        if: always()
+        run: |
+          B="build/docu/$PROJECT/$CHAPTER"
+          [ -f "$B/timing_report.md" ] && cat "$B/timing_report.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$B/verify.json" ]; then
+            { echo; echo '```json'; cat "$B/verify.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: docu-${{ env.PROJECT }}-${{ env.CHAPTER }}
+          path: |
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story.mp4
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story.srt
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/contact_sheet.png
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing_report.md
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/verify.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/tts_meta.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/audio_meta.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/narration.wav
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/frames/
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story/index.html
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "title": "What if you were born as Kim Kardashian? (30-second style test)",
+    "lang": "en",
+    "format": "16:9",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "target_duration": 30
+  },
+  "voice": {
+    "voice": "Kore",
+    "style": "documentary narrator, steady and clear, slightly brisk"
+  },
+  "audio": {
+    "lead_in_ms": 300,
+    "gap_ms": 300,
+    "tail_ms": 500
+  },
+  "shots": "shots.js",
+  "chapters": [
+    {
+      "id": "c1",
+      "sentences": [
+        {
+          "id": "s1",
+          "text": "You are born in Los Angeles on October 21st, 1980."
+        },
+        {
+          "id": "s2",
+          "text": "Your father, a lawyer, will join the O. J. Simpson defense team."
+        },
+        {
+          "id": "s3",
+          "text": "When you are nine, your parents divorce."
+        },
+        {
+          "id": "s4",
+          "text": "Two years later, your mother marries Olympic champion Bruce Jenner."
+        },
+        {
+          "id": "s5",
+          "text": "In 2007, cameras move in, and your family becomes a TV show."
+        },
+        {
+          "id": "s6",
+          "text": "By 2025, your brand, SKIMS, is valued at five billion dollars."
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "claim": "Born Oct 21, 1980, Los Angeles",
+      "url": "https://www.britannica.com/biography/Kim-Kardashian"
+    },
+    {
+      "claim": "Robert Kardashian was on the O. J. Simpson defense team (1994-95 trial)",
+      "url": "https://www.britannica.com/biography/Kim-Kardashian"
+    },
+    {
+      "claim": "Parents divorced in 1989; Kris married Bruce Jenner in 1991",
+      "url": "https://www.biography.com/authors-writers/kim-kardashian"
+    },
+    {
+      "claim": "Bruce Jenner won the 1976 Olympic decathlon",
+      "url": "https://www.britannica.com/biography/Caitlyn-Jenner"
+    },
+    {
+      "claim": "Keeping Up with the Kardashians premiered October 2007",
+      "url": "https://www.britannica.com/biography/Kim-Kardashian"
+    },
+    {
+      "claim": "SKIMS valued at $5 billion in Nov 2025 ($225M round led by Goldman Sachs Alternatives)",
+      "url": null,
+      "note": "URL must be re-verified before the full documentary is published"
+    }
+  ]
+}
