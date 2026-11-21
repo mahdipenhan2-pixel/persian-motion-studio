@@ -32,6 +32,67 @@ def hl_pixels(mp4, t):
     return int((np.abs(a - np.array(HL)).max(axis=2) < 30).sum())
 
 
+HL_MIN_REF_PX = 120      # the calibration word (long) must show at least this many highlight pixels at 480x65
+HL_ON_RANGE = (0.5, 2.0)  # first word pixels / expected pixels (from pixels per letter of the reference word)
+HL_OFF_MAX = 0.25         # before the word starts: at most this share of the expected pixels
+HL_FALLBACK_PX = 40       # one-word sentences: absolute minimum
+
+
+def _letters(r):
+    t = str(r.get("text") or r.get("word") or r.get("script") or r.get("token") or "")
+    return max(1, sum(ch.isalnum() for ch in t))
+
+
+def _word_end(timed, i):
+    r = timed[i]
+    e = r.get("abs_end")
+    if e is None and i + 1 < len(timed):
+        e = timed[i + 1]["abs_start"]
+    return e if e is not None else r["abs_start"] + 0.2
+
+
+def sample_time(t0, t1):
+    """Middle of a word, but at least ~1 frame after it starts and ~1 frame before it ends, so short words get a real chance to be seen."""
+    dur = max(t1 - t0, 0.0)
+    t = t0 + min(max(dur * 0.5, 0.04), 0.15)
+    return min(t, t1 - 0.03) if dur > 0.07 else t0 + dur * 0.5
+
+
+def judge_highlight(first_letters, first_px, before_px, ref_letters, ref_px):
+    """Pure decision rule (unit-testable). Returns (problem or None, expected_px)."""
+    if ref_letters:
+        if ref_px < HL_MIN_REF_PX:
+            return "caption highlight is not visible (reference word shows %d px)" % ref_px, None
+        exp = ref_px / ref_letters * first_letters
+    else:
+        exp = float(HL_FALLBACK_PX)
+    if first_px < exp * HL_ON_RANGE[0]:
+        return "caption highlight not switching on at the first word (%d px, expected about %d)" % (first_px, round(exp)), exp
+    if first_px > exp * HL_ON_RANGE[1]:
+        return "caption highlight too large for the first word (%d px, expected about %d)" % (first_px, round(exp)), exp
+    if before_px > exp * HL_OFF_MAX:
+        return "caption highlight already on before the first word (%d px)" % before_px, exp
+    return None, exp
+
+
+def check_highlight(mp4, sid, timed):
+    t0, t1 = timed[0]["abs_start"], _word_end(timed, 0)
+    first_px = hl_pixels(mp4, sample_time(t0, t1))
+    before_px = hl_pixels(mp4, t0 - 0.12)
+    others = [(i, r) for i, r in enumerate(timed) if i > 0]
+    ref_letters = ref_px = 0
+    ref_word = None
+    if others:
+        i, r = max(others, key=lambda x: _letters(x[1]))
+        ref_letters = _letters(r)
+        ref_px = hl_pixels(mp4, sample_time(r["abs_start"], _word_end(timed, i)))
+        ref_word = str(r.get("text") or r.get("word") or r.get("script") or "")
+    problem, exp = judge_highlight(_letters(timed[0]), first_px, before_px, ref_letters, ref_px)
+    return {"sentence": sid, "first_word_letters": _letters(timed[0]), "first_word_s": round(t1 - t0, 3),
+            "before": before_px, "first_word_px": first_px, "reference_word": ref_word, "reference_px": ref_px,
+            "expected_px": None if exp is None else round(exp), "problem": problem}
+
+
 def verify(proj, ch, build):
     import story_stage2 as core
     build = Path(build)
@@ -73,15 +134,16 @@ def verify(proj, ch, build):
             if abs(d) > 250:
                 res["problems"].append(f"voice onset differs from first caption word by {d} ms")
 
-    # caption highlight really switches on with each sentence's first word (+/-100 ms)
+    # caption highlight really switches on with each sentence's first word.
+    # The highlight box grows with the word, so a fixed pixel count wrongly fails 2-letter words ("In", "By").
+    # Method: calibrate pixels-per-letter on the longest other word of the same sentence (sampled at its middle),
+    # then require the first word to show about that many pixels per letter, and nothing before it starts.
     hl = []
     for s in timing["sentences"]:
         timed = [r for r in s["words"] if r["abs_start"] is not None]
-        t0 = timed[0]["abs_start"]
-        before, after = hl_pixels(mp4, t0 - 0.12), hl_pixels(mp4, t0 + 0.12)
-        hl.append({"sentence": s["id"], "before": before, "after": after})
-        if before >= 120 or after < 120:
-            res["problems"].append(f"{s['id']}: caption highlight not switching on at the first word")
+        hl.append(check_highlight(mp4, s["id"], timed))
+        if hl[-1]["problem"]:
+            res["problems"].append(f"{s['id']}: {hl[-1]['problem']}")
     res["highlight"] = hl
 
     # motion: sample 6 fps, compare consecutive frames in the art area (top 78%)
