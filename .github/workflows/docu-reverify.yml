@@ -1,0 +1,49 @@
+name: Docu re-verify (runs Verify on an existing MP4 artifact; no render, no Gemini)
+
+on:
+  push:
+    branches: ["docu-16x9-test30"]
+    paths: [".github/workflows/docu-reverify.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reverify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_RUN: "44958644391"
+      PROJECT: kim-test30
+      CHAPTER: c1
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download the MP4 artifact of the earlier run (no new render, no API)
+        uses: actions/download-artifact@v7
+        with:
+          name: docu-kim-test30-c1
+          run-id: ${{ env.SOURCE_RUN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: build/docu/kim-test30/c1
+      - name: Install ffmpeg and numpy
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-numpy python3-pil
+          ls -la build/docu/kim-test30/c1 | head -20
+      - name: Verify MP4 (same command as the build workflow)
+        run: python3 docu/engine/run.py verify --project "$PROJECT" --chapter "$CHAPTER"
+      - name: Show verify.json
+        if: always()
+        run: |
+          B=build/docu/$PROJECT/$CHAPTER
+          [ -f "$B/verify.json" ] && cat "$B/verify.json" || echo "no verify.json"
+      - name: Upload verify.json
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: docu-kim-test30-reverify
+          path: build/docu/kim-test30/c1/verify.json
+          if-no-files-found: warn
+          retention-days: 7
