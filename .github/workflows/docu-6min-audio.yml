@@ -98,7 +98,7 @@ jobs:
           # nothing is retried after 429 and nothing is routed around the limit. Raw chunks are saved at once.
           for C in c1 c2 c3; do
             set +e
-            python3 docu/engine/tts_chunks.py generate --project "$PROJECT" --chapter "$C" --spacing 25 --max-requests 3
+            python3 docu/engine/tts_chunks.py generate --project "$PROJECT" --chapter "$C" --spacing 25 --max-requests 2 --attempts 1
             RC=$?
             set -e
             if [ "$RC" = "3" ]; then echo "::warning::free-tier daily limit reached at chapter $C; no more requests today. Re-run after the reset."; break; fi
