@@ -1,5 +1,6 @@
 name: Docu 6-min chunk-cutter self-test (real Whisper, NO Gemini, no secrets)
 
+# (v2: prints every missed cut; the step now fails when the self-test fails)
 # Pushing a change to THIS file runs it (works from the test branch, never from main).
 # It takes the APPROVED chapter-1 narration (branch docu-6min-data), joins the sentences into continuous audio with short
 # pauses, lets faster-whisper transcribe that long file and checks that every cut falls inside the real pause between
@@ -50,7 +51,9 @@ jobs:
           .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
 
       - name: Self-test with REAL Whisper on continuous audio (gaps 0.2 / 0.35 / 0.6 s)
+        shell: bash
         run: |
+          set -o pipefail
           .venv-whisper/bin/python docu/engine/tts_chunks.py selftest --data "$RUNNER_TEMP/c1" --whisper real --gaps 0.2 0.35 0.6 --jitters 0 --workdir "$RUNNER_TEMP/selftest" | tee "$RUNNER_TEMP/selftest.log"
 
       - name: Save Whisper model cache
