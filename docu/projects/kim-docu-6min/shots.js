@@ -88,16 +88,19 @@ DK.hud = (S, id, o) => {
   for (let k = lo; k <= hi; k++) {
     const major = k % 5 === 0;
     tk += `<path d="M${k * PX} ${major ? -15 : -8}V${major ? 15 : 8}" stroke="#fff" stroke-width="${major ? 3 : 2}" opacity="${major ? 0.9 : 0.45}"/>`;
-    if (major) tk += `<text x="${k * PX}" y="40" text-anchor="middle" font-family='${FONT}' font-size="21" font-weight="700" fill="#d5deec" opacity=".85">${k}</text>`;
+    if (major) tk += `<text x="${k * PX}" y="46" text-anchor="middle" font-family='${FONT}' font-size="28" font-weight="700" fill="#e6edf8" opacity=".95">${k}</text>`;
   }
-  (o.marks || []).forEach((m) => { tk += `<circle cx="${m.y * PX}" cy="0" r="7" fill="#ffb84a" stroke="#1a1208" stroke-width="2"/><text x="${m.y * PX}" y="64" text-anchor="middle" font-family='${FONT}' font-size="18" font-weight="800" fill="#ffb84a" letter-spacing="2">${m.label}</text>`; });
+  let row2 = false, prev = null, prevRow = 0;   /* mark labels 23 px; staggered onto a second row when two would touch */
+  (o.marks || []).slice().sort((a, b) => a.y - b.y).forEach((m) => { let row = 0; if (prev && prevRow === 0 && (m.y - prev.y) * PX < (m.label.length + prev.label.length) / 2 * 17 + 16) row = 1; if (row) row2 = true; prevRow = row; prev = m;
+    tk += `<circle cx="${m.y * PX}" cy="0" r="7" fill="#ffb84a" stroke="#1a1208" stroke-width="2"/><text x="${m.y * PX}" y="${88 + row * 30}" text-anchor="middle" font-family='${FONT}' font-size="23" font-weight="800" fill="#ffb84a" stroke="#05070c" stroke-width="4" paint-order="stroke" letter-spacing="2">${m.label}</text>`; });
+  const panelH = row2 ? 176 : 148;
   const yMin = Math.min(o.from, o.to), yMax = Math.max(o.from, o.to);
   for (let k = Math.floor(yMin); k <= Math.ceil(yMax); k++) yrs += `<text data-p="${id}_y${k}" x="960" y="86" text-anchor="middle" font-family='${FONT}' font-size="84" font-weight="800" fill="#fff" stroke="#0a0d14" stroke-width="5" paint-order="stroke" letter-spacing="3" style="visibility:hidden">${k}</text>`;
   S.layer(`<defs><linearGradient id="${mk}g" x1="0" x2="1"><stop offset="0" stop-color="#000"/><stop offset=".18" stop-color="#fff"/><stop offset=".82" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-      <mask id="${mk}" maskUnits="userSpaceOnUse" x="240" y="${y - 70}" width="1440" height="180"><rect x="240" y="${y - 70}" width="1440" height="180" fill="url(#${mk}g)"/></mask></defs>
-    <g data-p="${id}"><rect x="260" y="${y - 52}" width="1400" height="128" rx="14" fill="#05070c" opacity=".62" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
+      <mask id="${mk}" maskUnits="userSpaceOnUse" x="240" y="${y - 70}" width="1440" height="260"><rect x="240" y="${y - 70}" width="1440" height="260" fill="url(#${mk}g)"/></mask></defs>
+    <g data-p="${id}"><rect x="260" y="${y - 52}" width="1400" height="${panelH}" rx="14" fill="#05070c" opacity=".62" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
     <g mask="url(#${mk})"><g transform="translate(960 ${y})"><g data-p="${id}_r">${tk}</g></g></g>
-    <path d="M960 ${y - 52}V${y + 76}" stroke="#ffb84a" stroke-width="4"/><path d="M944 ${y - 52}H976L960 ${y - 34}Z" fill="#ffb84a"/>${yrs}</g>`, 0);
+    <path d="M960 ${y - 52}V${y - 52 + panelH}" stroke="#ffb84a" stroke-width="4"/><path d="M944 ${y - 52}H976L960 ${y - 34}Z" fill="#ffb84a"/>${yrs}</g>`, 0);
   const rr = S.q(id + "_r");
   S.key(rr, "--x", S.t0, -o.from * PX, 0);
   const ease = o.ease || "power2.inOut", span = o.t1 - o.t0, f = EASEF[ease] || EASEF["power2.inOut"];
@@ -110,7 +113,7 @@ DK.hud = (S, id, o) => {
     if (i > 0) S.show(id + "_y" + seq[i - 1], tt, false);
     S.show(id + "_y" + k, tt, true); });
   void shown;
-  if (o.label) { S.layer(`<text data-p="${id}_lab" x="960" y="${y + 112}" text-anchor="middle" font-family='${FONT}' font-size="22" font-weight="800" letter-spacing="6" fill="#ffb84a" stroke="#0a0d14" stroke-width="4" paint-order="stroke">${o.label}</text>`, 0); S.fadeIn(id + "_lab", o.t0 + 0.2, 0.3); }
+  if (o.label) { S.layer(`<text data-p="${id}_lab" x="960" y="${y - 52 + panelH + 34}" text-anchor="middle" font-family='${FONT}' font-size="27" font-weight="800" letter-spacing="5" fill="#ffb84a" stroke="#0a0d14" stroke-width="4" paint-order="stroke">${o.label}</text>`, 0); S.fadeIn(id + "_lab", o.t0 + 0.2, 0.3); }
 };
 
 /* ---------- lower-third tag (accent bar + two lines), wipes in from the left ---------- */
@@ -154,9 +157,18 @@ DK.boardFar = (year, seed) => {
     <g stroke="#9db6dd" stroke-width="1.5" opacity=".09">${Array.from({ length: 30 }, (_, i) => `<path d="M${-200 + i * 90} -200V1300"/>`).join("")}${Array.from({ length: 18 }, (_, i) => `<path d="M-200 ${-100 + i * 90}H2200"/>`).join("")}</g>
     <text x="960" y="760" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="560" fill="none" stroke="#9db6dd" stroke-width="3" opacity=".13">${year}</text>` + C.bokeh(seed, ["#7d98c8", "#ffd9a0"], 10);
 };
+/* zones the floating papers must never cover: HUD panel, text block, source line, subtitles, chart icon */
+const NOPAPER = [[250, 80, 1670, 270], [40, 300, 1290, 930], [140, 860, 1780, 1040], [1380, 330, 1900, 830]];
 DK.boardNear = (seed) => {
+  /* scattered papers; a position is re-drawn until it clears every NOPAPER zone */
   const r = rng(seed); let m = "";
-  for (let i = 0; i < 7; i++) { const x = Math.round(r() * 1920), y = Math.round(r() * 1080), w = 150 + Math.round(r() * 170), h = 100 + Math.round(r() * 140), a = Math.round((r() - 0.5) * 50); m += `<g transform="translate(${x} ${y}) rotate(${a})"><rect x="${-w / 2 + 8}" y="${-h / 2 + 12}" width="${w}" height="${h}" fill="#000" opacity=".35"/><rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="${["#d9d1bf", "#c3cbd8", "#e8dcc0"][i % 3]}" opacity=".55"/><path d="M${-w / 2 + 14} ${-h / 2 + 22}H${w / 2 - 14}M${-w / 2 + 14} ${-h / 2 + 40}H${w / 2 - 50}" stroke="#444" stroke-width="3" opacity=".35"/></g>`; }
+  for (let i = 0; i < 7; i++) {
+    let x, y, w, h, a, n = 0;
+    do { x = Math.round(r() * 1920); y = Math.round(r() * 1080); w = 150 + Math.round(r() * 170); h = 100 + Math.round(r() * 140); a = Math.round((r() - 0.5) * 50); n++; }
+    while (n < 80 && NOPAPER.some(([x0, y0, x1, y1]) => x + w * 0.75 > x0 && x - w * 0.75 < x1 && y + h * 0.75 > y0 && y - h * 0.75 < y1));
+    if (n >= 80) continue;   // no free spot for this sheet: it is simply left out
+    m += `<g transform="translate(${x} ${y}) rotate(${a})"><rect x="${-w / 2 + 8}" y="${-h / 2 + 12}" width="${w}" height="${h}" fill="#000" opacity=".35"/><rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="${["#d9d1bf", "#c3cbd8", "#e8dcc0"][i % 3]}" opacity=".55"/><path d="M${-w / 2 + 14} ${-h / 2 + 22}H${w / 2 - 14}M${-w / 2 + 14} ${-h / 2 + 40}H${w / 2 - 50}" stroke="#444" stroke-width="3" opacity=".35"/></g>`;
+  }
   return m;
 };
 
@@ -362,7 +374,7 @@ const card = (o) => D.shot({ id: o.id, a: o.a, b: o.b, bg: { layers: [{ name: "f
     if (o.sub) { TX(S, "sub", left, y0 + (o.lines || []).length * sz * 1.08 + 20, o.subSize || 36, "#cfe0f5", o.sub, { w: 700, ls: 6, sw: 5 }); appear(S, "sub", t0 + 0.6, 0.3, true); }
     if (o.icon) o.icon(S, o.ix || 1430, o.iy || 560, t0 + (o.iat || 0.3), t1);
     if (o.hud) DK.hud(S, "hud", Object.assign({ t0: t0 + 0.05, t1: Math.min(t1 - 0.05, t0 + (o.hudDur || 1.6)) }, o.hud));
-    if (o.src) { TX(S, "src", 140, 850, 23, "#e8eef9", o.src, { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3); }
+    if (o.src) { TX(S, "src", 140, 850, 28, "#e8eef9", o.src, { w: 700, ls: 2, sw: 5 }); appear(S, "src", t0 + 0.8, 0.3); }
     badge(S, o.badge || GRAPHIC);
     if (o.extra) o.extra(S, t0, t1);
     grade(S, "mono", { tint: o.tint || "#6c84b4", ta: 0.2, dark: 0.1, vig: 0.74 });
@@ -1005,11 +1017,11 @@ scene({ id: "johnson", a: W("c3f", 0), b: W("c3h", 0), bg: B.court(), cam: { fro
     you.talkWords("c3f", t0); you.arm("R", tc, -150, -30, 0.4, "back.out(1.6)");
     const al = S.actor("alJ", JOHNSONS, 1250, 940, 1.08, { seed: 172, expr: "sad", depth: 0.95, pivot: [1250, 940] });
     al.face(tc + 0.3, "happy", 0.4); al.walk(tw, t1 - 0.3, -430, { arms: false, step: 0.3 }); al.face(t1 - 1.4, "laugh", 0.3);
-    const bars = S.layer(FG.barsAt([1090, 1190, 1290, 1390, 1490]), 1.0); S.key(bars, "opacity", t0, 1, 0); S.key(bars, "opacity", tc + 0.2, 0, 0.6, "power1.in");
+    const bars = S.layer(`<g fill="#07050b" opacity=".92">${[1150, 1250, 1350, 1450, 1550].map((x) => `<rect x="${x - 20}" y="320" width="40" height="680"/>`).join("")}<rect x="1110" y="320" width="480" height="34"/><rect x="1110" y="950" width="480" height="40"/></g>`, 1.0); S.key(bars, "opacity", t0, 1, 0); S.key(bars, "opacity", tc + 0.2, 0, 0.6, "power1.in");
     ic.doc(S, 1560, 500, tc);
     S.layer(PR.heart("hj", 840, 420), 1.1); S.pop("hj", t1 - 1.2, 0.5); S.key("hj", "--y", t1 - 0.7, -40, 0.9, "sine.out");
     DK.tag(S, "jnTag", "2018 · PRESIDENTIAL COMMUTATION", "ALICE MARIE JOHNSON · LIFE SENTENCE", 120, 330, t0 + 0.3, { w: 1000 });
-    TX(S, "src", 140, 850, 23, "#e8eef9", "SOURCE: HISTORY.COM · BRITANNICA", { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3);
+    TX(S, "src", 140, 850, 28, "#e8eef9", "SOURCE: HISTORY.COM · BRITANNICA", { w: 700, ls: 2, sw: 5 }); appear(S, "src", t0 + 0.8, 0.3);
     DK.hud(S, "hjn", { from: 2017, to: 2018, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2017, label: "KKW" }, { y: 2018, label: "2018" }] });
   } });
 /* 2019: SKIMS, mother of four (cartoon boutique: four children walk in one by one) */
@@ -1110,11 +1122,11 @@ scene({ id: "gs", a: W("c3l2", 0), b: W("c3m", 0), bg: B.office(), cam: { from: 
     for (let i = 0; i < 4; i++) { S.layer(PR.coin("gc" + i, 880 + i * 80, 700), 1.2); S.pop("gc" + i, ts + 0.5 + i * 0.1, 0.35); S.key("gc" + i, "--y", ts + 0.9 + i * 0.1, -40 - (i % 2) * 24, 0.7, "sine.out"); }
     confetti(S, ts + 0.4, 16, 23);
     DK.tag(S, "gsTag", "THE ROUND IS LED BY", "GOLDMAN SACHS ALTERNATIVES", 120, 330, t0 + 0.3, { w: 880 });
-    TX(S, "src", 140, 850, 23, "#e8eef9", "SOURCE: GOLDMAN SACHS ALTERNATIVES PRESS RELEASE · NOV 12, 2025", { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3);
+    TX(S, "src", 140, 850, 28, "#e8eef9", "SOURCE: GOLDMAN SACHS ALTERNATIVES · NOV 12, 2025", { w: 700, ls: 2, sw: 5 }); appear(S, "src", t0 + 0.8, 0.3);
   } });
 card({ id: "valnote", a: W("c3m", 0), b: W("c3n", 0), year: 2025, seed: 32, kick: "VALUATION IS NOT REVENUE", lines: ["$5 BILLION"], hi: 0, size: 120,
   icon: (S, cx, cy, t) => ic.bars(S, cx, cy, t, [{ label: "VALUATION", val: 1.0, txt: "$5B", col: "#c98a12" }, { label: "NET SALES 2025", val: 0.2, txt: "$1B+", col: "#3d6a9c" }], [D.W("c3m", 2), D.W("c3m2", 8)]), ix: 1500, iy: 480, hud: { from: 2025, to: 2025, marks: [{ y: 2025, label: "NOV 2025" }] },
-  src: "SOURCE: GOLDMAN SACHS ALTERNATIVES · THE COMPANY SAYS IT IS ON TRACK TO PASS $1B IN NET SALES IN 2025",
+  src: "SOURCES: GOLDMAN SACHS ALTERNATIVES · COMPANY STATEMENT",
   extra(S, t0) {
     S.layer(`<g data-p="vbar"><g transform="translate(140 640)"><rect width="1040" height="86" rx="12" fill="#05070c" opacity=".78"/><text x="520" y="58" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="35" fill="#ffb84a" letter-spacing="1.5">COMPANY VALUATION: $5 BILLION — NOVEMBER 2025</text></g></g>`, 1.0);
     S.fadeIn("vbar", t0 + 0.2, 0.4);
