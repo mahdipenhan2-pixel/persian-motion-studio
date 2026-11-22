@@ -15,11 +15,13 @@ def timing_from_words(ch, words, total):
     sents = []
     for s in ch["sentences"]:
         rows = words[s["id"]]; ws = s["text"].split(); out = []
-        for i, w in enumerate(ws):
-            r = rows[i] if i < len(rows) and rows[i][0].strip() == w.strip() else None
+        j = 0
+        for i, w in enumerate(ws):   # sequential match: words the aligner missed stay unmatched, later words keep their script index
+            r = None
+            if j < len(rows) and rows[j][0].strip() == w.strip(): r = rows[j]; j += 1
             out.append({"i": i, "text": w, "abs_start": r[1] if r else None, "abs_end": r[2] if r else None, "status": "ok" if r else "unmatched"})
         timed = [x for x in out if x["abs_start"] is not None]
-        sents.append({"id": s["id"], "text": s["text"], "offset": timed[0]["abs_start"], "duration": round(timed[-1]["abs_end"] - timed[0]["abs_start"], 3), "words": out})
+        sents.append({"id": s["id"], "text": s["text"], "offset": timed[0]["abs_start"], "duration": round(timed[-1]["abs_end"] - timed[0]["abs_start"] + (0.7 if s["id"] == "s6" else 0.0), 3), "words": out})
     return {"summary": {"status": "OK"}, "audio": {"total": total, "gap": 0.3}, "sentences": sents}
 
 

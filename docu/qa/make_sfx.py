@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Synthesise the sound design for the documentary-style experiment (numpy/scipy only: no samples, no third-party audio,
 no network, no TTS). Reads sfx.json cues, anchors them on the real word times, mixes them under the approved narration.
-usage: make_sfx.py <sfx.json> <words.json> <narration.wav> <out.wav>"""
+usage: make_sfx.py <sfx.json> <words.json> <narration.wav> <out.wav> [project.json]
+With project.json the word anchors use script word indices (words the aligner missed take the next matched word's time)."""
 import json, sys, wave
 import numpy as np
 from scipy.signal import butter, sosfilt, fftconvolve
@@ -126,8 +127,24 @@ def inv_ease(p):  # power2.inOut inverse
     return b
 
 
+def by_script_index(words, project):
+    out = {}
+    for sent in project["chapters"][0]["sentences"]:
+        rows, j, res = words[sent["id"]], 0, []
+        for w in sent["text"].split():
+            if j < len(rows) and rows[j][0].strip() == w.strip(): res.append(list(rows[j])); j += 1
+            else: res.append(None)
+        nxt = rows[-1][2]
+        for k in range(len(res) - 1, -1, -1):
+            if res[k] is None: res[k] = [sent["text"].split()[k], nxt, nxt]
+            else: nxt = res[k][1]
+        out[sent["id"]] = res
+    return out
+
+
 def main():
     cues = json.load(open(sys.argv[1]))["cues"]; words = json.load(open(sys.argv[2]))
+    if len(sys.argv) > 5: words = by_script_index(words, json.load(open(sys.argv[5])))
     with wave.open(sys.argv[3]) as w:
         nar = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float) / 32768; nsr = w.getframerate()
     nar = np.interp(np.arange(int(len(nar) * SR / nsr)) / SR, np.arange(len(nar)) / nsr, nar)

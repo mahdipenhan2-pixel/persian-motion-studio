@@ -94,4 +94,11 @@ tmp = Path(tempfile.mkdtemp()); (tmp / "photo_slots.json").write_text(json.dumps
 check(len(PS.check(tmp)) == 1, "a licensed slot without a verified licence record fails the gate")
 _sh.rmtree(tmp)
 check(len(re.findall(r'D\.shot\(\{ id: "(\w+)"', dsh)) == 8, "kim-docu-style has 8 shots")
+
+# 6. Version B: all six approved sentences, 32 s, same story as Version A
+vb = P.load("kim-docu-style-full")
+check(json.dumps(vb["chapters"], sort_keys=True) == json.dumps(proj["chapters"], sort_keys=True) and len(vb["chapters"][0]["sentences"]) == 6, "Version B: all six sentences identical to the approved script")
+check(vb["voice"] == proj["voice"] and vb["audio"] == proj["audio"] and vb["meta"]["target_duration"] == 32 and vb["meta"]["fps"] == 30, "Version B: same voice/audio settings, 32 s at 30 fps")
+vbs = (DOCU / "projects" / "kim-docu-style-full" / "shots.js").read_text(encoding="utf-8")
+check(len(re.findall(r'D\.shot\(\{ id: "(\w+)"', vbs)) == 15 and PS.check(DOCU / "projects" / "kim-docu-style-full") == [] and not re.search(r"https?://(?!www\.w3\.org)|\.jpe?g|\.webp|\.png|\.gif", vbs), "Version B: 15 shots, placeholders only, no embedded photograph")
 print("ALL OK")
