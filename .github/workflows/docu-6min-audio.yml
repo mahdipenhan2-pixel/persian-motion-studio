@@ -1,12 +1,13 @@
 name: Docu 6-min audio (narration + word timing, no render)
 
 # Audio phase for the independent project docu/projects/kim-docu-6min (3 chapters).
-# Starts ONLY from a tag push named docu6min-audio-* (so it never runs from ordinary pushes).
+# Starts ONLY when the marker file docu/projects/kim-docu-6min/AUDIO_RUN is pushed to the test branch (never from main).
 # Cached sentences (the six approved ones whose text is unchanged) are reused; only new sentences use the Gemini FREE tier.
 # Result: narration.wav + timing.json per chapter, published to the branch docu-6min-data (never to main).
 on:
   push:
-    tags: ["docu6min-audio-*"]
+    branches: ["docu-16x9-test30"]
+    paths: ["docu/projects/kim-docu-6min/AUDIO_RUN"]
 
 permissions:
   contents: write
