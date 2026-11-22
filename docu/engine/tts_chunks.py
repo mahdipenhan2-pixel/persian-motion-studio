@@ -39,6 +39,8 @@ CHUNKS = core.CACHE / "chunks"
 HOP = 0.010              # energy frame (s)
 LEAD, TAIL = 0.27, 0.375  # measured median silence around the approved chapter-1 sentences (s)
 EXIT_QUOTA = 3
+MIN_SAFE_PAUSE = 0.15     # a cut is only allowed inside a real pause at least this long (s)
+SAFE_MARGIN = 0.05       # and at least this far (s) from either edge of the pause
 
 
 # ----------------------------------------------------------------------------- planning
@@ -217,8 +219,9 @@ def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
         return None, rep
     for si, (c, quiet) in enumerate(chosen):
         a, b = last[si], first[si + 1]
-        if quiet < 0.2:
-            rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: short pause ({quiet * 1000:.0f} ms)")
+        if quiet < MIN_SAFE_PAUSE:
+            rep["ok"] = False
+            rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: no safe place to cut (longest usable pause {quiet * 1000:.0f} ms < {MIN_SAFE_PAUSE * 1000:.0f} ms) - refusing a forced cut")
         cuts.append(c)
         rep.setdefault("cuts", []).append({"between": f"{sents[si]['id']}|{sents[si + 1]['id']}", "t": round(c, 3), "gap_ms": round((b - a) * 1000), "quiet_ms": round(quiet * 1000), "how": "dp-quiet-run",
                                           "whisper_end": round(a, 3), "whisper_start": round(b, 3), "shift_ms": round((c - est[si]) * 1000)})
@@ -282,6 +285,46 @@ def whisper_chunk(path, wcfg):
         if nm and w["end"] > w["start"]:
             out.append({"text": w["text"].strip(), "start": w["start"], "end": w["end"], "norm": nm})
     return out
+
+
+_MODEL = {}
+
+
+def _whisper_model(wcfg):
+    if "m" not in _MODEL:
+        from faster_whisper import WhisperModel
+        _MODEL["m"] = WhisperModel(str(wcfg.get("model", "small")), device="cpu", compute_type=str(wcfg.get("compute_type", "int8")))
+    return _MODEL["m"]
+
+
+def verify_pieces(rate, pieces, sents, wcfg, workdir, min_cover=0.9):
+    """Second, independent check of every cut: transcribe each finished sentence file alone (padded like the core does) and
+    align it with its own script. The first AND the last word must be recognised and nearly all words must be found; a cut
+    inside a word, or in the wrong pause, makes a first/last word disappear or a foreign word appear. Returns a list of problems."""
+    model = _whisper_model(wcfg)
+    Path(workdir).mkdir(parents=True, exist_ok=True)
+    problems = []
+    for piece, s in zip(pieces, sents):
+        pad = np.zeros(int(0.25 * rate))
+        tmp = Path(workdir) / f"verify_{s['id']}.wav"
+        write_wav(tmp, rate, np.concatenate([pad, piece, pad]))
+        segs, _ = model.transcribe(str(tmp), language=wcfg.get("language", "en"), word_timestamps=True, condition_on_previous_text=False)
+        words = []
+        for sg in segs:
+            for w in sg.words or []:
+                nm = core.norm(w.word)
+                if nm and w.end > w.start:
+                    words.append({"text": w.word.strip(), "start": float(w.start), "end": float(w.end), "norm": nm})
+        toks = core.script_tokens(s["text"])
+        rows, ratio = core.align_words(toks, words, 0.6) if words else ([], 0.0)
+        idx = [k for k, t in enumerate(toks) if t["norm"]]
+        got = [k for k in idx if rows and rows[k]["start"] is not None]
+        heard = " ".join(w["text"] for w in words)
+        if not rows or len(got) / max(1, len(idx)) < min_cover:
+            problems.append(f"{s['id']}: only {len(got)}/{len(idx)} words recognised in the cut file (heard: {heard!r})")
+        elif idx[0] not in got or idx[-1] not in got:
+            problems.append(f"{s['id']}: first or last word missing in the cut file (heard: {heard!r})")
+    return problems
 
 
 # ----------------------------------------------------------------------------- commands
@@ -360,6 +403,13 @@ def cmd_split(a):
         reports.append(rep)
         for w in rep["warnings"]:
             print(f"  warning: {w}")
+        if pieces is not None and rep["ok"]:
+            problems = verify_pieces(rate, pieces, r["sentences"], cfg["whisper"], build / "verify")
+            for pr in problems:
+                print(f"  verify: {pr}")
+            if problems:
+                rep["ok"] = False
+                rep["warnings"] += problems
         if pieces is None or not rep["ok"]:
             print(f"{ids[0]}..{ids[-1]}: REJECTED, nothing written to the sentence cache (raw chunk kept)")
             bad += 1
@@ -385,7 +435,7 @@ def make_continuous(data_dir, gap_s, jitter_ms, seed=1, whisper_like=False):
     rng = np.random.default_rng(seed)
     timing = json.loads((Path(data_dir) / "timing.json").read_text(encoding="utf-8"))
     rate, a = read_wav(Path(data_dir) / "narration.wav")
-    parts, words, truth, sents, pos = [], [], [], [], 0.0
+    parts, words, truth, sents, pos, tw = [], [], [], [], 0.0, []
     for k, s in enumerate(timing["sentences"]):
         seg = a[int(s["offset"] * rate):int((s["offset"] + s["duration"]) * rate)]
         r = rms_track(seg, rate)
@@ -396,6 +446,7 @@ def make_continuous(data_dir, gap_s, jitter_ms, seed=1, whisper_like=False):
             if w["abs_start"] is None:
                 continue
             ws, we = w["abs_start"] - s["offset"] - on + pos, w["abs_end"] - s["offset"] - on + pos
+            tw.append({"text": w["text"], "start": ws, "end": we, "sent": s["id"]})
             j = lambda: float(rng.uniform(-jitter_ms, jitter_ms)) / 1000
             ws, we = ws + j(), we + j()
             if whisper_like:      # measured on real Whisper: word edges around a pause can be ~0.3-0.6 s early, or glued together
@@ -414,40 +465,53 @@ def make_continuous(data_dir, gap_s, jitter_ms, seed=1, whisper_like=False):
             n = int(gap_s * rate)
             parts.append(rng.normal(0, 6, n))                 # quiet room tone
             pos += gap_s
-    return rate, np.concatenate(parts), words, truth, sents
+    return rate, np.concatenate(parts), words, truth, sents, tw
+
+
+def near(items, t, span=0.6):
+    return [f"{w['text']}@{w['start']:.2f}-{w['end']:.2f}" for w in items if w["end"] >= t - span and w["start"] <= t + span]
 
 
 def cmd_selftest(a):
+    """Every cut must (1) lie inside the REAL pause between the two sentences, (2) not touch any true word, (3) keep >= 50 ms
+    from the speech on both sides. With --whisper real the cut files are also re-transcribed and aligned (verify_pieces)."""
     ok_all = True
+    wcfg = {"model": "small", "language": "en", "compute_type": "int8"}
     for gap in a.gaps:
         for jit in a.jitters:
-            rate, x, words, truth, sents = make_continuous(a.data, gap, jit, whisper_like=a.whisper_like)
+            rate, x, words, truth, sents, tw = make_continuous(a.data, gap, jit, whisper_like=a.whisper_like)
+            real_words = None
             if a.whisper == "real":
                 tmp = Path(a.workdir) / f"selftest_{int(gap * 1000)}.wav"
                 tmp.parent.mkdir(parents=True, exist_ok=True)
                 write_wav(tmp, rate, x)
-                words = whisper_chunk(tmp, {"model": "small", "language": "en", "compute_type": "int8"})
+                words = real_words = whisper_chunk(tmp, wcfg)
             pieces, rep = split_chunk(rate, x, words, sents)
             if pieces is None:
-                print(f"gap {gap * 1000:.0f} ms jitter {jit} ms: REJECTED {rep['warnings']}")
+                print(f"gap {gap * 1000:.0f} ms jitter {jit} ms: REJECTED (reported as an error, nothing cut): {rep['warnings']}")
                 ok_all = False
                 continue
-            errs, inside = [], 0
+            n, inside, in_word, margin_bad, errs = len(rep["cuts"]), 0, 0, 0, []
             for c, (t0, t1) in zip(rep["cuts"], zip(truth[:-1], truth[1:])):
-                lo, hi = t0["end"], t1["start"]
-                inside += lo - 0.005 <= c["t"] <= hi + 0.005
-                errs.append(c["t"] - (lo + hi) / 2)
-            n = len(rep["cuts"])
-            for c, (t0, t1) in zip(rep["cuts"], zip(truth[:-1], truth[1:])):
-                if not t0["end"] - 0.005 <= c["t"] <= t1["start"] + 0.005:
-                    print(f"   MISS {c['between']}: cut {c['t']} s | true pause {t0['end']:.3f}..{t1['start']:.3f} | whisper last-word end {c['whisper_end']} / next-word start {c['whisper_start']} | quiet {c['quiet_ms']} ms")
+                lo, hi, t = t0["end"], t1["start"], c["t"]
+                ok_c = lo - 0.005 <= t <= hi + 0.005
+                hit = [w for w in tw if w["start"] < t < w["end"]]
+                inside += ok_c
+                in_word += bool(hit)
+                margin_bad += (t - lo < SAFE_MARGIN - 0.005) or (hi - t < SAFE_MARGIN - 0.005)
+                errs.append(t - (lo + hi) / 2)
+                if a.verbose or not ok_c or hit:
+                    print(f"   {'MISS' if not ok_c or hit else 'cut '} {c['between']}: cut {t:.3f}s | true pause {lo:.3f}..{hi:.3f} | quiet {c['quiet_ms']} ms | "
+                          f"true words near: {near([w for w in tw], t, 0.35)} | "
+                          f"{'whisper words near: ' + str(near(real_words, t, 0.35)) if real_words else ''}")
+            problems = verify_pieces(rate, pieces, sents, wcfg, Path(a.workdir) / "verify") if a.whisper == "real" else []
+            for pr in problems:
+                print(f"   VERIFY {pr}")
             bad_dur = [p for p in pieces if len(p) < 0.5 * rate]
-            ok = inside == n and not bad_dur and rep["ok"]
+            ok = inside == n and in_word == 0 and margin_bad == 0 and not bad_dur and rep["ok"] and not problems
             ok_all &= ok
-            print(f"gap {gap * 1000:>4.0f} ms | word-time jitter ±{jit:>3} ms | cuts inside the true pause: {inside}/{n} | "
-                  f"mean |offset from pause centre| {np.mean(np.abs(errs)) * 1000:5.1f} ms | match {rep['match_ratio']} | {'OK' if ok else 'FAIL'}")
-            if a.whisper == "real":
-                print("   whisper words:", len(words), "| cuts:", [(c['between'], c['t']) for c in rep['cuts'][:3]], "...")
+            print(f"gap {gap * 1000:>4.0f} ms | cuts in the true pause: {inside}/{n} | cuts inside a word: {in_word} | closer than 50 ms to speech: {margin_bad} | "
+                  f"mean |offset from pause centre| {np.mean(np.abs(errs)) * 1000:5.1f} ms | re-check of cut files: {'n/a' if a.whisper != 'real' else ('OK' if not problems else 'PROBLEMS')} | {'OK' if ok else 'FAIL'}")
     print("SELFTEST", "PASSED" if ok_all else "FAILED")
     return 0 if ok_all else 1
 
@@ -470,6 +534,7 @@ def main():
     p.add_argument("--gaps", type=float, nargs="+", default=[0.12, 0.3, 0.6])
     p.add_argument("--jitters", type=int, nargs="+", default=[0, 60, 120])
     p.add_argument("--workdir", default="build/selftest")
+    p.add_argument("--verbose", action="store_true", help="print every cut with the words around it")
     p.add_argument("--whisper-like", action="store_true", help="emulate the early/glued word edges measured on real Whisper")
     a = ap.parse_args()
     sys.exit({"generate": cmd_generate, "split": cmd_split, "selftest": cmd_selftest}[a.cmd](a))
