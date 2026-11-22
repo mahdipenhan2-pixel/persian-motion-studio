@@ -149,4 +149,20 @@ _steps = _wf.split("      - name: ")
 _cut = [s_ for s_ in _steps if s_.startswith("Cut continuous")][0]; _core = [s_ for s_ in _steps if s_.startswith("Core TTS stage")][0]; _gen = [s_ for s_ in _steps if s_.startswith("Generate narration")][0]
 check("GEMINI_API_KEY" not in _cut.replace("NO API key", "") and "secrets." not in _cut and "secrets." not in _core, "workflow: the cutting and the core-TTS steps never receive the API key")
 check("--spacing 25" in _gen and 'RC" = "3"' in _gen and "break" in _gen, "workflow: 25 s spacing and an immediate stop on HTTP 429")
+
+# ---- 9. silent-preparation tooling (final assembly, structure check) - no rendering, no audio, no API ----
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("final6", str(DOCU / "qa" / "final_6min.py")); F6 = _ilu.module_from_spec(_spec); _spec.loader.exec_module(F6)
+_pl = F6.plan("/d", "/w", "/o/final.mp4", ["c1", "c2", "c3"], 30, 0.6667, 2)
+_names = [n for n, _ in _pl]
+check(_names[0] == "structure check" and _names[-3:] == ["concat", "loudness pass 1", "loudness pass 2 + final encode"], "final assembly: structure check first, concat then two-pass loudness last")
+check([n for n in _names if n.endswith("mux")] == ["c1: mux", "c2: mux", "c3: mux"], "final assembly: every chapter is muxed with its own mix")
+_flat = " ".join(" ".join(c) for _, c in _pl)
+check(not any(w in _flat for w in ("curl", "wget", "http", "GEMINI", "gemini", "tts_chunks", "story_stage2")), "final assembly: no network, no TTS, no core stage in the plan")
+check("-14.0" in _flat and "TP=-1.0" in _flat, "final assembly: target -14 LUFS, true peak -1 dB")
+_ln = F6.parse_loudnorm('noise {\n "input_i" : "-20.1",\n "input_tp" : "-3.2",\n "input_lra" : "5.0",\n "input_thresh" : "-30.5",\n "output_i" : "-14.2",\n "target_offset" : "0.1"\n}')
+check(abs(_ln["input_i"] + 20.1) < 1e-9 and "measured_I=-20.1" in F6.pass2_filter(_ln), "final assembly: loudnorm measurement is parsed and fed to pass 2")
+_an = (DOCU / "qa" / "analyze_6min.py").read_text(encoding="utf-8")
+check("display" in (DOCU / "projects" / "kim-docu-6min" / "shots.js").read_text(encoding="utf-8") and "isolation" in _an, "structure check: every shot is switched off with display:none and checked for isolation")
+check((DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text().strip().endswith("audio run 2 (after daily free-tier reset)"), "AUDIO_RUN is unchanged (the real audio run stays for the next day)")
 print("ALL OK")

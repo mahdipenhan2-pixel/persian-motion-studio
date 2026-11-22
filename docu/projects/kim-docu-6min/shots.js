@@ -362,7 +362,7 @@ const card = (o) => D.shot({ id: o.id, a: o.a, b: o.b, bg: { layers: [{ name: "f
     if (o.sub) { TX(S, "sub", left, y0 + (o.lines || []).length * sz * 1.08 + 20, o.subSize || 36, "#cfe0f5", o.sub, { w: 700, ls: 6, sw: 5 }); appear(S, "sub", t0 + 0.6, 0.3, true); }
     if (o.icon) o.icon(S, o.ix || 1430, o.iy || 560, t0 + (o.iat || 0.3), t1);
     if (o.hud) DK.hud(S, "hud", Object.assign({ t0: t0 + 0.05, t1: Math.min(t1 - 0.05, t0 + (o.hudDur || 1.6)) }, o.hud));
-    if (o.src) { TX(S, "src", 140, 912, 23, "#e8eef9", o.src, { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3); }
+    if (o.src) { TX(S, "src", 140, 850, 23, "#e8eef9", o.src, { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3); }
     badge(S, o.badge || GRAPHIC);
     if (o.extra) o.extra(S, t0, t1);
     grade(S, "mono", { tint: o.tint || "#6c84b4", ta: 0.2, dark: 0.1, vig: 0.74 });
@@ -380,6 +380,33 @@ const scene = (o) => D.shot({ id: o.id, a: o.a, b: o.b, bg: o.bg, cam: o.cam || 
     if (o.grade) grade(S, o.grade[0], o.grade[1]);
     if (o.light) light(S, o.light[0], o.light[1], o.light[2], o.light[3], o.light[4], o.light[5]);
   } });
+
+/* ---------- shared cartoon helpers (used by chapters 2 and 3) ---------- */
+const NW = (sid, i) => D.W(sid, Math.min(i, nW(sid) - 1));
+const GROOM1 = { build: "man", skin: "#c98f6a", hair: "short_man", hairColor: "#2a1a14", top: "#2b2f3d", pants: "#2b2f3d", outfit: "suit", accent: "#c43b3b", shoe: "#1a1a22" };
+const GROOM2 = Object.assign({}, GROOM1, { skin: "#b9835e", hair: "slick", hairColor: "#1c1210", top: "#e9e4d6", pants: "#1f2330", accent: "#3d6a9c" });
+const BRIDE = Object.assign({}, KIM25, { top: "#f6f1e8", shoe: "#f6f1e8" });
+const KID2 = Object.assign({}, SIS1, { top: "#f2a7b8", pants: "#6a7ec2" });
+const KID3 = Object.assign({}, BRO, { top: "#3d6a9c" });
+const BABY2 = Object.assign({}, BABY, { top: "#bfe0f4", pants: "#bfe0f4", shoe: "#bfe0f4" });
+/* the couple stands on the left, happy; the right side stays free for the icon that tells the next fact */
+const couple = (S, a, b, bride, groom, x, y, sc, tw, seed) => {
+  const t0 = S.t0, t1 = S.t1;
+  const br = S.actor("cpB", bride, x, y, sc, { seed: seed, expr: "happy", depth: 0.9, pivot: [x, y] }), gr = S.actor("cpG", groom, x + 190 * sc, y, sc * 1.02, { seed: seed + 1, expr: "happy", depth: 0.9, pivot: [x + 190 * sc, y] });
+  br.arm("R", tw, 34, 40, 0.3); gr.arm("L", tw, -34, -40, 0.3); br.face(tw, "laugh", 0.3); gr.face(tw, "happy", 0.3);
+  br.talkWords(a, t0); 
+  S.layer(PR.heart("hrt", x + 95 * sc, y - 500 * sc), 1.1); S.pop("hrt", tw + 0.1, 0.5); S.key("hrt", "--y", tw + 0.5, -40, 0.9, "sine.out");
+  return [br, gr];
+};
+
+const GROOM3 = Object.assign({}, GROOM1, { skin: "#d9a07a", hair: "short_man", hairColor: "#3a2a20", top: "#3a4a6a", pants: "#2a3250", accent: "#e4a13a" });
+const BRANDYS = { build: "woman", skin: "#8a5a3c", hair: "wavy_long", hairColor: "#1c1210", outfit: "dress", top: "#8a3a6a", legs: "bare", shoe: "#d9c9b0", shoeType: "pump", sleeve: "none", earrings: 1, lip: "#a8323f", accent: "#f3c64a" };
+const JOHNSONS = { build: "woman", skin: "#8a5a3c", hair: "bob", hairColor: "#1c1210", outfit: "dress", top: "#4c6a9c", legs: "bare", shoe: "#2b2230", shoeType: "pump", sleeve: "none", lip: "#a8323f", accent: "#e8e4d8" };
+
+/* shot isolation: an element that was made visible explicitly (pop / show / appear) overrides a hidden parent group in SVG,
+   so such elements used to linger after their shot ended. Every shot group is therefore also switched off with display:none. */
+const _shot = D.shot;
+D.shot = (o) => { const S = _shot(o); S.el.style.display = "none"; D.key(S.el, "display", S.t0, "inline", 0); D.key(S.el, "display", S.t1, "none", 0); return S; };
 
 const nameTag = (S, id, text, x, y, t) => { const w = text.length * 25 + 70; S.layer(P(id, x, y, `<rect x="${-w / 2}" y="-34" width="${w}" height="52" rx="8" fill="#fff" ${st(6)}/><text y="6" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#2a1820" letter-spacing="3">${text}</text>`), 1.1); S.pop(id, t, 0.35); };
 const dimTo = (S, t, op, dur, col) => { S.layer(`<g data-p="dimv"><rect width="1920" height="1080" fill="${col || "#0a1020"}" opacity="0"/></g>`, 0); const e = S.q("dimv").firstElementChild; S.key(e, "opacity", t, 0, 0); S.key(e, "opacity", t, op, dur, "sine.inOut"); };
@@ -680,7 +707,7 @@ scene({ id: "fam91", a: W("c1k", 0), b: "end", bg: B.garden(), cam: { from: [0, 
 if (has("c2a")) {
 
 /* 1994: night in Los Angeles, a case grips the country */
-scene({ id: "n94", a: W("c2a", 0), b: W("c2b", 0), bg: B.avenue(), cam: { from: [20, 8, 0.0], to: [-20, -8, 0.16] }, rays: false, grade: ["night", {}], light: [960, 760, 560, 360, "#9fb8ff", 0.3],
+scene({ id: "n94", a: 0, b: W("c2b", 0), bg: B.avenue(), cam: { from: [20, 8, 0.0], to: [-20, -8, 0.16] }, rays: false, grade: ["night", {}], light: [960, 760, 560, 360, "#9fb8ff", 0.3],
   build(S) {
     const t0 = S.t0, t1 = S.t1;
     dimTo(S, t0, 0.55, 0.1, "#0a1226");
@@ -764,17 +791,36 @@ scene({ id: "jobs", a: W("c2g", 0), b: W("c2h", 0), bg: B.boutique(), cam: { fro
     DK.hud(S, "hj", { from: 1998, to: 2000, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 1998, label: "GRADUATION" }] });
     badge(S, RECON);
   } });
-card({ id: "dthomas", a: W("c2h", 0), b: W("c2i", 0), year: 2000, seed: 17, kick: "MARRIAGE · DAMON THOMAS", lines: ["2000 – 2004"], sub: "THE MARRIAGE ENDS IN 2004", subSize: 34, size: 100, icon: ic.rings, ix: 1480, iy: 560, hudDur: 2.4,
-  hud: { from: 2000, to: 2004, marks: [{ y: 2000, label: "MARRIED" }, { y: 2004, label: "ENDS" }] } });
-card({ id: "brandy", a: W("c2i", 0), b: W("c2j", 0), year: 2003, seed: 18, kick: "BY 2003", lines: ["PERSONAL", "STYLIST"], hi: 1, sub: "FOR THE SINGER BRANDY", subSize: 34, icon: ic.beauty, ix: 1440, iy: 540, hud: { from: 2000, to: 2003, marks: [{ y: 2000, label: "MARRIED" }, { y: 2003, label: "STYLIST" }] } });
-
+/* 2000: the first marriage, ending in 2004 (cartoon: the couple, then the groom walks away) */
+scene({ id: "dthomas", a: W("c2h", 0), b: W("c2i", 0), bg: B.living(), cam: { from: [-30, 0, 0.0], to: [26, -6, 0.14] }, rays: [1500, -40, 1.95], rayc: "#ffe0a8", grade: ["home", {}], light: [800, 700, 640, 380, "#ffe0b0", 0.28],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, te = NW("c2h", 7);
+    const [br, gr] = couple(S, "c2h", null, Object.assign({}, KIM00, { top: "#f6f1e8", pants: "#f6f1e8" }), GROOM3, 700, 930, 1.0, NW("c2h", 3), 141);
+    br.face(te, "sad", 0.4); gr.face(te, "neutral", 0.3); gr.walk(te + 0.1, Math.max(te + 0.6, t1 - 0.25), 520, { arms: false, step: 0.3 });
+    S.layer(PR.heart("hbk", 1500, 520), 1.1); S.pop("hbk", NW("c2h", 8), 0.4); S.key("hbk", "--r", te + 0.5, 14, 0.5, "sine.inOut"); S.key("hbk", "--y", te + 0.6, 120, 0.9, "power2.in");
+    DK.tag(S, "dtTag", "2000 · MARRIAGE", "DAMON THOMAS", 120, 330, t0 + 0.3, { w: 620 });
+    DK.tag(S, "dtTag2", "2004 · IT ENDS", "THE MARRIAGE IS OVER", 1180, 330, te, { w: 680 });
+    DK.hud(S, "hdt", { from: 2000, to: 2004, t0, t1: Math.min(t1 - 0.05, t0 + 2.4), marks: [{ y: 2000, label: "MARRIED" }, { y: 2004, label: "ENDS" }] });
+  } });
+/* 2003: personal stylist for the singer Brandy */
+scene({ id: "brandy", a: W("c2i", 0), b: W("c2j", 0), bg: B.boutique(), cam: { from: [0, 12, 0.0], to: [0, -6, 0.14] }, rays: [960, 200, Math.PI / 2], rayc: "#fff4e4", grade: ["glam", {}], light: [800, 760, 560, 420, "#fff1d8", 0.34],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, ts = NW("c2i", 5), tb = NW("c2i", 9);
+    const you = S.actor("kBd", KIM00, 620, 930, 1.1, { seed: 151, expr: "happy", pivot: [620, 930] });
+    you.talkWords("c2i", t0); you.arm("L", ts, 140, 22, 0.45, "back.out(1.6)"); you.hop(ts, 22, 0.36);
+    const sg = S.actor("sgB", BRANDYS, 1250, 930, 1.1, { seed: 152, expr: "happy", depth: 1.0, pivot: [1250, 930] });
+    sg.hiddenUntil(tb - 0.1); sg.k("self", "--x", tb - 0.1, 260, 0); sg.k("self", "--x", tb - 0.05, 0, 0.55, "power3.out"); sg.face(tb + 0.5, "laugh", 0.3); sg.arm("R", tb + 0.4, -150, -30, 0.4, "back.out(1.6)");
+    for (let i = 0; i < 4; i++) { S.layer(PR.sparkle("bs" + i, 1000 + i * 150, 330 + (i % 2) * 90), 1.2); S.pop("bs" + i, tb + 0.3 + i * 0.1, 0.32); }
+    DK.tag(S, "brdTag", "BY 2003 · PERSONAL STYLIST", "FOR THE SINGER BRANDY", 120, 330, t0 + 0.2, { w: 820 });
+    DK.hud(S, "hbd", { from: 2000, to: 2003, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2000, label: "2000" }, { y: 2003, label: "STYLIST" }] });
+  } });
 /* 2006: Paris Hilton, and the DASH boutique with your sisters */
 scene({ id: "dash", a: W("c2j", 0), b: W("c2k", 0), bg: B.boutique(), cam: { from: [20, 8, 0.0], to: [-20, -8, 0.16] }, rays: [960, 300, Math.PI / 2], rayc: "#fff4e4", grade: ["glam", {}], light: [960, 780, 640, 420, "#fff1d8", 0.3],
   build(S) {
     const t0 = S.t0, t1 = S.t1, td = D.W("c2j", 9);
     const L = [[SISA, 560, 1.0, "sA"], [KIM00, 960, 1.04, "kD"], [SISB, 1360, 1.0, "sB"]];
     L.forEach(([sp, x, sc, id], i) => { const a = S.actor(id, sp, x, 940, sc, { seed: 91 + i, expr: "happy", pivot: [x, 940] }); if (i !== 1) { a.k("self", "--y", td - 0.1, 90, 0); a.k("self", "--y", td + 0.1 * i, 0, 0.4, "power3.out"); a.hiddenUntil(td - 0.1); } else { a.face(td, "laugh", 0.3); a.arm("R", td + 0.5, -150, -20, 0.4, "back.out(1.5)"); } });
-    S.layer(`<g data-p="dsign"><g transform="translate(960 290)"><rect x="-210" y="-70" width="420" height="120" rx="14" fill="#2a1820" ${st(8)}/><rect x="-194" y="-54" width="388" height="88" rx="8" fill="none" stroke="#ffb84a" stroke-width="4"/><text y="22" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="86" fill="#ffb84a" letter-spacing="14">DASH</text></g></g>`, 1.0);
+    S.layer(`<g data-p="dsign"><g transform="translate(1260 330)"><rect x="-210" y="-70" width="420" height="120" rx="14" fill="#2a1820" ${st(8)}/><rect x="-194" y="-54" width="388" height="88" rx="8" fill="none" stroke="#ffb84a" stroke-width="4"/><text y="22" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="86" fill="#ffb84a" letter-spacing="14">DASH</text></g></g>`, 1.0);
     S.pop("dsign", D.W("c2j", 11), 0.4); confetti(S, td + 0.2, 16, 5);
     DK.tag(S, "dT", "2006 · PARIS HILTON", "YOU OPEN A BOUTIQUE: DASH", 120, 330, D.W("c2j", 0) + 0.3, { w: 780 });
     DK.hud(S, "hd", { from: 2003, to: 2006, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2003, label: "STYLIST" }, { y: 2006, label: "DASH" }] });
@@ -822,7 +868,21 @@ scene({ id: "crew", a: W("s5", 0), b: W("c2l", 0), bg: B.living(), cam: { from: 
     DK.hud(S, "h10", { from: 2007, to: 2007, t0, t1, marks: [{ y: 2007, label: "TV" }] });
     badge(S, RECON);
   } });
-card({ id: "premiere", a: W("c2l", 0), b: W("c2m", 0), year: 2007, seed: 19, kick: "OCTOBER 2007 · E!", lines: ["PREMIERE"], sub: "KEEPING UP WITH THE KARDASHIANS", subSize: 32, size: 110, icon: ic.tvshow, ix: 1440, iy: 520, hud: { from: 2007, to: 2007, marks: [{ y: 2007, label: "TV" }] }, src: "SOURCE: BRITANNICA · HISTORY.COM" });
+/* October 2007: the premiere, watched at home (cartoon: three of them on the couch, the TV lights up) */
+scene({ id: "premiere", a: W("c2l", 0), b: W("c2m", 0), bg: B.living(), cam: { from: [20, 0, 0.0], to: [-24, -6, 0.14] }, rays: [1500, -40, 1.95], rayc: "#cfe0ff", grade: ["studio", {}], light: [1300, 600, 640, 380, "#cfe0ff", 0.3],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tp = NW("c2l", 5);
+    S.layer(`<g data-p="tvs"><g transform="translate(1390 560)"><rect x="-320" y="-200" width="640" height="400" rx="24" fill="#16161e" ${st(9)}/><rect x="-292" y="-172" width="584" height="344" rx="12" fill="#2a3a7a"/>
+      <text y="30" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="150" fill="#fff" stroke="#05070c" stroke-width="8" paint-order="stroke">E!</text>
+      <text y="100" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="26" fill="#ffb84a" letter-spacing="3">KEEPING UP WITH THE KARDASHIANS</text></g></g>`, 1.0);
+    S.pop("tvs", tp - 0.2, 0.5);
+    const cast = [[KIM07, 420, "k07"], [SISA, 640, "sa"], [SISB, 860, "sb"]];
+    cast.forEach(([sp, x, id], i) => { const a = S.actor(id, sp, x, 930, 1.0, { seed: 161 + i, expr: "neutral", pivot: [x, 930] }); a.look(t0, 9, -2, 0); a.face(tp, "laugh", 0.3); a.arm(i % 2 ? "R" : "L", tp + 0.1, i % 2 ? -150 : 150, i % 2 ? -30 : 30, 0.4, "back.out(1.6)"); a.hop(tp + 0.1 + i * 0.12, 20, 0.36); });
+    for (let i = 0; i < 4; i++) { S.layer(PR.sparkle("pv" + i, 1100 + i * 190, 270 + (i % 2) * 70, "#ffb84a"), 1.2); S.pop("pv" + i, tp + 0.2 + i * 0.12, 0.32); }
+    confetti(S, tp, 18, 19);
+    DK.tag(S, "pvTag", "OCTOBER 2007 · E!", "KEEPING UP WITH THE KARDASHIANS PREMIERES", 120, 330, t0 + 0.3, { w: 1000 });
+    DK.hud(S, "hpv", { from: 2007, to: 2007, t0, t1: Math.min(t1 - 0.05, t0 + 1.0), marks: [{ y: 2007, label: "TV" }] });
+  } });
 card({ id: "run", a: W("c2m", 0), b: W("c2n", 0), year: 2021, seed: 20, kick: "THE SHOW RUNS FOR", lines: ["14 YEARS"], hi: 0, size: 130, sub: "FINAL EPISODE: JUNE 2021", subSize: 34, hudDur: 3.2,
   hud: { from: 2007, to: 2021, marks: [{ y: 2007, label: "PREMIERE" }, { y: 2021, label: "FINALE" }] }, src: "SOURCES: WIKIPEDIA · HISTORY.COM",
   extra(S, t0, t1) {
@@ -864,13 +924,57 @@ ic.bag = (S, cx, cy, t) => {
   S.pop("bag", t, 0.5); S.key("bag", "--r", t + 0.6, -4, 1.0, "sine.inOut"); S.key("bag", "--r", t + 1.6, 3, 1.2, "sine.inOut");
 };
 
-card({ id: "brand", a: W("c3a", 0), b: W("c3a2", 0), year: 2011, seed: 21, kick: "THE SHOW DOES MORE THAN ENTERTAIN", lines: ["YOUR NAME", "BECOMES A BRAND"], hi: 1, size: 84, icon: ic.bag, ix: 1500, iy: 560, iat: 4.0 - 0.0, hud: { from: 2007, to: 2011, marks: [{ y: 2007, label: "TV" }, { y: 2011, label: "BRAND" }] } });
-card({ id: "humphries", a: W("c3a2", 0), b: W("c3b", 0), year: 2013, seed: 22, kick: "FAMILY", lines: ["2011", "2013"], size: 120, y0: 440,
-  lineAt: [() => D.W("c3a2", 0) + 0.2, () => D.W("c3a2", 6)], icon: ic.rings, ix: 1500, iy: 560, hud: { from: 2011, to: 2013, marks: [{ y: 2011, label: "MARRIAGE" }, { y: 2013, label: "FIRST CHILD" }] },
-  extra(S, t0) { TX(S, "l1", 620, 460, 38, "#cfe0ff", "MARRIES KRIS HUMPHRIES", { w: 700, ls: 4, sw: 5 }); TX(S, "l2", 620, 590, 38, "#ffb84a", "YOUR FIRST CHILD IS BORN", { w: 700, ls: 4, sw: 5 }); appear(S, "l1", D.W("c3a2", 0) + 0.3, 0.3, true); appear(S, "l2", D.W("c3a2", 6) + 0.1, 0.3, true); } });
-card({ id: "kanye", a: W("c3b", 0), b: W("c3d", 0), year: 2014, seed: 23, kick: "2014", lines: ["MARRIAGE", "& A MOBILE GAME"], hi: 1, size: 84, sub: "KANYE WEST · KIM KARDASHIAN: HOLLYWOOD", subSize: 28, icon: ic.phone, ix: 1500, iy: 540, iat: Math.max(0.4, D.W("c3b", 8) - D.W("c3b", 0) - 0.3),
-  hud: { from: 2013, to: 2014, marks: [{ y: 2013, label: "FIRST CHILD" }, { y: 2014, label: "2014" }] } });
-card({ id: "kkw", a: W("c3d", 0), b: W("c3e", 0), year: 2017, seed: 24, kick: "2017 · YOU LAUNCH", lines: ["KKW", "BEAUTY"], hi: 1, icon: ic.beauty, ix: 1450, iy: 540, hud: { from: 2014, to: 2017, marks: [{ y: 2014, label: "2014" }, { y: 2017, label: "KKW" }] } });
+/* 2007-2011: the show turns a name into a brand (cartoon: the star on stage, a shopping bag with her name rises beside her) */
+scene({ id: "brand", a: 0, b: W("c3a2", 0), bg: B.stage(), cam: { from: [-20, 0, 0.0], to: [20, -6, 0.1] }, rays: [960, 200, Math.PI / 2], rayc: "#ffe0f6", grade: ["studio", {}], light: [960, 780, 760, 380, "#ffe0f6", 0.26],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tb = NW("c3a", 8);
+    S.layer(PR.spot(260, 330, 10), 0.8); S.layer(PR.spot(1660, 330, 170), 0.8);
+    const you = S.actor("kB", KIM07, 640, 930, 1.1, { seed: 71, expr: "happy", pivot: [640, 930] });
+    you.arm("L", t0 + 0.5, 140, 24, 0.5, "back.out(1.6)"); you.talkWords("c3a", t0);
+    you.arm("R", tb, -150, -30, 0.4, "back.out(1.6)"); you.hop(tb, 26, 0.4); you.face(tb, "laugh", 0.3);
+    ic.bag(S, 1430, 560, tb - 0.1);
+    for (let i = 0; i < 4; i++) { S.layer(PR.sparkle("sp" + i, 1180 + i * 150, 330 + (i % 2) * 90), 1.2); S.pop("sp" + i, tb + 0.2 + i * 0.12, 0.35); }
+    confetti(S, tb + 0.2, 16, 7);
+    DK.tag(S, "brTag", "THE SHOW TURNS", "YOUR NAME INTO A BRAND", 120, 330, t0 + 0.3, { w: 760 });
+    DK.hud(S, "hbr", { from: 2007, to: 2011, t0, t1: Math.min(t1 - 0.05, t0 + 1.6), marks: [{ y: 2007, label: "TV" }, { y: 2011, label: "BRAND" }] });
+  } });
+/* 2011 marriage, 2013 first child */
+scene({ id: "humphries", a: W("c3a2", 0), b: W("c3b", 0), bg: B.garden(), cam: { from: [30, 0, 0.0], to: [-20, -8, 0.16] }, rays: [1500, -40, 1.95], rayc: "#fff0c0", grade: ["garden", {}], light: [900, 700, 640, 380, "#fff0c0", 0.3],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tc = NW("c3a2", 6);
+    C.fog(S, { y: 700, h: 200, color: "#fff1d0", op: 0.28, seed: 16, depth: 0.5, drift: 80 });
+    couple(S, "c3a2", null, BRIDE, GROOM1, 560, 900, 0.95, t0 + 0.4, 81);
+    const baby = S.actor("cpK", BABY2, 1500, 890, 1.05, { seed: 84, expr: "happy", depth: 1.0, pivot: [1500, 890] });
+    baby.hiddenUntil(tc); baby.k("self", "--y", tc, 90, 0); baby.k("self", "--y", tc + 0.01, 0, 0.45, "back.out(1.6)"); baby.face(tc + 0.4, "laugh", 0.3);
+    S.layer(PR.heart("hrt2", 1500, 520), 1.1); S.pop("hrt2", tc + 0.35, 0.5); S.key("hrt2", "--y", tc + 0.85, -40, 0.9, "sine.out");
+    confetti(S, tc, 18, 12);
+    S.layer(FG.leaves("L"), 1.7);
+    DK.tag(S, "hu1", "2011 · MARRIAGE", "KRIS HUMPHRIES", 120, 330, t0 + 0.4, { w: 700 });
+    DK.tag(S, "hu2", "2013 · YOUR FIRST CHILD", "A BABY IS BORN", 1180, 330, tc, { w: 700 });
+    DK.hud(S, "hhu", { from: 2011, to: 2013, t0, t1: Math.min(t1 - 0.05, t0 + 1.5), marks: [{ y: 2011, label: "MARRIAGE" }, { y: 2013, label: "CHILD" }] });
+  } });
+/* 2014: second marriage and the mobile game */
+scene({ id: "kanye", a: W("c3b", 0), b: W("c3d", 0), bg: B.living(), cam: { from: [-30, 0, 0.0], to: [30, -8, 0.14] }, rays: [1500, -40, 1.95], rayc: "#ffe0a8", grade: ["home", {}], light: [900, 700, 640, 380, "#ffe0b0", 0.28],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tg = NW("c3b", 8);
+    couple(S, "c3b", null, BRIDE, GROOM2, 520, 930, 1.0, NW("c3b", 3), 91);
+    ic.phone(S, 1440, 540, tg);
+    for (let i = 0; i < 3; i++) { S.layer(PR.sparkle("kp" + i, 1250 + i * 190, 280 + (i % 2) * 60, "#ffb84a"), 1.2); S.pop("kp" + i, tg + 0.3 + i * 0.15, 0.35); }
+    DK.tag(S, "kyTag", "2014 · MARRIAGE", "KANYE WEST", 120, 330, NW("c3b", 3) - 0.1, { w: 760 });
+    DK.hud(S, "hky", { from: 2013, to: 2014, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2013, label: "2013" }, { y: 2014, label: "2014" }] });
+  } });
+/* 2017: KKW Beauty */
+scene({ id: "kkw", a: W("c3d", 0), b: W("c3e", 0), bg: B.boutique(), cam: { from: [0, 10, 0.0], to: [0, -6, 0.14] }, rays: [960, 200, Math.PI / 2], rayc: "#fff4e4", grade: ["glam", {}], light: [700, 760, 560, 420, "#fff1d8", 0.34],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tl = NW("c3d", 3);
+    const you = S.actor("kK", KIM25, 600, 930, 1.1, { seed: 95, expr: "happy", pivot: [600, 930] });
+    you.arm("L", t0 + 0.3, 140, 22, 0.45, "back.out(1.6)"); you.arm("R", t0 + 0.3, -150, -24, 0.45, "back.out(1.6)"); you.talkWords("c3d", t0); you.hop(tl, 24, 0.38);
+    ic.beauty(S, 1440, 560, tl);
+    for (let i = 0; i < 4; i++) { S.layer(PR.sparkle("kk" + i, 1180 + i * 140, 320 + (i % 2) * 80), 1.2); S.pop("kk" + i, tl + 0.15 + i * 0.1, 0.32); }
+    DK.tag(S, "kkTag", "2017 · YOU LAUNCH", "KKW BEAUTY", 120, 330, t0 + 0.2, { w: 620 });
+    DK.hud(S, "hkk", { from: 2014, to: 2017, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2014, label: "2014" }, { y: 2017, label: "KKW" }] });
+  } });
+
 
 /* your father's world of courtrooms never leaves you */
 scene({ id: "court2", a: W("c3e", 0), b: W("c3f", 0), bg: B.court(), cam: { from: [20, 6, 0.0], to: [-20, -6, 0.14] }, rays: [960, 300, Math.PI / 2], rayc: "#cfe0ff", grade: ["court", {}], light: [960, 760, 640, 380, "#ffd9a0", 0.26],
@@ -885,12 +989,79 @@ scene({ id: "court2", a: W("c3e", 0), b: W("c3f", 0), bg: B.court(), cam: { from
     DK.hud(S, "hc2", { from: 2017, to: 2018, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2017, label: "KKW" }] });
     badge(S, RECON);
   } });
-card({ id: "johnson", a: W("c3f", 0), b: W("c3h", 0), year: 2018, seed: 25, kick: "2018 · PRESIDENTIAL COMMUTATION", lines: ["ALICE MARIE", "JOHNSON"], hi: 1, size: 84, sub: "LIFE SENTENCE · YOU HELP WIN HER RELEASE", subSize: 30, icon: ic.doc, ix: 1500, iy: 540, hud: { from: 2017, to: 2018, marks: [{ y: 2017, label: "KKW" }, { y: 2018, label: "2018" }] }, src: "SOURCE: HISTORY.COM · BRITANNICA" });
-card({ id: "skims19", a: W("c3h", 0), b: W("c3g", 0), year: 2019, seed: 26, kick: "2019 · YOU LAUNCH", lines: ["SKIMS"], hi: 0, size: 150, sub: "A SHAPEWEAR BRAND · MOTHER OF FOUR", subSize: 32, icon: ic.four, ix: 1480, iy: 560, iat: Math.max(0.3, D.W("c3h", 13) - D.W("c3h", 0)), hud: { from: 2018, to: 2019, marks: [{ y: 2018, label: "2018" }, { y: 2019, label: "SKIMS" }] } });
-card({ id: "justice", a: W("c3g", 0), b: W("c3i", 0), year: 2020, seed: 27, kick: "2020 · DOCUMENTARY", lines: ["THE JUSTICE", "PROJECT"], hi: 1, size: 100, sub: "YOUR WORK ON CRIMINAL JUSTICE REFORM", subSize: 30, icon: ic.clap, ix: 1480, iy: 560, hud: { from: 2019, to: 2020, marks: [{ y: 2019, label: "SKIMS" }, { y: 2020, label: "2020" }] } });
-card({ id: "forbes", a: W("c3i", 0), b: W("c3j", 0), year: 2021, seed: 28, kick: "2021 · FORBES", lines: ["BILLIONAIRE"], hi: 0, size: 100, sub: "FORBES: AMONG THE WORLD'S BILLIONAIRES", subSize: 32,
-  icon: (S, cx, cy, t) => ic.stamp(S, cx, cy, D.W("c3i", 5), "BILLIONAIRE", "FORBES · 2021"), ix: 1500, iy: 560, hud: { from: 2020, to: 2021, marks: [{ y: 2020, label: "2020" }, { y: 2021, label: "FORBES" }] }, src: "SOURCE: FORBES" });
-card({ id: "babybar", a: W("c3j", 0), b: W("c3k", 0), year: 2021, seed: 29, kick: "DECEMBER 2021", lines: ["THE CALIFORNIA", "BABY BAR EXAM"], hi: 1, size: 80, sub: "PASSED ON THE FOURTH ATTEMPT", subSize: 32, icon: ic.attempts, ix: 1500, iy: 560, iat: Math.max(0.3, D.W("c3j", 11) - D.W("c3j", 0) - 0.9), hud: { from: 2021, to: 2021, marks: [{ y: 2021, label: "DEC 2021" }] }, src: "SOURCE: BRITANNICA" });
+/* 2018: the commutation (cartoon: bars fade, Alice Johnson walks to Kim) */
+scene({ id: "johnson", a: W("c3f", 0), b: W("c3h", 0), bg: B.court(), cam: { from: [20, 6, 0.0], to: [-20, -6, 0.12] }, rays: [960, 300, Math.PI / 2], rayc: "#cfe0ff", grade: ["court", {}], light: [960, 760, 640, 380, "#ffd9a0", 0.26],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tc = NW("c3f", 7), tw = Math.min(NW("c3f", 12), t1 - 2.0);
+    C.fog(S, { y: 700, h: 200, color: "#8fa4d0", op: 0.22, seed: 7, depth: 0.55, drift: 80 });
+    const you = S.actor("kJ", KIM25, 420, 940, 1.08, { seed: 171, expr: "determined", pivot: [420, 940] });
+    you.talkWords("c3f", t0); you.arm("R", tc, -150, -30, 0.4, "back.out(1.6)");
+    const al = S.actor("alJ", JOHNSONS, 1250, 940, 1.08, { seed: 172, expr: "sad", depth: 0.95, pivot: [1250, 940] });
+    al.face(tc + 0.3, "happy", 0.4); al.walk(tw, t1 - 0.3, -430, { arms: false, step: 0.3 }); al.face(t1 - 1.4, "laugh", 0.3);
+    const bars = S.layer(FG.barsAt([1090, 1190, 1290, 1390, 1490]), 1.0); S.key(bars, "opacity", t0, 1, 0); S.key(bars, "opacity", tc + 0.2, 0, 0.6, "power1.in");
+    ic.doc(S, 1560, 500, tc);
+    S.layer(PR.heart("hj", 840, 420), 1.1); S.pop("hj", t1 - 1.2, 0.5); S.key("hj", "--y", t1 - 0.7, -40, 0.9, "sine.out");
+    DK.tag(S, "jnTag", "2018 · PRESIDENTIAL COMMUTATION", "ALICE MARIE JOHNSON · LIFE SENTENCE", 120, 330, t0 + 0.3, { w: 1000 });
+    TX(S, "src", 140, 850, 23, "#e8eef9", "SOURCE: HISTORY.COM · BRITANNICA", { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3);
+    DK.hud(S, "hjn", { from: 2017, to: 2018, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2017, label: "KKW" }, { y: 2018, label: "2018" }] });
+  } });
+/* 2019: SKIMS, mother of four (cartoon boutique: four children walk in one by one) */
+scene({ id: "skims19", a: W("c3h", 0), b: W("c3g", 0), bg: B.boutique(), cam: { from: [0, 14, 0.0], to: [0, -8, 0.14] }, rays: [960, 200, Math.PI / 2], rayc: "#fff4e4", grade: ["glam", {}], light: [700, 760, 560, 420, "#fff1d8", 0.34],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tl = NW("c3h", 4);
+    const you = S.actor("kS", KIM25, 520, 930, 1.1, { seed: 101, expr: "happy", pivot: [520, 930] });
+    you.arm("L", t0 + 0.3, 140, 22, 0.45, "back.out(1.6)"); you.talkWords("c3h", t0); you.hop(tl, 22, 0.36);
+    const kids = [[KID, 960], [KID2, 1180], [KID3, 1400], [BABY2, 1620]];
+    kids.forEach(([sp, x], i) => {
+      const t = Math.min(NW("c3h", 12 + Math.min(i, 3)), t1 - 0.9) + (i >= 3 ? 0.0 : 0);
+      const a = S.actor("kd" + i, sp, x, 905, sp.build === "baby" ? 0.9 : 0.95, { seed: 110 + i, expr: "happy", depth: 1.0, pivot: [x, 905] });
+      a.hiddenUntil(t - 0.02); a.k("self", "--y", t - 0.02, 110, 0); a.k("self", "--y", t, 0, 0.4, "back.out(1.6)"); a.face(t + 0.3, "laugh", 0.3);
+    });
+    const tmom = Math.min(NW("c3h", 13), t1 - 0.9);
+    S.layer(PR.heart("hk", 1290, 400), 1.1); S.pop("hk", tmom + 0.2, 0.5); S.key("hk", "--y", tmom + 0.7, -40, 0.9, "sine.out");
+    confetti(S, tmom, 18, 14);
+    DK.tag(S, "s19Tag", "2019 · YOU LAUNCH SKIMS", "A SHAPEWEAR BRAND", 120, 330, t0 + 0.2, { w: 700 });
+    DK.hud(S, "h19", { from: 2018, to: 2019, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2018, label: "2018" }, { y: 2019, label: "SKIMS" }] });
+  } });
+
+/* 2020: the documentary crew films Kim at work */
+scene({ id: "justice", a: W("c3g", 0), b: W("c3i", 0), bg: B.office(), cam: { from: [-30, 4, 0.0], to: [26, -8, 0.14] }, rays: [1500, -40, 1.95], rayc: "#ffe0a8", grade: ["office", {}], light: [700, 780, 600, 400, "#ffe0b0", 0.28],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, td = NW("c3g", 3), tp = NW("c3g", 6);
+    const you = S.actor("kJu", KIM25, 520, 940, 1.08, { seed: 181, expr: "determined", pivot: [520, 940] });
+    you.talkWords("c3g", t0); you.arm("R", td, -140, -30, 0.4, "back.out(1.6)");
+    const cr = S.actor("crJ", CREW, 1100, 940, 1.05, { seed: 182, expr: "neutral", depth: 1.0, pivot: [1100, 940] });
+    cr.hiddenUntil(td - 0.1); cr.k("self", "--x", td - 0.1, 220, 0); cr.k("self", "--x", td - 0.05, 0, 0.5, "power3.out"); cr.look(td + 0.5, -9, 0, 0.2);
+    S.layer(PR.camera("cam", 1000, 700), 1.05); S.pop("cam", td + 0.2, 0.4);
+    ic.clap(S, 1560, 560, tp);
+    DK.tag(S, "juTag", "2020 · DOCUMENTARY", "THE JUSTICE PROJECT · CRIMINAL JUSTICE REFORM", 120, 330, t0 + 0.3, { w: 1000 });
+    DK.hud(S, "hju", { from: 2019, to: 2020, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2019, label: "SKIMS" }, { y: 2020, label: "2020" }] });
+  } });
+/* 2021: Forbes - cartoon office, a BILLIONAIRE stamp lands, coins rain */
+scene({ id: "forbes", a: W("c3i", 0), b: W("c3j", 0), bg: B.office(), cam: { from: [-30, 4, 0.0], to: [26, -8, 0.14] }, rays: [1500, -40, 1.95], rayc: "#ffe0a8", grade: ["office", {}], light: [700, 780, 600, 400, "#ffe0b0", 0.28],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, ts = NW("c3i", 5);
+    const you = S.actor("kF", KIM25, 620, 940, 1.08, { seed: 121, expr: "neutral", pivot: [620, 940] });
+    you.talkWords("c3i", t0); you.arm("R", ts, -150, -30, 0.4, "back.out(1.6)"); you.face(ts, "laugh", 0.3); you.hop(ts, 26, 0.4);
+    ic.stamp(S, 1450, 560, ts, "BILLIONAIRE", "FORBES · 2021");
+    for (let i = 0; i < 6; i++) { S.layer(PR.coin("fc" + i, 1180 + i * 110, 880), 1.2); S.pop("fc" + i, ts + 0.1 + i * 0.1, 0.35); S.key("fc" + i, "--y", ts + 0.4 + i * 0.1, -40 - (i % 3) * 22, 0.7, "sine.out"); }
+    confetti(S, ts, 22, 16);
+    DK.tag(S, "fbTag", "2021 · FORBES", "AMONG THE WORLD'S BILLIONAIRES", 120, 330, t0 + 0.3, { w: 860 });
+    DK.hud(S, "hfb", { from: 2020, to: 2021, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2020, label: "2020" }, { y: 2021, label: "FORBES" }] });
+  } });
+/* December 2021: the baby bar, fourth attempt (cartoon: three failed marks, then a pass) */
+scene({ id: "babybar", a: W("c3j", 0), b: W("c3k", 0), bg: B.court(), cam: { from: [20, 6, 0.0], to: [-20, -6, 0.14] }, rays: [960, 300, Math.PI / 2], rayc: "#cfe0ff", grade: ["court", {}], light: [960, 760, 640, 380, "#ffd9a0", 0.26],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, tf = NW("c3j", 11);
+    C.fog(S, { y: 700, h: 200, color: "#8fa4d0", op: 0.22, seed: 6, depth: 0.55, drift: 80 });
+    S.layer(PR.scales(1000, 860), 0.9);
+    const you = S.actor("kQ", KIM25, 560, 940, 1.08, { seed: 131, expr: "neutral", pivot: [560, 940] });
+    you.talkWords("c3j", t0); you.arm("R", tf, -150, -30, 0.4, "back.out(1.6)"); you.arm("L", tf, 150, 30, 0.4, "back.out(1.6)"); you.face(tf, "laugh", 0.3); you.hop(tf, 30, 0.4);
+    ic.attempts(S, 1340, 560, Math.max(t0 + 0.3, NW("c3j", 6) - 0.2));
+    confetti(S, tf, 24, 18);
+    DK.tag(S, "bbTag", "DECEMBER 2021", "THE CALIFORNIA BABY BAR EXAM", 120, 330, t0 + 0.3, { w: 820 });
+    DK.hud(S, "hbb", { from: 2021, to: 2021, t0, t1: Math.min(t1 - 0.05, t0 + 1.0), marks: [{ y: 2021, label: "DEC 2021" }] });
+  } });
 
 /* SKIMS grows fast: valued above $4 billion by 2023 */
 card({ id: "g23", a: W("c3k", 0), b: W("s6", 0), year: 2023, seed: 30, kick: "SKIMS GROWS FAST", lines: ["BY 2023"], hi: 0, size: 130, sub: "COMPANY VALUATION: MORE THAN $4 BILLION", subSize: 28,
@@ -905,9 +1076,9 @@ D.shot({ id: "skims", a: W("s6", 0), b: W("c3l", 0), bg: B.boutique(), cam: { fr
     you.arm("L", t0 + 0.4, 150, 20, 0.5, "back.out(1.6)"); you.arm("R", t0 + 0.4, -150, -20, 0.5, "back.out(1.6)"); you.talkWords("s6", t0);
     you.hop(tb - 0.2, 30, 0.4); you.face(tb - 0.2, "laugh", 0.3);
     for (let t = tb + 0.5, i = 0; t < t1 - 0.6; t += 0.7, i++) { you.hop(t, 20 + (i % 2) * 8, 0.38); you.arm("L", t + 0.4, i % 2 ? 150 : 120, i % 2 ? 20 : 50, 0.35, "sine.inOut"); you.arm("R", t + 0.4, i % 2 ? -120 : -150, i % 2 ? -50 : -20, 0.35, "sine.inOut"); }
-    S.layer(`<g data-p="vcard"><g transform="translate(1500 560)"><rect x="-300" y="-150" width="600" height="300" rx="26" fill="#fffaf0" ${st(8)}/><rect x="-280" y="-130" width="560" height="260" rx="16" fill="none" stroke="#c9a24a" stroke-width="4" stroke-dasharray="14 10"/><text y="-84" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="28" fill="#7a5a2a" letter-spacing="7">COMPANY VALUATION</text></g></g>`, 1.1);
+    S.layer(`<g data-p="vcard"><g transform="translate(1440 560)"><rect x="-300" y="-150" width="600" height="300" rx="26" fill="#fffaf0" ${st(8)}/><rect x="-280" y="-130" width="560" height="260" rx="16" fill="none" stroke="#c9a24a" stroke-width="4" stroke-dasharray="14 10"/><text y="-84" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="28" fill="#7a5a2a" letter-spacing="7">COMPANY VALUATION</text></g></g>`, 1.1);
     S.pop("vcard", t0 + 0.15, 0.4);
-    const vals = ["$4B+", "$5B"], x = 1500, y = 640;
+    const vals = ["$4B+", "$5B"], x = 1440, y = 640;
     S.layer(vals.map((v, i) => `<g data-p="v${i}" style="visibility:hidden"><g transform="translate(${x} ${y})"><text text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="170" fill="#c98a12" stroke="${OLN}" stroke-width="8" paint-order="stroke">${v}</text></g></g>`).join(""), 1.1);
     S.show("v0", t0 + 0.4, true); S.hideAt("v0", tb - 0.05); S.key("v0", "--s", t0 + 0.4, 0.8, 0); S.key("v0", "--s", t0 + 0.4, 1, 0.2, "back.out(2)");
     S.show("v1", tb - 0.05, true); S.key("v1", "--s", tb - 0.05, 0.8, 0); S.key("v1", "--s", tb - 0.05, 1, 0.2, "back.out(2)"); DK.flash(tb - 0.05, 0.4, 0.2);
@@ -916,7 +1087,7 @@ D.shot({ id: "skims", a: W("s6", 0), b: W("c3l", 0), bg: B.boutique(), cam: { fr
     S.layer(FG.post(1870), 1.6); S.layer(FG.leaves("L"), 1.7);
     grade(S, "glam");
     light(S, 560, 760, 520, 420, "#fff1d8", 0.34); light(S, 1500, 580, 520, 340, "#fff0b0", 0.3);
-    DK.tag(S, "valTag", "YOUR BRAND · SKIMS", "2025", 1210, 350, t0 + 0.2, { w: 620 });
+    DK.tag(S, "valTag", "YOUR BRAND · SKIMS", "2025", 1210, 290, t0 + 0.2, { w: 620 });
     DK.hud(S, "h15", { from: 2023, to: 2025, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2023, label: "2023" }, { y: 2025, label: "2025" }] });
     badge(S, RECON);
   } });

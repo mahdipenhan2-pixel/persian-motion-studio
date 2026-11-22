@@ -10,13 +10,18 @@ DOCU = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(DOCU / "engine"))
 import project as P, compose as C  # noqa
 
-def synth(ch, au, cps=14.0, gap=0.3):
+SYNTH = {"cps": 14.8, "lead": 0.24, "tail": 0.5}   # calibrated on the approved chapter 1 (14.8 chars per speech second; 0.24 s before / 0.5 s after the words)
+
+
+def synth(ch, au, cps=None, lead=None, tail=None):
+    """Stand-in for the real timing.json (same structure) so visuals can be built and checked before the audio exists."""
+    cps, lead, tail = cps or SYNTH["cps"], SYNTH["lead"] if lead is None else lead, SYNTH["tail"] if tail is None else tail
     gap = au.get("gap_ms", 300) / 1000.0
     cur, sents = au["lead_in_ms"] / 1000.0, []
     for s in ch["sentences"]:
-        dur = round(len(s["text"]) / cps, 3); words = s["text"].split(); tot = sum(len(w) for w in words); acc = 0; rows = []
+        speech = round(len(s["text"]) / cps, 3); dur = round(lead + speech + tail, 3); words = s["text"].split(); tot = sum(len(w) for w in words); acc = 0; rows = []
         for i, w in enumerate(words):
-            a = cur + dur * acc / tot; acc += len(w); b = cur + dur * acc / tot
+            a = cur + lead + speech * acc / tot; acc += len(w); b = cur + lead + speech * acc / tot
             rows.append({"i": i, "text": w, "abs_start": round(a, 3), "abs_end": round(b, 3), "status": "ok"})
         sents.append({"id": s["id"], "text": s["text"], "offset": round(cur, 3), "duration": dur, "words": rows}); cur += dur + gap
     total = cur - gap + au["tail_ms"] / 1000.0
@@ -45,21 +50,22 @@ def open_page(pw, build, w=1920, h=1080, scale=1.0):
     return b, pg, errs
 
 def render_range(args):
-    build, i0, i1, fr, scale, fmt = args
+    build, i0, i1, fr, scale, fmt, fps = args
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
         b, pg, errs = open_page(pw, build, scale=scale)
         for i in range(i0, i1):
-            pg.evaluate(f"window.__timelines.main.time({i / 30})")
+            pg.evaluate(f"window.__timelines.main.time({i / fps})")
             pg.screenshot(path=str(fr / f"{i:05d}.{fmt}"), **({"quality": 94} if fmt == "jpg" else {}))
         b.close()
     return i1 - i0
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--project", default="kim-docu-6min"); ap.add_argument("--data"); ap.add_argument("--synth", action="store_true")
-    ap.add_argument("--chapter"); ap.add_argument("--every", type=float); ap.add_argument("--from", dest="t_from", type=float, default=0.8); ap.add_argument("--times"); ap.add_argument("--mp4"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--scale", type=float, default=1.0)
+    ap.add_argument("--chapter"); ap.add_argument("--every", type=float); ap.add_argument("--from", dest="t_from", type=float, default=0.8); ap.add_argument("--times"); ap.add_argument("--mp4"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--scale", type=float, default=1.0); ap.add_argument("--cps", type=float); ap.add_argument("--fps", type=float, default=30.0, help="preview frame rate for --mp4 (30 = full quality)")
     ap.add_argument("--out", default="/tmp/claude-0/-home-claude/a96ae5db-0896-5ec2-a45b-c8f2c5d499bb/scratchpad/q6")
     a = ap.parse_args()
+    if a.cps: SYNTH["cps"] = a.cps
     proj = P.load(a.project); Path(a.out).mkdir(parents=True, exist_ok=True)
     chs = [c for c in proj["chapters"] if not a.chapter or c["id"] == a.chapter]
     from playwright.sync_api import sync_playwright
@@ -87,8 +93,9 @@ def main():
                     im = Image.open(f).resize((640, 360)); sh.paste(im, ((j % 3) * 640, (j // 3) * 360)); d.text(((j % 3) * 640 + 6, (j // 3) * 360 + 340), f.stem, fill=(255, 255, 0))
                 sh.save(Path(a.out) / f"sheet_{ch['id']}_{k // per + 1}.png")
         if a.mp4:
-            n = int(round(info["duration"] * 30)); fr = Path(a.out) / f"frames_{ch['id']}"; shutil.rmtree(fr, ignore_errors=True); fr.mkdir()
-            step = (n + a.workers - 1) // a.workers; jobs = [(build, k * step, min(n, (k + 1) * step), fr, a.scale, "jpg") for k in range(a.workers)]
+            n = int(round(info["duration"] * a.fps)); fr = Path(a.out) / f"frames_{ch['id']}"; shutil.rmtree(fr, ignore_errors=True); fr.mkdir()
+            step = (n + a.workers - 1) // a.workers; jobs = [(build, k * step, min(n, (k + 1) * step), fr, a.scale, "jpg", a.fps) for k in range(a.workers)]
             with cf.ProcessPoolExecutor(a.workers) as ex: list(ex.map(render_range, jobs))
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "30", "-i", str(fr / "%05d.jpg"), "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p", a.mp4.replace(".mp4", f"_{ch['id']}.mp4")], check=True)
-main()
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", f"{a.fps:g}", "-i", str(fr / "%05d.jpg"), "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p", a.mp4.replace(".mp4", f"_{ch['id']}.mp4")], check=True)
+if __name__ == "__main__":
+    main()
