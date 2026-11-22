@@ -52,12 +52,51 @@ def measure(path):
     return {"lufs": float(i[-1]), "true_peak": float(p[-1])}
 
 
+XFADE = 0.5   # seconds of cross-dissolve between chapters; it lies inside the silent lead/tail of the chapters, no narration is covered
+
+
+def xfade_filter(durs, x=XFADE):
+    """video cross-dissolves between consecutive chapters (pixels mix, no black frame); returns (filter_complex, total_duration)"""
+    parts, acc, last = [], durs[0], "0:v"
+    for i in range(1, len(durs)):
+        out = f"v{i}"
+        parts.append(f"[{last}][{i}:v]xfade=transition=fade:duration={x}:offset={acc - x:.3f}[{out}]")
+        acc += durs[i] - x; last = out
+    return ";".join(parts), acc
+
+
+def silent_film(a):
+    """complete silent film: every chapter rendered by render_6min (real timing where --data has it, synthetic otherwise), joined with dissolves"""
+    work = Path(a.work); work.mkdir(parents=True, exist_ok=True); chs = a.chapters.split(","); vids = []
+    for ch in chs:
+        v = work / f"video_{ch}.mp4"
+        if not v.exists():
+            cmd = [sys.executable, str(QA / "render_6min.py"), "--chapter", ch, "--mp4", str(work / "video.mp4"), "--fps", f"{a.fps:g}", "--scale", f"{a.scale:g}", "--workers", str(a.workers), "--out", str(work / "build")] + (["--data", a.data] if a.data else ["--synth"])
+            print("$", " ".join(cmd)); subprocess.run(cmd, check=True)
+        vids.append(v)
+    durs = [probe_v(v)["duration"] for v in vids]; fc, total = xfade_filter(durs)
+    cmd = ["ffmpeg", "-y", "-loglevel", "error"] + sum([["-i", str(v)] for v in vids], []) + ["-filter_complex", fc, "-map", f"[v{len(vids) - 1}]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(a.out)]
+    print("$", " ".join(cmd)); subprocess.run(cmd, check=True)
+    info = probe_v(a.out)
+    bl = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(a.out), "-vf", "blackdetect=d=0.1:pix_th=0.06", "-an", "-f", "null", "-"], capture_output=True, text=True).stderr.count("black_start")
+    rep = {"file": str(a.out), "chapters": dict(zip(chs, [round(d, 3) for d in durs])), "dissolve_s": XFADE, "expected_duration": round(total, 3), **info, "black_segments": bl}
+    json.dump(rep, open(Path(a.out).with_suffix(".json"), "w"), indent=1); print(json.dumps(rep, indent=1))
+    sys.exit(0 if bl == 0 and abs(info["duration"] - total) < 0.2 else 1)
+
+
+def probe_v(path):
+    j = json.loads(subprocess.check_output(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate,nb_frames:format=duration", "-of", "json", str(path)]))
+    v = j["streams"][0]; n, d = v["r_frame_rate"].split("/")
+    return {"duration": float(j["format"]["duration"]), "width": v["width"], "height": v["height"], "fps": float(n) / float(d), "frames": int(v.get("nb_frames") or 0)}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--data", required=True); ap.add_argument("--work", required=True); ap.add_argument("--out", required=True)
+    ap.add_argument("--data"); ap.add_argument("--work", required=True); ap.add_argument("--out", required=True)
     ap.add_argument("--chapters", default="c1,c2,c3"); ap.add_argument("--fps", type=float, default=30); ap.add_argument("--scale", type=float, default=0.6667); ap.add_argument("--workers", type=int, default=2)
-    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--silent", action="store_true", help="only the silent film (no audio mix, no loudness)")
     a = ap.parse_args(); work = Path(a.work); work.mkdir(parents=True, exist_ok=True); chs = a.chapters.split(",")
+    if a.silent: return silent_film(a)
     steps = plan(a.data, work, a.out, chs, a.fps, a.scale, a.workers)
     meas = None
     for name, cmd in steps:

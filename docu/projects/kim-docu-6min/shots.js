@@ -883,13 +883,20 @@ scene({ id: "premiere", a: W("c2l", 0), b: W("c2m", 0), bg: B.living(), cam: { f
     DK.tag(S, "pvTag", "OCTOBER 2007 · E!", "KEEPING UP WITH THE KARDASHIANS PREMIERES", 120, 330, t0 + 0.3, { w: 1000 });
     DK.hud(S, "hpv", { from: 2007, to: 2007, t0, t1: Math.min(t1 - 0.05, t0 + 1.0), marks: [{ y: 2007, label: "TV" }] });
   } });
-card({ id: "run", a: W("c2m", 0), b: W("c2n", 0), year: 2021, seed: 20, kick: "THE SHOW RUNS FOR", lines: ["14 YEARS"], hi: 0, size: 130, sub: "FINAL EPISODE: JUNE 2021", subSize: 34, hudDur: 3.2,
-  hud: { from: 2007, to: 2021, marks: [{ y: 2007, label: "PREMIERE" }, { y: 2021, label: "FINALE" }] }, src: "SOURCES: WIKIPEDIA · HISTORY.COM",
-  extra(S, t0, t1) {
-    const ta = D.W("c2m2", 7), tb = Math.max(ta + 1.0, D.W("c2m2", 12) - 0.05);
-    S.layer(`<g data-p="epb"><g transform="translate(1440 560)"><rect x="-300" y="-190" width="600" height="380" rx="26" fill="#f3eee2" ${st(8)}/><text y="-110" text-anchor="middle" font-family='${FONT}' font-weight="700" font-size="30" fill="#7a5a2a" letter-spacing="10">EPISODES</text></g></g>`, 1.0);
+card({ id: "run", a: W("c2m", 0), b: W("c2m2", 0), year: 2021, seed: 20, kick: "THE SHOW RUNS FOR", lines: ["14 YEARS"], hi: 0, size: 130, sub: "2007 – 2021", subSize: 34, hudDur: 2.6,
+  hud: { from: 2007, to: 2021, marks: [{ y: 2007, label: "PREMIERE" }, { y: 2021, label: "FINALE" }] }, src: "SOURCES: WIKIPEDIA · HISTORY.COM" });
+/* the final episode: the cast cheers while the episode counter runs up to 294 */
+scene({ id: "eps", a: W("c2m2", 0), b: W("c2n", 0), bg: B.stage(), cam: { from: [-20, 0, 0.0], to: [20, -6, 0.1] }, rays: [960, 200, Math.PI / 2], rayc: "#ffe0f6", grade: ["studio", {}], light: [900, 780, 760, 380, "#ffe0f6", 0.26],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, ta = D.W("c2m2", 7), tb = Math.max(ta + 1.0, D.W("c2m2", 12) - 0.05);
+    S.layer(PR.spot(260, 330, 10), 0.8); S.layer(PR.spot(1660, 330, 170), 0.8);
+    [[KIM07, 330, "e1"], [SISA, 540, "e2"], [SISB, 750, "e3"]].forEach(([sp, x, id], i) => { const a = S.actor(id, sp, x, 930, 1.0, { seed: 191 + i, expr: "happy", pivot: [x, 930] }); a.look(t0, 9, -2, 0); a.arm(i % 2 ? "R" : "L", ta, i % 2 ? -150 : 150, i % 2 ? -30 : 30, 0.4, "back.out(1.6)"); a.hop(tb + 0.1 + i * 0.12, 22, 0.38); a.face(tb + 0.1, "laugh", 0.3); });
+S.layer(`<g data-p="epb"><g transform="translate(1440 560)"><rect x="-300" y="-190" width="600" height="380" rx="26" fill="#f3eee2" ${st(8)}/><text y="-110" text-anchor="middle" font-family='${FONT}' font-weight="700" font-size="30" fill="#7a5a2a" letter-spacing="10">EPISODES</text></g></g>`, 1.0);
     S.pop("epb", ta - 0.3, 0.4);
     counter(S, "ep", 1440, 640, 200, "#c4252d", range(0, 294, 14).map(String), ta, tb, { sw: 0, depth: 1.05 });
+    confetti(S, tb, 22, 21);
+    DK.tag(S, "epTag", "THE FINAL EPISODE", "JUNE 2021", 120, 330, t0 + 0.3, { w: 620 });
+    DK.hud(S, "hep", { from: 2020, to: 2021, t0, t1: Math.min(t1 - 0.05, t0 + 1.0), marks: [{ y: 2021, label: "FINALE" }] });
   } });
 
 /* the show is on air */
@@ -1091,7 +1098,20 @@ D.shot({ id: "skims", a: W("s6", 0), b: W("c3l", 0), bg: B.boutique(), cam: { fr
     DK.hud(S, "h15", { from: 2023, to: 2025, t0, t1: Math.min(t1 - 0.05, t0 + 1.4), marks: [{ y: 2023, label: "2023" }, { y: 2025, label: "2025" }] });
     badge(S, RECON);
   } });
-card({ id: "fund", a: W("c3l", 0), b: W("c3m", 0), year: 2025, seed: 31, kick: "NOVEMBER 2025", lines: ["A $225 MILLION", "FUNDING ROUND"], hi: 1, size: 84, sub: "LED BY GOLDMAN SACHS ALTERNATIVES", subSize: 30, icon: ic.funding, ix: 1500, iy: 540, iat: Math.max(0.3, D.W("c3l", 5) - D.W("c3l", 0) - 0.2), hud: { from: 2023, to: 2025, marks: [{ y: 2023, label: "2023" }, { y: 2025, label: "NOV 2025" }] }, src: "SOURCE: GOLDMAN SACHS ALTERNATIVES PRESS RELEASE · NOV 12, 2025" });
+card({ id: "fund", a: W("c3l", 0), b: W("c3l2", 0), year: 2025, seed: 31, kick: "NOVEMBER 2025", lines: ["A $225 MILLION", "FUNDING ROUND"], hi: 1, size: 84, icon: ic.funding, ix: 1500, iy: 540, iat: Math.max(0.3, D.W("c3l", 5) - D.W("c3l", 0) - 0.2), hud: { from: 2023, to: 2025, marks: [{ y: 2023, label: "2023" }, { y: 2025, label: "NOV 2025" }] }, src: "SOURCE: GOLDMAN SACHS ALTERNATIVES PRESS RELEASE · NOV 12, 2025" });
+/* the round is led by Goldman Sachs Alternatives (cartoon boardroom handshake) */
+scene({ id: "gs", a: W("c3l2", 0), b: W("c3m", 0), bg: B.office(), cam: { from: [-24, 4, 0.0], to: [24, -8, 0.14] }, rays: [1500, -40, 1.95], rayc: "#ffe0a8", grade: ["office", {}], light: [900, 780, 640, 400, "#ffe0b0", 0.28],
+  build(S) {
+    const t0 = S.t0, t1 = S.t1, ts = NW("c3l2", 4);
+    const you = S.actor("kG", KIM25, 860, 940, 1.08, { seed: 201, expr: "happy", pivot: [860, 940] });
+    const bk = S.actor("bkG", GROOM1, 1120, 940, 1.08, { seed: 202, expr: "neutral", depth: 1.0, pivot: [1120, 940] });
+    you.talkWords("c3l2", t0); you.arm("R", ts, -88, -8, 0.5, "back.out(1.4)"); bk.arm("L", ts, 88, 8, 0.5, "back.out(1.4)"); you.face(ts + 0.3, "laugh", 0.3); bk.face(ts + 0.3, "happy", 0.3); you.hop(ts + 0.6, 18, 0.36);
+    S.layer(PR.briefcase(560, 940), 1.05);
+    for (let i = 0; i < 4; i++) { S.layer(PR.coin("gc" + i, 880 + i * 80, 700), 1.2); S.pop("gc" + i, ts + 0.5 + i * 0.1, 0.35); S.key("gc" + i, "--y", ts + 0.9 + i * 0.1, -40 - (i % 2) * 24, 0.7, "sine.out"); }
+    confetti(S, ts + 0.4, 16, 23);
+    DK.tag(S, "gsTag", "THE ROUND IS LED BY", "GOLDMAN SACHS ALTERNATIVES", 120, 330, t0 + 0.3, { w: 880 });
+    TX(S, "src", 140, 850, 23, "#e8eef9", "SOURCE: GOLDMAN SACHS ALTERNATIVES PRESS RELEASE · NOV 12, 2025", { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3);
+  } });
 card({ id: "valnote", a: W("c3m", 0), b: W("c3n", 0), year: 2025, seed: 32, kick: "VALUATION IS NOT REVENUE", lines: ["$5 BILLION"], hi: 0, size: 120,
   icon: (S, cx, cy, t) => ic.bars(S, cx, cy, t, [{ label: "VALUATION", val: 1.0, txt: "$5B", col: "#c98a12" }, { label: "NET SALES 2025", val: 0.2, txt: "$1B+", col: "#3d6a9c" }], [D.W("c3m", 2), D.W("c3m2", 8)]), ix: 1500, iy: 480, hud: { from: 2025, to: 2025, marks: [{ y: 2025, label: "NOV 2025" }] },
   src: "SOURCE: GOLDMAN SACHS ALTERNATIVES · THE COMPANY SAYS IT IS ON TRACK TO PASS $1B IN NET SALES IN 2025",
