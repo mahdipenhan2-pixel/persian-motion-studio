@@ -116,6 +116,62 @@ def find_cut(rms, a, b, lo, hi, peak):
     return (i0 + k + 0.5) * HOP, 0.0, "quietest-frame"
 
 
+def quiet_runs(rms, peak, min_len=0.12, thr=0.05):
+    """All quiet stretches (< 5 % of the speech peak) of at least min_len seconds: [(start_s, end_s)]."""
+    q = np.append(rms < thr * peak, False)
+    runs, st = [], None
+    for k, v in enumerate(q):
+        if v and st is None:
+            st = k
+        if not v and st is not None:
+            if (k - st) * HOP >= min_len:
+                runs.append((st * HOP, k * HOP))
+            st = None
+    return runs
+
+
+def choose_cuts(runs, est, reach=1.3):
+    """Whisper word times near a pause can be wrong by half a second (measured on real Whisper output), so they are only an
+    ESTIMATE of where each sentence boundary is. The cuts are chosen among the real quiet stretches of the audio:
+    one per boundary, in order, close to the estimate and preferring long pauses (a sentence end is a longer pause than a comma).
+    Dynamic programming over (boundary, quiet stretch). Returns list of (cut_time, quiet_seconds) or None."""
+    n, K = len(est), len(runs)
+    if n == 0:
+        return []
+    if K < n:
+        return None
+    INF = float("inf")
+    cen = [(a + b) / 2 for a, b in runs]
+    ln = [b - a for a, b in runs]
+    cost = [[INF] * K for _ in range(n)]
+    for i in range(n):
+        for k in range(K):
+            d = abs(cen[k] - est[i])
+            if d <= reach:
+                cost[i][k] = d / 0.8 - min(ln[k], 0.6) / 0.2
+    dp = [[INF] * K for _ in range(n)]
+    back = [[-1] * K for _ in range(n)]
+    for k in range(K):
+        dp[0][k] = cost[0][k]
+    for i in range(1, n):
+        best, arg = INF, -1
+        for k in range(K):
+            if k >= 1 and dp[i - 1][k - 1] < best:
+                best, arg = dp[i - 1][k - 1], k - 1
+            if cost[i][k] < INF and best < INF:
+                dp[i][k] = cost[i][k] + best
+                back[i][k] = arg
+    k = int(np.argmin(dp[n - 1]))
+    if dp[n - 1][k] == INF:
+        return None
+    path = [k]
+    for i in range(n - 1, 0, -1):
+        k = back[i][k]
+        path.append(k)
+    path.reverse()
+    return [(cen[k], ln[k]) for k in path]
+
+
 def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
     """x: continuous samples. words: [{text,start,end,norm}] from Whisper (chunk time). sents: [{id,text}].
     Returns (pieces, report). pieces[i] = float samples of sentence i (lead/tail silence matched to chapter 1)."""
@@ -148,18 +204,24 @@ def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
     peak = float(np.percentile(rms, 99)) or 1.0
     total = len(x) / rate
     cuts = [0.0]
+    est = []
     for si in range(n - 1):
         a, b = last[si], first[si + 1]
-        if b < a:                                   # Whisper overlap: use the middle of the overlap
+        if b < a:
             a, b = b, a
-            rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: Whisper words overlap")
-        lo, hi = max(a - 0.20, (first[si] + last[si]) / 2), min(b + 0.20, (first[si + 1] + last[si + 1]) / 2)
-        c, quiet, how = find_cut(rms, a, b, lo, hi, peak)
-        if quiet < 0.05:
-            rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: no real pause here (quiet {quiet * 1000:.0f} ms, {how})")
+        est.append((a + b) / 2)
+    chosen = choose_cuts(quiet_runs(rms, peak), est)
+    if chosen is None:
+        rep["ok"] = False
+        rep["warnings"].append("not enough real pauses near the Whisper sentence boundaries; refusing to guess")
+        return None, rep
+    for si, (c, quiet) in enumerate(chosen):
+        a, b = last[si], first[si + 1]
+        if quiet < 0.2:
+            rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: short pause ({quiet * 1000:.0f} ms)")
         cuts.append(c)
-        rep.setdefault("cuts", []).append({"between": f"{sents[si]['id']}|{sents[si + 1]['id']}", "t": round(c, 3), "gap_ms": round((b - a) * 1000), "quiet_ms": round(quiet * 1000), "how": how,
-                                              "whisper_end": round(a, 3), "whisper_start": round(b, 3), "window": [round(lo, 3), round(hi, 3)]})
+        rep.setdefault("cuts", []).append({"between": f"{sents[si]['id']}|{sents[si + 1]['id']}", "t": round(c, 3), "gap_ms": round((b - a) * 1000), "quiet_ms": round(quiet * 1000), "how": "dp-quiet-run",
+                                          "whisper_end": round(a, 3), "whisper_start": round(b, 3), "shift_ms": round((c - est[si]) * 1000)})
     cuts.append(total)
     pieces = []
     fade = int(rate * 0.006)
@@ -191,6 +253,11 @@ def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
             rep["ok"] = False
             rep["warnings"].append(f"{sents[si]['id']}: implausible pace {wps:.2f} words/s")
         pieces.append(piece)
+    med = float(np.median([x["wps"] for x in rep["sentences"]]))
+    for x in rep["sentences"]:
+        if not 0.55 * med <= x["wps"] <= 1.6 * med:
+            rep["ok"] = False
+            rep["warnings"].append(f"{x['id']}: pace {x['wps']} words/s is far from the chunk median {med:.2f} - a cut may be in the wrong pause")
     return pieces, rep
 
 
@@ -312,7 +379,7 @@ def cmd_split(a):
 
 
 # ----------------------------------------------------------------------------- self test (no API)
-def make_continuous(data_dir, gap_s, jitter_ms, seed=1):
+def make_continuous(data_dir, gap_s, jitter_ms, seed=1, whisper_like=False):
     """Continuous test file from APPROVED chapter-1 sentences: only the speech (+ 40 ms) of each sentence, joined with a
     short natural pause. Ground truth = true speech end / next start. Whisper words come from the real chapter-1 Whisper timing."""
     rng = np.random.default_rng(seed)
@@ -331,6 +398,12 @@ def make_continuous(data_dir, gap_s, jitter_ms, seed=1):
             ws, we = w["abs_start"] - s["offset"] - on + pos, w["abs_end"] - s["offset"] - on + pos
             j = lambda: float(rng.uniform(-jitter_ms, jitter_ms)) / 1000
             ws, we = ws + j(), we + j()
+            if whisper_like:      # measured on real Whisper: word edges around a pause can be ~0.3-0.6 s early, or glued together
+                first_w, last_w = w is s["words"][0], w is s["words"][-1]
+                if first_w and rng.random() < 0.5:
+                    ws -= float(rng.uniform(0.1, 0.6))
+                if last_w and rng.random() < 0.5:
+                    we -= float(rng.uniform(0.05, 0.35))
             if we > ws:
                 words.append({"text": w["text"], "start": max(0.0, ws), "end": we, "norm": core.norm(w["text"])})
         truth.append({"end": pos + len(piece) / rate - 0.04, "start": pos + 0.04})   # speech (8%-threshold) inside the piece
@@ -348,7 +421,7 @@ def cmd_selftest(a):
     ok_all = True
     for gap in a.gaps:
         for jit in a.jitters:
-            rate, x, words, truth, sents = make_continuous(a.data, gap, jit)
+            rate, x, words, truth, sents = make_continuous(a.data, gap, jit, whisper_like=a.whisper_like)
             if a.whisper == "real":
                 tmp = Path(a.workdir) / f"selftest_{int(gap * 1000)}.wav"
                 tmp.parent.mkdir(parents=True, exist_ok=True)
@@ -367,7 +440,7 @@ def cmd_selftest(a):
             n = len(rep["cuts"])
             for c, (t0, t1) in zip(rep["cuts"], zip(truth[:-1], truth[1:])):
                 if not t0["end"] - 0.005 <= c["t"] <= t1["start"] + 0.005:
-                    print(f"   MISS {c['between']}: cut {c['t']} s | true pause {t0['end']:.3f}..{t1['start']:.3f} | whisper last-word end {c['whisper_end']} / next-word start {c['whisper_start']} | window {c['window']} | {c['how']} quiet {c['quiet_ms']} ms")
+                    print(f"   MISS {c['between']}: cut {c['t']} s | true pause {t0['end']:.3f}..{t1['start']:.3f} | whisper last-word end {c['whisper_end']} / next-word start {c['whisper_start']} | quiet {c['quiet_ms']} ms")
             bad_dur = [p for p in pieces if len(p) < 0.5 * rate]
             ok = inside == n and not bad_dur and rep["ok"]
             ok_all &= ok
@@ -397,6 +470,7 @@ def main():
     p.add_argument("--gaps", type=float, nargs="+", default=[0.12, 0.3, 0.6])
     p.add_argument("--jitters", type=int, nargs="+", default=[0, 60, 120])
     p.add_argument("--workdir", default="build/selftest")
+    p.add_argument("--whisper-like", action="store_true", help="emulate the early/glued word edges measured on real Whisper")
     a = ap.parse_args()
     sys.exit({"generate": cmd_generate, "split": cmd_split, "selftest": cmd_selftest}[a.cmd](a))
 
