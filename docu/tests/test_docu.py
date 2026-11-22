@@ -78,4 +78,20 @@ ids = re.findall(r'D\.shot\(\{ id: "(\w+)"', shots)
 check(len(ids) == 18 and len(set(ids)) == 18, "kim-test30-cine has 18 distinct shots")
 check(shots.count('W("s') + shots.count('E("s') > 30, "cuts are anchored to word timings (W/E anchors)")
 check("tts" not in (DOCU / "engine" / "kit" / "41_cine.js").read_text(encoding="utf-8").lower(), "cinematic kit makes no TTS calls")
+
+# 5. documentary-style experiment: separate project, same script text, no photograph, placeholders only
+import photoslots as PS  # noqa
+ds = P.load("kim-docu-style")
+orig = {x["id"]: x["text"] for x in proj["chapters"][0]["sentences"]}
+check(all(orig[x["id"]] == x["text"] for x in ds["chapters"][0]["sentences"]) and len(ds["chapters"][0]["sentences"]) == 4, "kim-docu-style: sentences s1-s4 are verbatim copies of the approved script")
+check(ds["voice"] == proj["voice"] and ds["audio"] == proj["audio"], "kim-docu-style: same voice, model style and audio settings (cached narration, no TTS)")
+dsh = (DOCU / "projects" / "kim-docu-style" / "shots.js").read_text(encoding="utf-8")
+check(not re.search(r"https?://(?!www\.w3\.org)|\.jpe?g|\.webp|\.png|\.gif", dsh), "kim-docu-style shots embed no external image or photograph")
+check("PLACEHOLDER" in dsh and PS.check(DOCU / "projects" / "kim-docu-style") == [], "photo slots are marked PLACEHOLDER and none claims a licence")
+bad = PS.check(DOCU / "projects" / "kim-docu-style")
+import tempfile, shutil as _sh
+tmp = Path(tempfile.mkdtemp()); (tmp / "photo_slots.json").write_text(json.dumps({"slots": [{"id": "X", "status": "licensed", "src": "a.jpg", "license_verified": False}]}))
+check(len(PS.check(tmp)) == 1, "a licensed slot without a verified licence record fails the gate")
+_sh.rmtree(tmp)
+check(len(re.findall(r'D\.shot\(\{ id: "(\w+)"', dsh)) == 8, "kim-docu-style has 8 shots")
 print("ALL OK")

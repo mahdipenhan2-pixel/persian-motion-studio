@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "title": "What if you were born as Kim Kardashian? (documentary motion-graphics style experiment, 18.5 s)",
+    "lang": "en",
+    "format": "16:9",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "target_duration": 18.5,
+    "note": "Separate experiment. Sentences s1-s4 are copied verbatim from kim-test30 (same voice/model/style, so cached narration is reused and no TTS request is needed). Shows timeline/dates, map motion, photo-frame layouts with camera movement, transitions and sound design. Photo slots are clearly marked PLACEHOLDER; no photograph is embedded."
+  },
+  "voice": {
+    "voice": "Kore",
+    "style": "documentary narrator, steady and clear, slightly brisk"
+  },
+  "audio": {
+    "lead_in_ms": 300,
+    "gap_ms": 300,
+    "tail_ms": 500
+  },
+  "shots": "shots.js",
+  "chapters": [
+    {
+      "id": "c1",
+      "sentences": [
+        {
+          "id": "s1",
+          "text": "You are born in Los Angeles on October 21st, 1980."
+        },
+        {
+          "id": "s2",
+          "text": "Your father, a lawyer, will join the O. J. Simpson defense team."
+        },
+        {
+          "id": "s3",
+          "text": "When you are nine, your parents divorce."
+        },
+        {
+          "id": "s4",
+          "text": "Two years later, your mother marries Olympic champion Bruce Jenner."
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "claim": "Born Oct 21, 1980, Los Angeles",
+      "url": "https://www.britannica.com/biography/Kim-Kardashian"
+    },
+    {
+      "claim": "Robert Kardashian was on the O. J. Simpson defense team (1994-95 trial)",
+      "url": "https://www.britannica.com/biography/Kim-Kardashian"
+    },
+    {
+      "claim": "Parents divorced in 1989; Kris married Bruce Jenner in 1991",
+      "url": "https://www.biography.com/authors-writers/kim-kardashian"
+    },
+    {
+      "claim": "Bruce Jenner won the 1976 Olympic decathlon",
+      "url": "https://www.britannica.com/biography/Caitlyn-Jenner"
+    }
+  ]
+}

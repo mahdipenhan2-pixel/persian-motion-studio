@@ -1,0 +1,9 @@
+{
+  "_policy": "A slot stays a clearly marked PLACEHOLDER until its photo has a verified licence record. No photograph is embedded in this experiment. A slot may only get status 'licensed' (and shots.js may only pass a src) when author, license, license_url, source_url, retrieved, license_verified=true and modifications are all filled in by a person who has read the live licence page.",
+  "slots": [
+    {"id": "P-02", "moment": "1995 - the O. J. Simpson trial (sentence s2)", "status": "placeholder", "src": null, "author": null, "license": null, "license_url": null, "source_url": null, "retrieved": null, "license_verified": false, "modifications": null},
+    {"id": "P-04", "moment": "1976 - Montreal Olympic Games, decathlon (sentence s4)", "status": "placeholder", "src": null, "author": null, "license": null, "license_url": null, "source_url": null, "retrieved": null, "license_verified": false, "modifications": null},
+    {"id": "P-02b", "moment": "decorative side print on the archive board (blank)", "status": "placeholder", "src": null, "author": null, "license": null, "license_url": null, "source_url": null, "retrieved": null, "license_verified": false, "modifications": null},
+    {"id": "P-02c", "moment": "decorative side print on the archive board (blank)", "status": "placeholder", "src": null, "author": null, "license": null, "license_url": null, "source_url": null, "retrieved": null, "license_verified": false, "modifications": null}
+  ]
+}
