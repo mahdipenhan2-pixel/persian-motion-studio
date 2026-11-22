@@ -1,0 +1,67 @@
+name: Docu 6-min chunk-cutter self-test (real Whisper, NO Gemini, no secrets)
+
+# Pushing a change to THIS file runs it (works from the test branch, never from main).
+# It takes the APPROVED chapter-1 narration (branch docu-6min-data), joins the sentences into continuous audio with short
+# pauses, lets faster-whisper transcribe that long file and checks that every cut falls inside the real pause between
+# sentences. No API key is used or even exposed: the job has no secrets and no network call to Gemini.
+on:
+  push:
+    branches: ["docu-16x9-test30"]
+    paths: [".github/workflows/docu-6min-selftest.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install FFmpeg and numpy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3-numpy
+
+      - name: Offline unit tests
+        run: |
+          python3 scripts/test_stage2_alignment.py
+          python3 docu/tests/test_docu.py
+
+      - name: Fetch the approved chapter-1 audio (read-only)
+        run: |
+          git fetch --depth 1 origin docu-6min-data
+          mkdir -p "$RUNNER_TEMP/c1"
+          for F in narration.wav timing.json; do git show "FETCH_HEAD:c1/$F" > "$RUNNER_TEMP/c1/$F"; done
+          ls -la "$RUNNER_TEMP/c1"
+
+      - name: Restore Whisper model cache
+        id: whisper-model
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - name: Install faster-whisper
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+
+      - name: Self-test with REAL Whisper on continuous audio (gaps 0.2 / 0.35 / 0.6 s)
+        run: |
+          .venv-whisper/bin/python docu/engine/tts_chunks.py selftest --data "$RUNNER_TEMP/c1" --whisper real --gaps 0.2 0.35 0.6 --jitters 0 --workdir "$RUNNER_TEMP/selftest" | tee "$RUNNER_TEMP/selftest.log"
+
+      - name: Save Whisper model cache
+        if: always() && steps.whisper-model.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: docu-6min-selftest
+          path: ${{ runner.temp }}/selftest.log
