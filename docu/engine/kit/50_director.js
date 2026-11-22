@@ -14,6 +14,9 @@
     const D = { tl, DATA, warns, shots: [], world };
     const state = new Map(); // el -> {prop: {v, end}}
 
+    /** absolute start (s) of script word number i in sentence sid: cuts hang on real word timings */
+    D.W = (sid, i) => { const s = byId[sid]; if (!s) throw new Error("unknown sentence " + sid); const w = s.words[i]; if (!w) throw new Error("no word " + i + " in " + sid); return snap(w.start); };
+    D.We = (sid, i) => { const s = byId[sid]; const w = s && s.words[i]; if (!w) throw new Error("no word " + i + " in " + sid); return snap(w.end); };
     D.T = (sid, f) => { const s = byId[sid]; if (!s) throw new Error("unknown sentence " + sid); return snap(s.start + (s.end - s.start) * (f || 0)); };
 
     /** one animated value on one element; chronological per (el,prop) */
@@ -32,7 +35,7 @@
     const setv = (el, props, t) => tl.set(el, props, t);
 
     function shot(o) {
-      const TT = (x) => (typeof x === "number" ? snap(x) : x === "end" ? snap(DATA.duration) : D.T(x[0], x[1]));
+      const TT = (x) => (typeof x === "number" ? snap(x) : x === "end" ? snap(DATA.duration) : x[1] === "w" ? D.W(x[0], x[2]) : x[1] === "e" ? D.We(x[0], x[2]) : D.T(x[0], x[1]));
       const t0 = TT(o.a), t1 = TT(o.b);
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.setAttribute("id", "shot-" + o.id); g.setAttribute("class", "shot"); g.style.visibility = "hidden";
@@ -56,7 +59,9 @@
       /* ---------- actors ---------- */
       S.actor = (id, spec, x, y, scale, opt) => {
         opt = opt || {};
-        const wrap = S.layer(`<g data-p="${id}"><g transform="translate(${x} ${y}) scale(${scale || 1})">${K.chars.actor(spec)}</g></g>`, opt.depth === undefined ? 0.9 : opt.depth);
+        const pv = opt.pivot;   // optional [px,py]: --s / --y / --x then act around that point (approach shots, depth moves)
+        const wrap = S.layer(pv ? `<g transform="translate(${pv[0]} ${pv[1]})"><g data-p="${id}"><g transform="translate(${x - pv[0]} ${y - pv[1]}) scale(${scale || 1})">${K.chars.actor(spec)}</g></g></g>`
+          : `<g data-p="${id}"><g transform="translate(${x} ${y}) scale(${scale || 1})">${K.chars.actor(spec)}</g></g>`, opt.depth === undefined ? 0.9 : opt.depth);
         const root = wrap.querySelector('[data-p="' + id + '"]');
         const eyeEx = (K.chars.FACE[spec.build] || K.chars.FACE.child).ey;
         const A = { id, el: root, x, y, scale: scale || 1, spec, mouth: "neutral", t: t0 };

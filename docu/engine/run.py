@@ -68,8 +68,11 @@ def cmd_compose(proj, ch, build):
 
 
 def cmd_verify(proj, ch, build):
+    import os
     import verify as V
-    V.verify(proj, ch, build)
+    # VERIFY_FILE / VERIFY_SIZE / VERIFY_TAG let the workflow check the master AND the delivered 720p file with the same code
+    V.verify(proj, ch, build, mp4_name=os.environ.get("VERIFY_FILE") or "story.mp4",
+             expect=V.parse_size(os.environ.get("VERIFY_SIZE"), (1920, 1080)), tag=os.environ.get("VERIFY_TAG") or "")
 
 
 COMMANDS = {"plan": cmd_plan, "check": lambda p, c, b: core.cmd_check(None), "tts": lambda p, c, b: core.cmd_tts(None),

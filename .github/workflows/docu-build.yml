@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Folder under docu/projects (default: the 30-second style test)"
+        description: "Folder under docu/projects (default: the original 30-second style test; use kim-test30-cine for the cinematic revision)"
         required: true
         default: "kim-test30"
         type: string
@@ -56,6 +56,21 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      # Push runs use the default project (kim-test30). To build another project from a push (e.g. when the Actions API is
+      # not reachable) a file docu/RUN_PROJECT with ONE project name selects it; without that file nothing changes.
+      # Manual runs always use the "project" input.
+      - name: Select project for push runs (optional docu/RUN_PROJECT marker)
+        if: github.event_name == 'push'
+        run: |
+          if [ -f docu/RUN_PROJECT ]; then
+            P="$(tr -d '[:space:]' < docu/RUN_PROJECT)"
+            if ! [[ "$P" =~ ^[A-Za-z0-9-]+$ ]] || [ ! -f "docu/projects/$P/project.json" ]; then
+              echo "::error::docu/RUN_PROJECT must name an existing project folder (letters, digits, hyphens)."; exit 1
+            fi
+            echo "PROJECT=$P" >> "$GITHUB_ENV"
+            echo "Project selected by docu/RUN_PROJECT: $P" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -187,11 +202,15 @@ jobs:
           npx --yes hyperframes render --output ../story.mp4 --fps 30 --quality standard
           echo "render_seconds=$(( $(date +%s) - START ))" | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Verify MP4 (size, length, audio, caption sync, motion)
+      - name: Verify the 1080p master (size, length, audio, caption sync, motion, exposure, shots)
+        env:
+          VERIFY_FILE: story.mp4
+          VERIFY_SIZE: 1920x1080
+          VERIFY_TAG: _master
         run: python3 docu/engine/run.py verify --project "$PROJECT" --chapter "$CHAPTER"
 
-      # Verify above checks the 1920x1080 master (caption pixels are measured at that size).
       # The deliverable story.mp4 is the same video scaled to exactly 1280x720; the master is kept out of the artifact.
+      # The next step after this one verifies the delivered 720p file itself (resolution-aware caption measurements).
       - name: Make the 720p deliverable (story.mp4 = 1280x720, 16:9, 30 fps)
         run: |
           B="build/docu/$PROJECT/$CHAPTER"
@@ -219,6 +238,13 @@ jobs:
           print("720p CHECK OK")
           PY
 
+      - name: Verify the delivered 720p story.mp4 (same checks, measured on the final file)
+        env:
+          VERIFY_FILE: story.mp4
+          VERIFY_SIZE: 1280x720
+          VERIFY_TAG: ""
+        run: python3 docu/engine/run.py verify --project "$PROJECT" --chapter "$CHAPTER"
+
       - name: Add report to workflow summary
         if: always()
         run: |
@@ -241,6 +267,7 @@ jobs:
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/timing_report.md
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/verify.json
+            build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/verify_master.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/final_720p.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/tts_meta.json
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/audio_meta.json
@@ -248,4 +275,4 @@ jobs:
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/frames/
             build/docu/${{ env.PROJECT }}/${{ env.CHAPTER }}/story/index.html
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 30

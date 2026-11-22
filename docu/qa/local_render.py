@@ -20,12 +20,24 @@ def synth_timing(ch, cps=14.0, lead=0.3, gap=0.3, tail=0.5):
     return {"summary": {"status": "OK"}, "audio": {"total": round(total, 3), "gap": gap}, "sentences": sents}
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("project"); ap.add_argument("--times"); ap.add_argument("--mp4"); ap.add_argument("--every", type=int, default=1)
+    ap = argparse.ArgumentParser(); ap.add_argument("project"); ap.add_argument("--times"); ap.add_argument("--mp4"); ap.add_argument("--every", type=int, default=1); ap.add_argument("--words", help="json {sid:[[word,start,end],..]} taken from the real timing report")
     ap.add_argument("--out", default="/tmp/claude-0/-home-claude/a96ae5db-0896-5ec2-a45b-c8f2c5d499bb/scratchpad/qa")
     a = ap.parse_args()
     proj = P.load(a.project); ch = proj["chapters"][0]
     build = Path(a.out) / "build"; build.mkdir(parents=True, exist_ok=True)
-    timing = synth_timing(ch); (build / "timing.json").write_text(json.dumps(timing))
+    timing = synth_timing(ch)
+    if a.words:  # real word times (from the CI timing report) instead of the synthetic 14 chars/s
+        wd = json.load(open(a.words)); cur = []
+        for s in timing["sentences"]:
+            rows = wd[s["id"]]; ws = s["text"].split()
+            out = []
+            for i, w in enumerate(ws):
+                r = rows[i] if i < len(rows) and rows[i][0].strip() == w.strip() else None
+                out.append({"i": i, "text": w, "abs_start": r[1] if r else None, "abs_end": r[2] if r else None, "status": "ok" if r else "unmatched"})
+            timed = [x for x in out if x["abs_start"] is not None]
+            s["offset"] = timed[0]["abs_start"]; s["duration"] = round(timed[-1]["abs_end"] - timed[0]["abs_start"] + (0.7 if s["id"] == "s6" else 0.0), 3); s["words"] = out
+        timing["audio"]["total"] = 31.7
+    (build / "timing.json").write_text(json.dumps(timing))
     with wave.open(str(build / "narration.wav"), "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(b"\0\0" * int(24000 * timing["audio"]["total"]))
     info = C.compose(proj, ch, timing, build, None, build / "narration.wav", local=True, shim=DOCU / "qa" / "gsap_shim.js")

@@ -160,13 +160,22 @@
     };
     const brow = (side) => {
       const sx = side === "L" ? -1 : 1;
-      return P("brow" + side, sx * eyeX, eyeY - ey - 14, `<path d="M${-ex - 3} ${4 + F.arch * .2} Q${-ex * .1} ${-F.arch - 4} ${ex + 5} ${3 + F.arch * .3}" fill="none" stroke="${hc}" stroke-width="${F.brow}" stroke-linecap="round"/>`);
+      return P("brow" + side, sx * eyeX, eyeY - ey - 14, `<path d="M${-ex - 3} ${4 + F.arch * .2} Q${-ex * .1} ${-F.arch - 4} ${ex + 5} ${3 + F.arch * .3}" fill="none" stroke="${hc}" stroke-width="${F.brow + (spec.detail ? 3 : 0)}" stroke-linecap="round"/>`);
     };
     const M = mouths(F.lip === 2 ? (spec.lip || "#c4666b") : F.lip === 1 ? (spec.lip || "#d98a86") : null);
     const mouthEls = Object.keys(M).map((k) => `<g data-m="${k}" style="display:${k === "neutral" ? "inline" : "none"}">${M[k]()}</g>`).join("");
     const nose = F.nose === "dot" ? `<circle cx="0" cy="-62" r="4" fill="${shd}"/>` : F.nose === "slim" ? `<path d="M-3 -78 Q-6 -60 -9 -56 Q0 -50 9 -56" fill="none" stroke="${shd}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M-5 -66 Q0 -58 6 -64" fill="none" stroke="${shd}" stroke-width="4" stroke-linecap="round"/>`;
     const contour = F.lash >= 2 ? `<path d="M${-fw + 6} -70 Q${-fw * .55} -48 ${-fw * .3} -22" stroke="${shade(sk, -.3)}" stroke-width="10" opacity=".28" fill="none" stroke-linecap="round"/><path d="M${fw - 6} -70 Q${fw * .55} -48 ${fw * .3} -22" stroke="${shade(sk, -.3)}" stroke-width="10" opacity=".28" fill="none" stroke-linecap="round"/><path d="M-30 -118 Q0 -128 30 -118" stroke="${shade(sk, .4)}" stroke-width="8" opacity=".25" fill="none" stroke-linecap="round"/>` : "";
     const earr = spec.earrings ? [-1, 1].map((s) => `<circle cx="${s * (fw + 10)}" cy="-64" r="11" fill="none" stroke="#e8c15a" stroke-width="5"/>`).join("") : "";
+    /* optional close-up detail (spec.detail): lid crease, under-eye shade, nose-bridge shadow, cheekbone light, lip gloss, forehead sheen */
+    const dk = shade(sk, -0.34), hl = shade(sk, 0.3), W = F.lash >= 2;
+    const det = spec.detail ? [-1, 1].map((sx) => `<path d="M${sx * (eyeX - ex - 2)} ${eyeY - ey - 5} Q${sx * eyeX} ${eyeY - ey - 17 - (W ? 4 : 0)} ${sx * (eyeX + ex + 4)} ${eyeY - ey - 4}" fill="none" stroke="${dk}" stroke-width="3.5" stroke-linecap="round" opacity=".7"/>
+      <path d="M${sx * (eyeX - ex)} ${eyeY + ey + 5} Q${sx * eyeX} ${eyeY + ey + 14} ${sx * (eyeX + ex)} ${eyeY + ey + 5}" fill="none" stroke="${dk}" stroke-width="5" stroke-linecap="round" opacity=".28"/>
+      <path d="M${sx * (eyeX - 6)} ${eyeY + 12} Q${sx * (eyeX - 4)} -62 ${sx * 5} -58" fill="none" stroke="${dk}" stroke-width="5" stroke-linecap="round" opacity=".22"/>
+      <ellipse cx="${sx * fw * .6}" cy="-70" rx="${W ? 17 : 21}" ry="7" fill="${hl}" opacity=".32" transform="rotate(${sx * -14} ${sx * fw * .6} -70)"/>
+      ${W ? `<path d="M${sx * (eyeX + ex + 2)} ${eyeY - 2} l${sx * 11} -8" stroke="${OL}" stroke-width="5" stroke-linecap="round"/>` : ""}`).join("") +
+      `<ellipse cx="-14" cy="-138" rx="34" ry="9" fill="${hl}" opacity=".22"/><path d="M-5 -60 Q0 -54 7 -60" fill="none" stroke="${dk}" stroke-width="4" opacity=".5" stroke-linecap="round"/>` +
+      (F.lip ? `<ellipse cx="-5" cy="${(W ? -30 : -34) + 4}" rx="9" ry="2.6" fill="#fff" opacity=".5"/>` : "") : "";
     const extras = `<g data-x="tears" style="display:none"><path d="M${-eyeX - 2} -66 q-6 18 0 30 q6 -12 0 -30Z M${eyeX + 2} -66 q6 18 0 30 q-6 -12 0 -30Z" fill="#8fd3f4" ${S(3)}/></g>
       <g data-x="sweat" style="display:none"><path d="M${fw - 14} -140 q-12 22 0 34 q12 -12 0 -34Z" fill="#8fd3f4" ${S(3)}/></g>`;
     return `${hair.back || ""}
@@ -176,6 +185,7 @@
       ${contour}
       ${P("blush", 0, 0, `<ellipse cx="${-fw * .64}" cy="-56" rx="${F.lash >= 2 ? 15 : 19}" ry="${F.lash >= 2 ? 8 : 11}" fill="#ff6f7a"/><ellipse cx="${fw * .64}" cy="-56" rx="${F.lash >= 2 ? 15 : 19}" ry="${F.lash >= 2 ? 8 : 11}" fill="#ff6f7a"/>`).replace('<g data-p="blush">', '<g data-p="blush" opacity=".25">')}
       ${eye("L")}${eye("R")}${brow("L")}${brow("R")}${nose}
+      ${det}
       <g transform="translate(0 ${F.lash >= 2 ? -30 : -34})">${mouthEls}</g>${extras}
       ${hair.front || ""}${spec.glasses ? `<g fill="rgba(255,255,255,.12)" ${S(5)}><circle cx="${-eyeX}" cy="${eyeY}" r="${ex + 12}"/><circle cx="${eyeX}" cy="${eyeY}" r="${ex + 12}"/><path d="M${-eyeX + ex + 12} ${eyeY} L${eyeX - ex - 12} ${eyeY}" fill="none"/></g>` : ""}`;
   }

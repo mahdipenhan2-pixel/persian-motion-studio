@@ -64,4 +64,18 @@ s = A.shift_timing(t, 12.5)
 check(abs(s["sentences"][0]["words"][1]["abs_end"] - 13.7) < 1e-9 and t["sentences"][0]["offset"] == 0.3, "shift moves a copy, original untouched")
 srt = A.merged_srt([t, s])
 check(srt.count("-->") == 2 and srt.index("00:00:00,3") < srt.index("00:00:12,"), "merged SRT ordered with offsets")
+
+# 4. cinematic revision: same audio inputs as the original (cached narration reused), verify is resolution-aware
+import verify as V  # noqa
+cine = P.load("kim-test30-cine")
+same = lambda k: json.dumps(cine[k], sort_keys=True) == json.dumps(proj[k], sort_keys=True)
+check(same("voice") and same("audio") and same("chapters"), "kim-test30-cine: voice, audio settings and all six sentences identical to kim-test30 (cached narration reused)")
+check(cine["meta"]["target_duration"] == 32 and cine["meta"]["fps"] == 30, "kim-test30-cine: 32 s at 30 fps")
+check(V.parse_size("1280x720") == (1280, 720) and V.parse_size(None) == (1920, 1080), "verify parses the expected output size (720p and 1080p)")
+import re
+shots = (DOCU / "projects" / "kim-test30-cine" / "shots.js").read_text(encoding="utf-8")
+ids = re.findall(r'D\.shot\(\{ id: "(\w+)"', shots)
+check(len(ids) == 18 and len(set(ids)) == 18, "kim-test30-cine has 18 distinct shots")
+check(shots.count('W("s') + shots.count('E("s') > 30, "cuts are anchored to word timings (W/E anchors)")
+check("tts" not in (DOCU / "engine" / "kit" / "41_cine.js").read_text(encoding="utf-8").lower(), "cinematic kit makes no TTS calls")
 print("ALL OK")
