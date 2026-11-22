@@ -126,7 +126,11 @@ def cinematic_checks(mp4, timing, dur, W, H, res):
     # ---- cuts: full 30 fps on a small gray frame; a cut is a spike far above its neighbourhood, clustered within 0.5 s
     g = raw_frames(mp4, 30, 192, 108)[:, :84, :].astype(np.int16)
     d = np.abs(np.diff(g, axis=0)).mean(axis=(1, 2))
-    raw = [i for i in range(len(d)) if d[i] > 14 and d[i] > 4 * np.median(d[max(0, i - 6): i + 7])]
+    # a CUT is a spike that leaves the picture different afterwards; a flash/glint spikes and returns, so it is not a cut
+    def persists(i):
+        i0, i1 = max(0, i - 3), min(len(g) - 1, i + 9)
+        return float(np.abs(g[i1] - g[i0]).mean()) > 14
+    raw = [i for i in range(len(d)) if d[i] > 14 and d[i] > 4 * np.median(d[max(0, i - 6): i + 7]) and persists(i)]
     cuts = []
     for i in raw:
         t = (i + 1) / 30.0
