@@ -101,4 +101,16 @@ check(json.dumps(vb["chapters"], sort_keys=True) == json.dumps(proj["chapters"],
 check(vb["voice"] == proj["voice"] and vb["audio"] == proj["audio"] and vb["meta"]["target_duration"] == 32 and vb["meta"]["fps"] == 30, "Version B: same voice/audio settings, 32 s at 30 fps")
 vbs = (DOCU / "projects" / "kim-docu-style-full" / "shots.js").read_text(encoding="utf-8")
 check(len(re.findall(r'D\.shot\(\{ id: "(\w+)"', vbs)) == 15 and PS.check(DOCU / "projects" / "kim-docu-style-full") == [] and not re.search(r"https?://(?!www\.w3\.org)|\.jpe?g|\.webp|\.png|\.gif", vbs), "Version B: 15 shots, placeholders only, no embedded photograph")
+
+# ---- 7. kim-docu-6min (independent 6-minute project) ----
+import json as _j
+_six = _j.loads((DOCU / "projects" / "kim-docu-6min" / "project.json").read_text(encoding="utf-8"))
+_appr = {s["id"]: s["text"] for s in proj["chapters"][0]["sentences"]}
+_all = {s["id"]: s["text"] for c in _six["chapters"] for s in c["sentences"]}
+check(len(_six["chapters"]) == 3 and _six["meta"]["fps"] == 30 and (_six["meta"]["width"], _six["meta"]["height"]) == (1920, 1080), "kim-docu-6min: 3 chapters, 1920x1080 at 30 fps")
+check(all(_all[k] == v for k, v in _appr.items() if k != "s3"), "kim-docu-6min: approved sentences s1,s2,s4,s5,s6 identical to the approved script (cached audio reused)")
+check(_all["s3"] == "When you are nine, your parents separate.", "kim-docu-6min: s3 changed from 'divorce' to 'separate' (sources disagree on the divorce year; documented in sources)")
+check(_six["voice"] == proj["voice"], "kim-docu-6min: same voice/style as the approved audio")
+check(all(2 <= len(c["sentences"]) <= 40 for c in _six["chapters"]), "kim-docu-6min: every chapter within the core limit")
+check(len(_six["sources"]) >= 6, "kim-docu-6min: sources recorded")
 print("ALL OK")

@@ -197,7 +197,7 @@ def verify(proj, ch, build, mp4_name="story.mp4", expect=None, tag=""):
     vs = [s for s in probe["streams"] if s["codec_type"] == "video"]
     au = [s for s in probe["streams"] if s["codec_type"] == "audio"]
     dur = float(probe["format"]["duration"])
-    target = float(proj["meta"].get("target_duration") or 0)
+    target = float(ch.get("target_duration") or proj["meta"].get("target_duration") or 0)
     res.update({"size_bytes": mp4.stat().st_size, "duration": round(dur, 3), "target": target})
     if not vs:
         res["problems"].append("no video stream")

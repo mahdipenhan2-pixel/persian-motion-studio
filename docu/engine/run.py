@@ -48,7 +48,7 @@ def cmd_fit(proj, ch, build):
     a = cfg["audio"]
     speech = sum(s["duration"] for s in meta["sentences"])
     total = a["lead_in_ms"] / 1000 + speech + a["gap_ms"] / 1000 * (len(meta["sentences"]) - 1) + a["tail_ms"] / 1000
-    target = proj["meta"].get("target_duration")
+    target = ch.get("target_duration") or proj["meta"].get("target_duration")
     print(f"Narration {speech:.1f}s speech, {total:.1f}s with gaps (target {target})")
     if target and total > float(target):
         sys.exit(f"ERROR: narration is {total:.1f}s but the target is {target}s. Shorten the text; cached sentences cost nothing to re-run.")

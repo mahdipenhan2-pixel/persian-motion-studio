@@ -46,6 +46,9 @@ def validate(p):
         if not ID_RE.fullmatch(c.get("id", "")) or c["id"] in seen_c:
             raise ProjectError(f"bad or duplicate chapter id: {c.get('id')}")
         seen_c.add(c["id"])
+        ctd = c.get("target_duration")
+        if ctd is not None and not (5 <= float(ctd) <= 400):
+            raise ProjectError(f"chapter {c['id']}: target_duration must be 5-400 seconds")
         ss = c.get("sentences")
         if not isinstance(ss, list) or not 1 <= len(ss) <= MAX_SENT:
             raise ProjectError(f"chapter {c['id']}: 1-{MAX_SENT} sentences required (core limit)")
@@ -78,8 +81,15 @@ def core_config(p, c):
     cfg["tts"]["voice"] = v.get("voice", cfg["tts"]["voice"])
     cfg["tts"]["style"] = v.get("style", cfg["tts"]["style"])
     cfg["audio"].update({k: v for k, v in p.get("audio", {}).items()})
+    cfg["audio"].update({k: v for k, v in (c.get("audio") or {}).items()})   # optional per-chapter lead-in / tail (e.g. title card, end card)
     cfg["whisper"]["language"] = "en"
     cfg["tts"]["max_requests_per_run"] = max(1, min(40, len(c["sentences"]) + 3))
     # The core validates its own vertical template; this documentary composes 1920x1080 itself and only uses
     # the core for audio, Whisper and alignment, so the core-facing video block stays at its fixed value.
     return cfg
+
+
+def chapter_target(p, c):
+    """video length of one chapter: its own target_duration if given, else the project's (backward compatible)"""
+    v = c.get("target_duration")
+    return float(v) if v is not None else (float(p["meta"]["target_duration"]) if p["meta"].get("target_duration") else None)

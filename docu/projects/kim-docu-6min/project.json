@@ -1,0 +1,315 @@
+{
+ "meta": {
+  "title": "What if you were born as Kim Kardashian? (6-minute documentary)",
+  "lang": "en",
+  "format": "16:9",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "target_duration": 360
+ },
+ "voice": {
+  "voice": "Kore",
+  "style": "documentary narrator, steady and clear, slightly brisk"
+ },
+ "audio": {
+  "lead_in_ms": 300,
+  "gap_ms": 300,
+  "tail_ms": 500
+ },
+ "shots": "shots.js",
+ "chapters": [
+  {
+   "id": "c1",
+   "title": "The question",
+   "sentences": [
+    {
+     "id": "c1a",
+     "text": "What if you were born as Kim Kardashian?"
+    },
+    {
+     "id": "c1b",
+     "text": "How would your life unfold?"
+    },
+    {
+     "id": "c1c",
+     "text": "A famous family. Television cameras. Fashion, fame, and a business empire."
+    },
+    {
+     "id": "c1d",
+     "text": "But none of that exists yet. Your story begins in Los Angeles."
+    },
+    {
+     "id": "s1",
+     "text": "You are born in Los Angeles on October 21st, 1980."
+    },
+    {
+     "id": "c1s",
+     "text": "Your world is the Los Angeles of 1980: palm trees, film studios, and a city built on fame."
+    },
+    {
+     "id": "c1e",
+     "text": "Your father, Robert, is a lawyer. Your mother, Kris, is raising a growing family."
+    },
+    {
+     "id": "c1f",
+     "text": "You grow up beside your older sister, Kourtney. Later come a sister, Khloé, and a brother, Rob."
+    },
+    {
+     "id": "s3",
+     "text": "When you are nine, your parents separate."
+    },
+    {
+     "id": "c1g",
+     "text": "It is 1989, and the home you know is about to change."
+    },
+    {
+     "id": "s4",
+     "text": "Two years later, your mother marries Olympic champion Bruce Jenner."
+    },
+    {
+     "id": "c1h",
+     "text": "She marries him in April 1991, one month after her divorce is final."
+    },
+    {
+     "id": "c1h2",
+     "text": "Their marriage will last until 2014."
+    },
+    {
+     "id": "c1i",
+     "text": "On July 30th, 1976, in Montreal, Bruce won the Olympic decathlon and set a world record."
+    },
+    {
+     "id": "c1j",
+     "text": "The decathlon has ten events over two days, and its winner is often called the world's greatest athlete."
+    },
+    {
+     "id": "c1k",
+     "text": "Now that name is part of your family, and Los Angeles is about to turn your father into a public figure."
+    }
+   ],
+   "audio": {
+    "lead_in_ms": 5000,
+    "tail_ms": 700
+   }
+  },
+  {
+   "id": "c2",
+   "title": "The trial and the cameras",
+   "sentences": [
+    {
+     "id": "c2a",
+     "text": "The year is 1994, and a murder case grips the country."
+    },
+    {
+     "id": "c2b",
+     "text": "O. J. Simpson, one of America's most famous athletes, is charged with two murders."
+    },
+    {
+     "id": "s2",
+     "text": "Your father, a lawyer, will join the O. J. Simpson defense team."
+    },
+    {
+     "id": "c2c",
+     "text": "Robert is also Simpson's longtime friend."
+    },
+    {
+     "id": "c2c2",
+     "text": "Other lawyers on the team include F. Lee Bailey and Robert Shapiro, and Johnnie Cochran later leads it."
+    },
+    {
+     "id": "c2d",
+     "text": "The trial begins in Los Angeles in January 1995, and the nation watches on television."
+    },
+    {
+     "id": "c2d2",
+     "text": "The jury deliberates for less than four hours."
+    },
+    {
+     "id": "c2e",
+     "text": "On October 3rd, 1995, Simpson is found not guilty."
+    },
+    {
+     "id": "c2e2",
+     "text": "You are fourteen. Imagine watching the whole country argue about a trial your father is part of."
+    },
+    {
+     "id": "c2f",
+     "text": "You graduate from high school in 1998."
+    },
+    {
+     "id": "c2g",
+     "text": "Your first jobs are far from the spotlight: a clothing store, then styling clients."
+    },
+    {
+     "id": "c2h",
+     "text": "In 2000, you marry Damon Thomas. The marriage ends in 2004."
+    },
+    {
+     "id": "c2i",
+     "text": "By 2003, you are a personal stylist for the singer Brandy."
+    },
+    {
+     "id": "c2j",
+     "text": "In 2006, you work with Paris Hilton, and you open a boutique, DASH, with your sisters."
+    },
+    {
+     "id": "c2k",
+     "text": "Your mother, Kris, will later become your manager."
+    },
+    {
+     "id": "c2k2",
+     "text": "You are twenty-six years old, and your life is about to be filmed."
+    },
+    {
+     "id": "s5",
+     "text": "In 2007, cameras move in, and your family becomes a TV show."
+    },
+    {
+     "id": "c2l",
+     "text": "In October 2007, Keeping Up with the Kardashians premieres on E!."
+    },
+    {
+     "id": "c2m",
+     "text": "It will run for fourteen years."
+    },
+    {
+     "id": "c2m2",
+     "text": "The final episode airs in June 2021, after two hundred and ninety-four episodes."
+    },
+    {
+     "id": "c2n",
+     "text": "Your private life becomes public entertainment."
+    }
+   ],
+   "audio": {
+    "lead_in_ms": 700,
+    "tail_ms": 700
+   }
+  },
+  {
+   "id": "c3",
+   "title": "The brand",
+   "sentences": [
+    {
+     "id": "c3a",
+     "text": "The show does more than entertain. It turns your name into a brand."
+    },
+    {
+     "id": "c3a2",
+     "text": "In 2011, you marry Kris Humphries. Your first child is born in 2013."
+    },
+    {
+     "id": "c3b",
+     "text": "In 2014, you marry Kanye West, and your own mobile game, Kim Kardashian: Hollywood, is released."
+    },
+    {
+     "id": "c3d",
+     "text": "In 2017, you launch KKW Beauty."
+    },
+    {
+     "id": "c3e",
+     "text": "But your father's world of courtrooms never leaves you."
+    },
+    {
+     "id": "c3f",
+     "text": "In 2018, you help win a presidential commutation for Alice Marie Johnson, who was serving a life sentence."
+    },
+    {
+     "id": "c3h",
+     "text": "In 2019, you launch SKIMS, a shapewear brand. By then, you are a mother of four."
+    },
+    {
+     "id": "c3g",
+     "text": "In 2020, a documentary, The Justice Project, follows your work on criminal justice reform."
+    },
+    {
+     "id": "c3i",
+     "text": "In 2021, Forbes counts you among the world's billionaires."
+    },
+    {
+     "id": "c3j",
+     "text": "That December, you pass the California baby bar exam, on your fourth attempt."
+    },
+    {
+     "id": "c3k",
+     "text": "SKIMS grows fast, and by 2023 it is valued at more than four billion dollars."
+    },
+    {
+     "id": "s6",
+     "text": "By 2025, your brand, SKIMS, is valued at five billion dollars."
+    },
+    {
+     "id": "c3l",
+     "text": "That valuation comes with a $225 million funding round, announced in November 2025."
+    },
+    {
+     "id": "c3l2",
+     "text": "The round is led by Goldman Sachs Alternatives."
+    },
+    {
+     "id": "c3m",
+     "text": "It is a company valuation, not yearly revenue."
+    },
+    {
+     "id": "c3m2",
+     "text": "The company says it is on track to pass one billion dollars in net sales in 2025."
+    },
+    {
+     "id": "c3n",
+     "text": "From a birth in Los Angeles in 1980 to a global business, your story is anything but ordinary."
+    },
+    {
+     "id": "c3n2",
+     "text": "Fame, family, law, and business: four different worlds, all connected to one name."
+    },
+    {
+     "id": "c3o",
+     "text": "Now imagine it was your life. What would you have done differently?"
+    }
+   ],
+   "audio": {
+    "lead_in_ms": 700,
+    "tail_ms": 7000
+   }
+  }
+ ],
+ "sources": [
+  {
+   "claim": "Born Oct 21, 1980, Los Angeles; Kris divorced Robert Kardashian (Britannica says 1989); Kim assistant to Paris Hilton; KUWTK premiere Oct 2007 on E!, ran to 2021; SKIMS 2019; 2018 Alice Marie Johnson commutation; 2020 The Justice Project; four children (2013, 2015, 2018, 2019)",
+   "url": "https://www.britannica.com/print/article/1817098",
+   "note": "Britannica and other sources disagree on the divorce year (1989 vs final March 1991), so the narration says 'separate' (1989) and 'divorce is final in March 1991'"
+  },
+  {
+   "claim": "Kris Jenner married Bruce Jenner April 21, 1991; divorce from Robert Kardashian final March 1991",
+   "url": "https://www.bustle.com/articles/142622-when-did-kris-jenner-robert-kardashian-divorce-american-crime-story-raises-the-question"
+  },
+  {
+   "claim": "Kris and Bruce Jenner married 1991-2014",
+   "url": "https://www.britannica.com/biography/Kris-Jenner"
+  },
+  {
+   "claim": "Bruce Jenner won the Olympic decathlon in Montreal on July 30, 1976, world record",
+   "url": "https://www.history.com/this-day-in-history/bruce-jenner-wins-decathlon",
+   "note": "points total not stated in the video (sources differ: 8,617 vs 8,634 depending on scoring table)"
+  },
+  {
+   "claim": "O. J. Simpson trial began Jan 24, 1995; verdict Oct 3, 1995 (not guilty); jury deliberated under four hours; defense team incl. Robert Kardashian (longtime friend), F. Lee Bailey, Robert Shapiro, Johnnie Cochran as lead",
+   "url": "https://www.britannica.com/print/article/1982560"
+  },
+  {
+   "claim": "High school 1998; stylist for Brandy by 2003; Paris Hilton 2006; marriages (Damon Thomas 2000-2004, Kris Humphries Aug 20 2011, Kanye West May 24 2014); Kim Kardashian: Hollywood June 2014; KKW Beauty 2017; SKIMS launched Sept 2019; billionaire April 2021; baby bar Dec 2021 on fourth attempt; KUWTK ended June 2021 after 294 episodes; SKIMS above $4B in 2023",
+   "url": "https://en.wikipedia.org/wiki/Kim_Kardashian",
+   "note": "read as text through the allowed fetch tool; no image downloaded"
+  },
+  {
+   "claim": "SKIMS: $225M capital raise valuing the company at $5 billion, Nov 12, 2025, led by Goldman Sachs Alternatives with BDT & MSD Partners",
+   "url": "https://am.gs.com/en-int/advisors/news/press-release/2025/skims",
+   "note": "company valuation, not revenue"
+  },
+  {
+   "claim": "SKIMS valuation and 2025 net sales outlook (company stated on track to pass $1B net sales) reported by Fortune and Fox Business",
+   "url": "https://fortune.com/2025/11/13/kim-kardashians-skims-draws-5-billion-valuation"
+  }
+ ]
+}

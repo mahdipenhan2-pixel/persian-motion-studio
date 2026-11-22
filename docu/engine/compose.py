@@ -47,7 +47,7 @@ def compose(project, chapter, timing, build, fonts_dir, narration_wav, local=Fal
         for f in Path(fonts_dir).glob("*.woff2"):
             shutil.copyfile(f, out / "assets" / "fonts" / f.name)
     shutil.copyfile(ENGINE / "assets" / "noise.png", out / "assets" / "noise.png")
-    target = float(project["meta"].get("target_duration") or timing["audio"]["total"])
+    target = float(chapter.get("target_duration") or project["meta"].get("target_duration") or timing["audio"]["total"])
     target = round(target * FPS) / FPS
     pad_wav(narration_wav, out / "narration.wav", target)
 
