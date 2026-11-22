@@ -1,0 +1,10 @@
+{
+ "_note": "Gate for real photographs. A slot is rendered only when status is 'approved' and every licence field is filled. Today every slot is 'not_available' (network blocked image hosts), so the film contains no photograph and no placeholder.",
+ "slots": [
+  {"id": "P-02", "place": "Los Angeles courthouse, 1995", "status": "not_available", "reason": "image hosts blocked by the egress proxy (HTTP 403); nothing downloaded", "fallback": "cartoon reconstruction (generic courthouse) + documentary graphic"},
+  {"id": "P-04", "place": "Montreal, 1976 Olympics", "status": "not_available", "reason": "image hosts blocked by the egress proxy (HTTP 403); nothing downloaded", "fallback": "animated map + cartoon stadium"},
+  {"id": "P-05", "place": "TV production / family, 2007", "status": "not_available", "reason": "image hosts blocked by the egress proxy (HTTP 403); nothing downloaded", "fallback": "cartoon reconstruction (crew, stage) + documentary graphic"},
+  {"id": "P-06", "place": "SKIMS, 2025", "status": "not_available", "reason": "image hosts blocked; company photos are not reusable", "fallback": "cartoon boutique + valuation graphic"}
+ ],
+ "required_fields_when_approved": ["photographer_or_owner", "page_url", "licence_name", "licence_version", "commercial_use", "modification_allowed", "attribution_text", "local_file"]
+}

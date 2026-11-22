@@ -66,7 +66,7 @@
         const eyeEx = (K.chars.FACE[spec.build] || K.chars.FACE.child).ey;
         const A = { id, el: root, x, y, scale: scale || 1, spec, mouth: "neutral", t: t0 };
         A.p = (n) => { const e = root.querySelector('[data-p="' + n + '"]'); if (!e) throw new Error(`actor ${id}: no part ${n}`); return e; };
-        A.k = (part, prop, t, val, dur, ease) => key(part === "self" ? root : A.p(part), prop, t, val, dur, ease);
+        A.k = (part, prop, t, val, dur, ease) => key(part === "self" ? root : (typeof part === "string" ? A.p(part) : part), prop, t, val, dur, ease);   // an element may be passed directly (walk() does so for long hair)
         A.move = (t, dx, dy, dur, ease) => { A.k("self", "--x", t, dx, dur, ease || "power2.inOut"); if (dy !== undefined) A.k("self", "--y", t, dy, dur, ease || "power2.inOut"); };
         A.appear = (t, dur) => { setv(root, { visibility: "visible" }, t); A.k("self", "--s", t, 0, 0); A.k("self", "--s", t, 1, dur || 0.4, "back.out(1.6)"); };
         A.hideAt = (t) => setv(root, { visibility: "hidden" }, t);

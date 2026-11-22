@@ -1,0 +1,418 @@
+{
+ "_note": "Sound design for kim-docu-6min. Everything is synthesised by docu/qa/make_audio_6min.py (no samples, no third-party audio, no network). 'from'/'to'/'at' are seconds or [sentence, script-word-index] anchors; cut/flash/whip/ruler cues come from the composition itself.",
+ "fade_out": 1.0,
+ "music": {
+  "c1": [
+   {
+    "from": 0,
+    "to": [
+     "c1c",
+     0
+    ],
+    "prog": [
+     "Am",
+     "F"
+    ],
+    "style": "myst"
+   },
+   {
+    "from": [
+     "c1c",
+     0
+    ],
+    "to": [
+     "c1d",
+     0
+    ],
+    "prog": [
+     "Am",
+     "F",
+     "C",
+     "G"
+    ],
+    "style": "pulse"
+   },
+   {
+    "from": [
+     "c1d",
+     0
+    ],
+    "to": "end",
+    "prog": [
+     "Am",
+     "F",
+     "C",
+     "G"
+    ],
+    "style": "warm"
+   }
+  ],
+  "c2": [
+   {
+    "from": 0,
+    "to": [
+     "c2e",
+     0
+    ],
+    "prog": [
+     "Dm",
+     "Bb",
+     "F",
+     "Am"
+    ],
+    "style": "tense"
+   },
+   {
+    "from": [
+     "c2e",
+     0
+    ],
+    "to": [
+     "c2e2",
+     0
+    ],
+    "prog": [
+     "Dm",
+     "Bb"
+    ],
+    "style": "myst"
+   },
+   {
+    "from": [
+     "c2e2",
+     0
+    ],
+    "to": [
+     "s5",
+     0
+    ],
+    "prog": [
+     "Am",
+     "F",
+     "C",
+     "G"
+    ],
+    "style": "warm"
+   },
+   {
+    "from": [
+     "s5",
+     0
+    ],
+    "to": "end",
+    "prog": [
+     "F",
+     "C",
+     "G",
+     "Am"
+    ],
+    "style": "bright"
+   }
+  ],
+  "c3": [
+   {
+    "from": 0,
+    "to": [
+     "c3k",
+     0
+    ],
+    "prog": [
+     "C",
+     "G",
+     "Am",
+     "F"
+    ],
+    "style": "warm"
+   },
+   {
+    "from": [
+     "c3k",
+     0
+    ],
+    "to": [
+     "c3n",
+     0
+    ],
+    "prog": [
+     "C",
+     "G",
+     "Am",
+     "F"
+    ],
+    "style": "bright"
+   },
+   {
+    "from": [
+     "c3n",
+     0
+    ],
+    "to": "end",
+    "prog": [
+     "F",
+     "C",
+     "G",
+     "C"
+    ],
+    "style": "end"
+   }
+  ]
+ },
+ "cues": {
+  "c1": [
+   {
+    "type": "swell",
+    "at": 0.0,
+    "dur": 1.6,
+    "db": -20
+   },
+   {
+    "type": "boom",
+    "at": 0.9,
+    "db": -16
+   },
+   {
+    "type": "whoosh_up",
+    "at": 3.4,
+    "dur": 1.5,
+    "db": -23
+   },
+   {
+    "type": "heart",
+    "at": [
+     "s1",
+     0
+    ],
+    "db": -24
+   },
+   {
+    "type": "slam",
+    "at": [
+     "s1",
+     9
+    ],
+    "db": -16
+   },
+   {
+    "type": "ticks",
+    "t0": [
+     "c1j",
+     3
+    ],
+    "dur": 2.2,
+    "n": 10,
+    "db": -22
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c1i",
+     12
+    ],
+    "db": -19
+   }
+  ],
+  "c2": [
+   {
+    "type": "ticks",
+    "t0": [
+     "c2d2",
+     0
+    ],
+    "t1": [
+     "c2d2",
+     7
+    ],
+    "n": 16,
+    "db": -22
+   },
+   {
+    "type": "slam",
+    "at": [
+     "c2e",
+     6
+    ],
+    "db": -15
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c2k2",
+     2
+    ],
+    "db": -20
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c2l",
+     3
+    ],
+    "db": -19
+   },
+   {
+    "type": "ticks",
+    "t0": [
+     "c2m2",
+     7
+    ],
+    "t1": [
+     "c2m2",
+     12
+    ],
+    "n": 21,
+    "db": -25
+   }
+  ],
+  "c3": [
+   {
+    "type": "ping",
+    "at": [
+     "c3a",
+     11
+    ],
+    "db": -20
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3b",
+     8
+    ],
+    "db": -20
+   },
+   {
+    "type": "slam",
+    "at": [
+     "c3i",
+     5
+    ],
+    "db": -17
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3j",
+     11
+    ],
+    "db": -19
+   },
+   {
+    "type": "slam",
+    "at": [
+     "s6",
+     9
+    ],
+    "db": -14
+   },
+   {
+    "type": "coin",
+    "at": [
+     "s6",
+     9
+    ],
+    "off": 0.1,
+    "db": -22
+   },
+   {
+    "type": "coin",
+    "at": [
+     "s6",
+     9
+    ],
+    "off": 0.22,
+    "db": -24
+   },
+   {
+    "type": "coin",
+    "at": [
+     "s6",
+     9
+    ],
+    "off": 0.34,
+    "db": -22
+   },
+   {
+    "type": "coin",
+    "at": [
+     "s6",
+     9
+    ],
+    "off": 0.46,
+    "db": -25
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3l",
+     5
+    ],
+    "db": -19
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3m",
+     2
+    ],
+    "db": -20
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3m2",
+     8
+    ],
+    "db": -20
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3n2",
+     0
+    ],
+    "db": -22
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3n2",
+     1
+    ],
+    "db": -22
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3n2",
+     2
+    ],
+    "db": -22
+   },
+   {
+    "type": "ping",
+    "at": [
+     "c3n2",
+     4
+    ],
+    "db": -22
+   },
+   {
+    "type": "swell",
+    "at": [
+     "c3o",
+     6
+    ],
+    "dur": 2.8,
+    "db": -21
+   },
+   {
+    "type": "boom",
+    "at": [
+     "c3o",
+     8
+    ],
+    "db": -17
+   }
+  ]
+ }
+}

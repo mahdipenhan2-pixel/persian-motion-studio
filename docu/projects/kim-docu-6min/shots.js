@@ -82,6 +82,7 @@ DK.mapSvg = () => {
 
 /* ---------- timeline HUD: scrolling year ruler + rolling year number (all keys on the shot, deterministic) ---------- */
 DK.hud = (S, id, o) => {
+  DK.pend.hud.push([o.t0 !== undefined ? o.t0 : S.t0, o.t1 !== undefined ? o.t1 : S.t1]);
   const PX = 46, y = o.y || 150, lo = Math.floor(Math.min(o.from, o.to)) - 4, hi = Math.ceil(Math.max(o.from, o.to)) + 4, mk = uid("hm");
   let tk = "", yrs = "";
   for (let k = lo; k <= hi; k++) {
@@ -160,10 +161,11 @@ DK.boardNear = (seed) => {
 };
 
 /* ---------- transitions: flash, whip pan, fade from/to black. Registered during the build, applied in time order ---------- */
-DK.pend = { flash: [], whip: [] };
+DK.pend = { flash: [], whip: [], hud: [] };
 DK.flash = (t, peak, dur) => DK.pend.flash.push([t, peak === undefined ? 0.9 : peak, dur || 0.22]);
 DK.whip = (tCut, dir) => DK.pend.whip.push([tCut, dir || 1]);
 DK.flush = (D_) => {
+  window.__docuCues = { flash: DK.pend.flash.slice(), whip: DK.pend.whip.slice(), hud: DK.pend.hud.slice(), shots: D_.shots.map((q) => [q.id, q.t0, q.t1]) };   // read by the offline sound-design step
   const post = document.getElementById("post"), world = D_.world;
   const defs = document.createElementNS(SVGNS, "defs");
   defs.innerHTML = '<filter id="whipf" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB"><feGaussianBlur id="whipb" stdDeviation="0 0"/></filter>';
@@ -295,7 +297,7 @@ ic.rings = (S, cx, cy, t) => {
 };
 ic.tvshow = (S, cx, cy, t, t1) => {
   S.layer(P("icn", cx, cy, `<rect x="-300" y="-230" width="600" height="400" rx="34" fill="#2a2018" ${O(10)}/><rect x="-262" y="-194" width="524" height="328" rx="12" fill="#1a1230"/><rect x="-262" y="-194" width="524" height="328" fill="url(#scan)" opacity=".4"/>
-    <g data-p="scr"><text y="-84" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="40" fill="#fff" letter-spacing="8">KEEPING UP WITH</text><text y="-26" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="62" fill="#ffb84a" letter-spacing="3">THE KARDASHIANS</text>
+    <g data-p="scr"><text y="-84" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#fff" letter-spacing="5">KEEPING UP WITH</text><text y="-26" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="40" fill="#ffb84a" letter-spacing="1">THE KARDASHIANS</text>
     <rect x="-90" y="26" width="180" height="56" rx="8" fill="none" stroke="#fff" stroke-width="4"/><text y="68" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="40" fill="#fff" letter-spacing="6">E! · OCT 2007</text></g>
     <path d="M-120 170L-170 250H170L120 170" fill="#2a2018" ${O(8)}/>`), 1.0);
   S.pop("icn", t, 0.45); S.fadeIn("scr", t + 0.4, 0.5);
@@ -304,7 +306,7 @@ ic.phone = (S, cx, cy, t) => {
   S.layer(P("icn", cx, cy, `<rect x="-170" y="-290" width="340" height="580" rx="44" fill="#14141c" ${O(10)}/><rect x="-146" y="-254" width="292" height="508" rx="18" fill="#3a2a5a"/><rect x="-146" y="-254" width="292" height="508" rx="18" fill="url(#scan)" opacity=".25"/>
     <circle cx="0" cy="-90" r="74" fill="#d99a73" ${O(5)}/><path d="M-74 -100C-74 -190 74 -190 74 -100C60 -140 -60 -140 -74 -100Z" fill="#16100f" ${O(5)}/><path d="M-50 -140L-80 -40" stroke="#16100f" stroke-width="22" stroke-linecap="round"/>
     <text y="60" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="31" fill="#fff" letter-spacing="2">KIM KARDASHIAN:</text><text y="102" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="40" fill="#ffb84a" letter-spacing="4">HOLLYWOOD</text>
-    <rect x="-100" y="160" width="200" height="58" rx="29" fill="#ffb84a" ${O(5)}/><text y="200" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#2a1820" letter-spacing="4">MOBILE GAME</text>`), 1.0);
+    <rect x="-125" y="160" width="250" height="58" rx="29" fill="#ffb84a" ${O(5)}/><text y="200" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="27" fill="#2a1820" letter-spacing="3">MOBILE GAME</text>`), 1.0);
   S.pop("icn", t, 0.45); S.key("icn", "--r", t + 0.5, -3, 1.0, "sine.inOut"); S.key("icn", "--r", t + 1.5, 3, 1.2, "sine.inOut");
 };
 ic.beauty = (S, cx, cy, t) => {
@@ -330,18 +332,18 @@ ic.four = (S, cx, cy, t) => {
 };
 ic.attempts = (S, cx, cy, t) => {
   S.layer(P("icn", cx, cy, [0, 1, 2, 3].map((i) => `<g data-p="at${i}"><g transform="translate(${(i - 1.5) * 190} 0)"><rect x="-80" y="-110" width="160" height="220" rx="14" fill="#f3eee2" ${O(7)}/><text y="-48" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#2a1820" letter-spacing="3">TRY ${i + 1}</text>
-      ${i < 3 ? `<path d="M-34 4L34 72M34 4L-34 72" stroke="#c4252d" stroke-width="14" stroke-linecap="round"/>` : `<path d="M-40 38L-8 72L44 -2" fill="none" stroke="#2f9a5a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>`}</g></g>`).join("") + `<text y="190" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="40" fill="#ffb84a" stroke="#05070c" stroke-width="7" paint-order="stroke" letter-spacing="6">CALIFORNIA BABY BAR · DEC 2021</text>`), 1.0);
+      ${i < 3 ? `<path d="M-34 4L34 72M34 4L-34 72" stroke="#c4252d" stroke-width="14" stroke-linecap="round"/>` : `<path d="M-40 38L-8 72L44 -2" fill="none" stroke="#2f9a5a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>`}</g></g>`).join("") + `<text y="190" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="32" fill="#ffb84a" stroke="#05070c" stroke-width="7" paint-order="stroke" letter-spacing="3">BABY BAR EXAM · DEC 2021</text>`), 1.0);
   for (let i = 0; i < 4; i++) S.pop("at" + i, t + i * 0.3, 0.3);
 };
 ic.bars = (S, cx, cy, t, bars, times) => {   // bars: [{label, val(0..1), txt, col}]
-  const bw = 150, gap = 70, n = bars.length, x0 = -((n * bw + (n - 1) * gap) / 2) + bw / 2;
+  const bw = 170, gap = 100, n = bars.length, x0 = -((n * bw + (n - 1) * gap) / 2) + bw / 2;
   S.layer(P("icn", cx, cy, `<path d="M${x0 - 120} 240H${-x0 + 120}" stroke="#cfe0f5" stroke-width="5" opacity=".6"/>` + bars.map((b, i) => `<g transform="translate(${x0 + i * (bw + gap)} 240)"><g data-p="bar${i}"><rect x="${-bw / 2}" y="${-(b.val * 420)}" width="${bw}" height="${b.val * 420}" fill="${b.col || "#ffb84a"}" ${O(7)}/>
-      <text y="${-(b.val * 420) - 18}" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="52" fill="#fff" stroke="#05070c" stroke-width="8" paint-order="stroke">${b.txt}</text></g><text y="52" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="26" fill="#e8eef9" letter-spacing="3">${b.label}</text></g>`).join("")), 1.0);
+      <text y="${-(b.val * 420) - 18}" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="52" fill="#fff" stroke="#05070c" stroke-width="8" paint-order="stroke">${b.txt}</text></g><text y="52" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="23" fill="#e8eef9" letter-spacing="2">${b.label}</text></g>`).join("")), 1.0);
   bars.forEach((b, i) => { const e = S.q("bar" + i), ti = times ? times[i] : t + i * 0.3; e.style.opacity = "0"; S.key(e, "opacity", ti, 0, 0); S.key(e, "opacity", ti, 1, 0.05); S.key(e, "--sy", ti, 0.001, 0); S.key(e, "--sy", ti, 1, 0.6, "power3.out"); });
 };
 ic.funding = (S, cx, cy, t) => {
   S.layer(P("icn", cx, cy, `<rect x="-380" y="-210" width="760" height="420" rx="22" fill="#f3eee2" ${O(8)}/><text y="-90" text-anchor="middle" font-family='${FONT}' font-weight="700" font-size="30" fill="#7a5a2a" letter-spacing="8">FUNDING ROUND · NOV 2025</text><text y="50" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="190" fill="#2a1820">$225M</text>
-    <path d="M-300 90H300" stroke="#2a1820" stroke-width="4" opacity=".4"/><text y="140" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="34" fill="#2a1820" letter-spacing="4">LED BY GOLDMAN SACHS ALTERNATIVES</text><text y="182" text-anchor="middle" font-family='${FONT}' font-weight="700" font-size="24" fill="#7a5a2a" letter-spacing="4">WITH BDT &amp; MSD PARTNERS</text>`), 1.0);
+    <path d="M-300 90H300" stroke="#2a1820" stroke-width="4" opacity=".4"/><text y="140" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="26" fill="#2a1820" letter-spacing="2">LED BY GOLDMAN SACHS ALTERNATIVES</text><text y="182" text-anchor="middle" font-family='${FONT}' font-weight="700" font-size="22" fill="#7a5a2a" letter-spacing="3">WITH BDT &amp; MSD PARTNERS</text>`), 1.0);
   S.pop("icn", t, 0.45);
 };
 ic.tiles = (S, cx, cy, t) => {
@@ -355,12 +357,12 @@ const card = (o) => D.shot({ id: o.id, a: o.a, b: o.b, bg: { layers: [{ name: "f
   build(S) {
     const t0 = S.t0, t1 = S.t1, left = o.left || (o.icon ? 150 : 260), sz = o.size || 92, y0 = o.y0 || 470;
     S.layer(DK.boardNear(o.seed || 3), 1.3);
-    if (o.kick) { TX(S, "kick", left, y0 - 70, 30, "#ffb84a", o.kick, { ls: 11 }); appear(S, "kick", t0 + 0.1, 0.3, true); }
+    if (o.kick) { TX(S, "kick", left, y0 - Math.round(sz * 0.74) - 20, 30, "#ffb84a", o.kick, { ls: 11 }); appear(S, "kick", t0 + 0.1, 0.3, true); }
     (o.lines || []).forEach((ln, i) => { TX(S, "ln" + i, left, y0 + i * sz * 1.08, sz, i === (o.hi === undefined ? -1 : o.hi) ? "#ffb84a" : "#fff", ln, { ls: 4 }); appear(S, "ln" + i, o.lineAt && o.lineAt[i] ? o.lineAt[i](S) : t0 + 0.2 + i * 0.2, 0.3, true); });
     if (o.sub) { TX(S, "sub", left, y0 + (o.lines || []).length * sz * 1.08 + 20, o.subSize || 36, "#cfe0f5", o.sub, { w: 700, ls: 6, sw: 5 }); appear(S, "sub", t0 + 0.6, 0.3, true); }
     if (o.icon) o.icon(S, o.ix || 1430, o.iy || 560, t0 + (o.iat || 0.3), t1);
     if (o.hud) DK.hud(S, "hud", Object.assign({ t0: t0 + 0.05, t1: Math.min(t1 - 0.05, t0 + (o.hudDur || 1.6)) }, o.hud));
-    if (o.src) { TX(S, "src", 140, 912, 19, "#e8eef9", o.src, { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3); }
+    if (o.src) { TX(S, "src", 140, 912, 23, "#e8eef9", o.src, { w: 700, ls: 3, sw: 4 }); appear(S, "src", t0 + 0.8, 0.3); }
     badge(S, o.badge || GRAPHIC);
     if (o.extra) o.extra(S, t0, t1);
     grade(S, "mono", { tint: o.tint || "#6c84b4", ta: 0.2, dark: 0.1, vig: 0.74 });
@@ -379,7 +381,7 @@ const scene = (o) => D.shot({ id: o.id, a: o.a, b: o.b, bg: o.bg, cam: o.cam || 
     if (o.light) light(S, o.light[0], o.light[1], o.light[2], o.light[3], o.light[4], o.light[5]);
   } });
 
-const nameTag = (S, id, text, x, y, t) => { const w = text.length * 18 + 44; S.layer(P(id, x, y, `<rect x="${-w / 2}" y="-34" width="${w}" height="52" rx="8" fill="#fff" ${st(6)}/><text y="6" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#2a1820" letter-spacing="3">${text}</text>`), 1.1); S.pop(id, t, 0.35); };
+const nameTag = (S, id, text, x, y, t) => { const w = text.length * 25 + 70; S.layer(P(id, x, y, `<rect x="${-w / 2}" y="-34" width="${w}" height="52" rx="8" fill="#fff" ${st(6)}/><text y="6" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="30" fill="#2a1820" letter-spacing="3">${text}</text>`), 1.1); S.pop(id, t, 0.35); };
 const dimTo = (S, t, op, dur, col) => { S.layer(`<g data-p="dimv"><rect width="1920" height="1080" fill="${col || "#0a1020"}" opacity="0"/></g>`, 0); const e = S.q("dimv").firstElementChild; S.key(e, "opacity", t, 0, 0); S.key(e, "opacity", t, op, dur, "sine.inOut"); };
 
 /* ===================================================================================================== */
@@ -420,30 +422,29 @@ scene({ id: "intro", a: W("c1a", 0), b: W("c1c", 0), bg: B.avenue(), cam: { from
     S.layer(FG.leaves("L"), 1.7); S.layer(FG.leaves("R"), 1.75);
     S.layer(`<defs><linearGradient id="gx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070c" stop-opacity=".5"/><stop offset="1" stop-color="#05070c" stop-opacity="0"/></linearGradient></defs><rect width="1920" height="200" fill="url(#gx)"/>`, 0);
     nameTag(S, "kn", "KIM KARDASHIAN", 960, 250, t0 + 2.2);
-    TX(S, "hdr", 960, 120, 34, "#fff", "WHAT IF YOU WERE BORN AS KIM KARDASHIAN?", { anchor: "middle", ls: 6, sw: 6, depth: 0 });
+    TX(S, "hdr", 960, 120, 40, "#fff", "WHAT IF YOU WERE BORN AS KIM KARDASHIAN?", { anchor: "middle", ls: 5, sw: 3, depth: 0 });
     appear(S, "hdr", t0 + 0.1, 0.4);
-    badge(S, RECON);
   } });
 
 /* 2-5 · MONTAGE: a famous family / television cameras / fashion / a business empire */
-scene({ id: "mFam", a: W("c1c", 0), b: W("c1c", 3), bg: B.living(), cam: { from: [50, 0, 0.0], to: [-30, 0, 0.12] }, grade: ["glam", {}], light: [960, 760, 700, 400, "#ffe2c0", 0.3],
+scene({ id: "mFam", badge: false, a: W("c1c", 0), b: W("c1c", 3), bg: B.living(), cam: { from: [50, 0, 0.0], to: [-30, 0, 0.12] }, grade: ["glam", {}], light: [960, 760, 700, 400, "#ffe2c0", 0.3],
   build(S) {
     const t0 = S.t0, L = [[DAD, 560, 0.9], [MOM, 760, 0.86], [SIS1, 960, 1.1], [KID, 1140, 1.0], [BRO, 1310, 0.9], [SIS2, 1470, 0.95]];
     L.forEach(([sp, x, sc], i) => { const a = S.actor("f" + i, sp, x, 930, sc, { seed: 5 + i, expr: "happy", depth: 0.9, pivot: [x, 930] }); a.k("self", "--y", t0, 80, 0); a.k("self", "--y", t0 + 0.12 * i, 0, 0.35, "power3.out"); a.appear(t0 + 0.12 * i, 0.3); });
     C.dust(S, { n: 12, seed: 17, box: [300, 200, 1300, 600], color: "#fff1c4", depth: 1.1, op: 0.4 });
   } });
 DK.flash(D.W("c1c", 3), 0.55, 0.18);
-scene({ id: "mCam", a: W("c1c", 3), b: W("c1c", 5), bg: B.stage(), cam: { from: [0, 0, 0.0], to: [0, 0, 0.1] }, grade: ["studio", {}],
+scene({ id: "mCam", badge: false, a: W("c1c", 3), b: W("c1c", 5), bg: B.stage(), cam: { from: [0, 0, 0.0], to: [0, 0, 0.1] }, grade: ["studio", {}],
   build(S) {
     const t0 = S.t0;
     S.layer(PR.spot(300, 330, 10), 0.8); S.layer(PR.spot(1620, 330, 170), 0.8);
     S.layer(`<g data-p="bigcam"><g transform="translate(960 640) scale(2.3) translate(-1500 -760)">${FG.cam()}</g></g>`, 1.3);
     S.key("bigcam", "--s", t0, 0.85, 0); S.key("bigcam", "--s", t0, 1, S.dur, "power1.out");
-    [0.15, 0.5, 0.85, 1.2].forEach((d) => DK.flash(t0 + d, 0.6, 0.15));
+    [0.55, 0.95, 1.35].forEach((d) => DK.flash(t0 + d, 0.6, 0.15));
     C.dust(S, { n: 14, seed: 19, box: [200, 100, 1500, 800], color: "#fff", depth: 1.2, op: 0.4 });
   } });
 DK.flash(D.W("c1c", 5), 0.5, 0.18);
-scene({ id: "mFash", a: W("c1c", 5), b: W("c1c", 9), bg: B.stage(), cam: { from: [0, 0, 0.0], to: [0, 0, 0.14] }, grade: ["glam", {}], light: [960, 760, 520, 380, "#ffe0f6", 0.34],
+scene({ id: "mFash", badge: false, a: W("c1c", 5), b: W("c1c", 9), bg: B.stage(), cam: { from: [0, 0, 0.0], to: [0, 0, 0.14] }, grade: ["glam", {}], light: [960, 760, 520, 380, "#ffe0f6", 0.34],
   build(S) {
     const t0 = S.t0, t1 = S.t1, PV = [960, 720];
     S.layer(PR.spot(300, 330, 10), 0.8); S.layer(PR.spot(1620, 330, 170), 0.8);
@@ -454,7 +455,7 @@ scene({ id: "mFash", a: W("c1c", 5), b: W("c1c", 9), bg: B.stage(), cam: { from:
     for (let t = t0 + 0.3; t < t1 - 0.2; t += 0.55) DK.flash(t, 0.35, 0.12);
     S.layer(FG.heads(5, 8, 1150), 1.45);
   } });
-scene({ id: "mEmp", a: W("c1c", 9), b: W("c1d", 0), bg: B.boutique(), cam: { from: [0, 14, 0.0], to: [0, -8, 0.16] }, grade: ["glam", {}], light: [560, 760, 520, 420, "#fff1d8", 0.34],
+scene({ id: "mEmp", badge: false, a: W("c1c", 9), b: W("c1d", 0), bg: B.boutique(), cam: { from: [0, 14, 0.0], to: [0, -8, 0.16] }, grade: ["glam", {}], light: [560, 760, 520, 420, "#fff1d8", 0.34],
   build(S) {
     const t0 = S.t0, t1 = S.t1;
     const k = S.actor("kimE", KIM25, 700, 920, 1.05, { seed: 61, expr: "happy", pivot: [700, 920] });
@@ -644,17 +645,17 @@ scene({ id: "stadium", a: W("c1i", 6), b: W("c1j", 0), bg: B.stadium(), cam: { f
     const t0 = S.t0, t1 = S.t1, PV = [700, 900];
     const br = S.actor("bruceR", BRUCE, PV[0], PV[1], 0.9, { seed: 91, idle: false, pivot: PV, expr: "determined" });
     br.k("self", "--x", t0, -260, 0); br.walk(t0 + 0.05, t1 - 0.1, 1300, { arms: true, step: 0.22, amp: 30 });
-    S.layer(FX.note("olym", ["Olympic decathlon", "GOLD · 1976"], 1350, 330, { w: 600, size: 66, rot: -4 }), 1.0); S.fadeIn("olym", D.W("c1i", 9), 0.3);
+    S.layer(FX.note("olym", ["Olympic decathlon", "GOLD · 1976"], 1350, 330, { w: 600, size: 66, rot: -4 }), 1.0); S.fadeIn("olym", D.W("c1i", 9), 0.3); S.wipe("olym", D.W("c1i", 9) + 0.25, 1.2);
     S.layer(P("md", 0, 0, PR.medal(1560, 640)), 1.1); S.pop("md", D.W("c1i", 12) - 0.1, 0.4);
     DK.flash(D.W("c1i", 13), 0.45, 0.2);
     DK.tag(S, "brTag", "BRUCE JENNER", "OLYMPIC CHAMPION", 120, 330, D.W("c1i", 6) + 0.1, { w: 640 });
     DK.hud(S, "hst", { from: 1976, to: 1976, t0, t1, marks: [{ y: 1976, label: "OLYMPICS" }] });
   } });
-card({ id: "deca", a: W("c1j", 0), b: W("c1k", 0), year: 1976, seed: 9, kick: "THE DECATHLON", lines: ["10 EVENTS", "2 DAYS"], hi: 1, sub: "ITS WINNER IS OFTEN CALLED THE WORLD'S GREATEST ATHLETE", subSize: 30, src: "SOURCE: HISTORY.COM",
+card({ id: "deca", a: W("c1j", 0), b: W("c1k", 0), year: 1976, seed: 9, kick: "THE DECATHLON", lines: ["10 EVENTS", "2 DAYS"], hi: 1, sub: "OFTEN CALLED THE WORLD'S GREATEST ATHLETE", subSize: 32, src: "SOURCE: HISTORY.COM",
   extra(S, t0, t1) {
-    let m = ""; for (let i = 0; i < 10; i++) m += `<g data-p="ev${i}"><g transform="translate(${(i % 5) * 150} ${(i / 5 | 0) * 150})"><circle r="52" fill="${i < 5 ? "#3d6a9c" : "#c4666b"}" ${st(7)}/><text y="16" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="46" fill="#fff">${i + 1}</text></g></g>`;
-    S.layer(P("evs", 1090, 560, m), 1.0); for (let i = 0; i < 10; i++) S.pop("ev" + i, D.W("c1j", 3) + i * 0.22, 0.3);
-    TX(S, "day1", 1090, 450, 24, "#9ec2ea", "DAY 1", { ls: 8, w: 800, sw: 4 }); TX(S, "day2", 1090, 598, 24, "#f0b6c0", "DAY 2", { ls: 8, w: 800, sw: 4 }); appear(S, "day1", D.W("c1j", 3), 0.3); appear(S, "day2", D.W("c1j", 3) + 1.2, 0.3);
+    let m = ""; for (let i = 0; i < 10; i++) m += `<g data-p="ev${i}"><g transform="translate(${(i % 5) * 130} ${(i / 5 | 0) * 150})"><circle r="48" fill="${i < 5 ? "#3d6a9c" : "#c4666b"}" ${st(7)}/><text y="15" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="42" fill="#fff">${i + 1}</text></g></g>`;
+    S.layer(P("evs", 1290, 560, m), 1.0); for (let i = 0; i < 10; i++) S.pop("ev" + i, D.W("c1j", 3) + i * 0.22, 0.3);
+    TX(S, "day1", 1240, 470, 24, "#9ec2ea", "DAY 1", { ls: 8, w: 800, sw: 4 }); TX(S, "day2", 1240, 648, 24, "#f0b6c0", "DAY 2", { ls: 8, w: 800, sw: 4 }); appear(S, "day1", D.W("c1j", 3), 0.3); appear(S, "day2", D.W("c1j", 3) + 1.2, 0.3);
   } });
 
 /* 14 · the new family: Bruce and Kris with the children; the world is about to notice the father */
@@ -679,14 +680,13 @@ scene({ id: "fam91", a: W("c1k", 0), b: "end", bg: B.garden(), cam: { from: [0, 
 if (has("c2a")) {
 
 /* 1994: night in Los Angeles, a case grips the country */
-D.vhs(D.W("c2a", 0), null, { strength: 0.5, pre: 0.05, post: 0.2, bars: 3 });
 scene({ id: "n94", a: W("c2a", 0), b: W("c2b", 0), bg: B.avenue(), cam: { from: [20, 8, 0.0], to: [-20, -8, 0.16] }, rays: false, grade: ["night", {}], light: [960, 760, 560, 360, "#9fb8ff", 0.3],
   build(S) {
     const t0 = S.t0, t1 = S.t1;
     dimTo(S, t0, 0.55, 0.1, "#0a1226");
-    S.layer(`<g data-p="rl"><circle cx="420" cy="620" r="320" fill="#e22" opacity=".0"/></g><g data-p="bl"><circle cx="1500" cy="620" r="320" fill="#26f" opacity=".0"/></g>`, 0.7);
+    S.layer(`<defs><radialGradient id="rgR"><stop offset="0" stop-color="#ff3a3a" stop-opacity=".75"/><stop offset="1" stop-color="#ff3a3a" stop-opacity="0"/></radialGradient><radialGradient id="rgB"><stop offset="0" stop-color="#3a6aff" stop-opacity=".75"/><stop offset="1" stop-color="#3a6aff" stop-opacity="0"/></radialGradient></defs><g data-p="rl"><ellipse cx="420" cy="620" rx="420" ry="300" fill="url(#rgR)" opacity="0"/></g><g data-p="bl"><ellipse cx="1500" cy="620" rx="420" ry="300" fill="url(#rgB)" opacity="0"/></g>`, 0.7);
     const rl = S.q("rl").firstElementChild, bl = S.q("bl").firstElementChild;
-    for (let t = t0, i = 0; t < t1; t += 0.3, i++) { S.key(rl, "opacity", t, i % 2 ? 0 : 0.4, 0); S.key(bl, "opacity", t, i % 2 ? 0.4 : 0, 0); }
+    for (let t = t0, i = 0; t < t1; t += 0.3, i++) { S.key(rl, "opacity", t, i % 2 ? 0 : 0.55, 0); S.key(bl, "opacity", t, i % 2 ? 0.55 : 0, 0); }
     C.fog(S, { y: 650, h: 220, color: "#6f86c0", op: 0.3, seed: 8, depth: 0.55, drift: 100 });
     S.layer(FG.leaves("L"), 1.7); S.layer(FG.leaves("R"), 1.75);
     DK.tag(S, "n94t", "LOS ANGELES · 1994", "A MURDER CASE GRIPS THE COUNTRY", 120, 330, t0 + 0.3, { w: 860 });
@@ -773,7 +773,7 @@ scene({ id: "dash", a: W("c2j", 0), b: W("c2k", 0), bg: B.boutique(), cam: { fro
   build(S) {
     const t0 = S.t0, t1 = S.t1, td = D.W("c2j", 9);
     const L = [[SISA, 560, 1.0, "sA"], [KIM00, 960, 1.04, "kD"], [SISB, 1360, 1.0, "sB"]];
-    L.forEach(([sp, x, sc, id], i) => { const a = S.actor(id, sp, x, 940, sc, { seed: 91 + i, expr: "happy", pivot: [x, 940] }); a.k("self", "--y", td - 0.1, 90, 0); a.k("self", "--y", td + 0.1 * i, 0, 0.4, "power3.out"); a.hiddenUntil(td - 0.1); if (i === 1) a.arm("R", td + 0.5, -150, -20, 0.4, "back.out(1.5)"); });
+    L.forEach(([sp, x, sc, id], i) => { const a = S.actor(id, sp, x, 940, sc, { seed: 91 + i, expr: "happy", pivot: [x, 940] }); if (i !== 1) { a.k("self", "--y", td - 0.1, 90, 0); a.k("self", "--y", td + 0.1 * i, 0, 0.4, "power3.out"); a.hiddenUntil(td - 0.1); } else { a.face(td, "laugh", 0.3); a.arm("R", td + 0.5, -150, -20, 0.4, "back.out(1.5)"); } });
     S.layer(`<g data-p="dsign"><g transform="translate(960 290)"><rect x="-210" y="-70" width="420" height="120" rx="14" fill="#2a1820" ${st(8)}/><rect x="-194" y="-54" width="388" height="88" rx="8" fill="none" stroke="#ffb84a" stroke-width="4"/><text y="22" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="86" fill="#ffb84a" letter-spacing="14">DASH</text></g></g>`, 1.0);
     S.pop("dsign", D.W("c2j", 11), 0.4); confetti(S, td + 0.2, 16, 5);
     DK.tag(S, "dT", "2006 · PARIS HILTON", "YOU OPEN A BOUTIQUE: DASH", 120, 330, D.W("c2j", 0) + 0.3, { w: 780 });
@@ -879,16 +879,16 @@ scene({ id: "court2", a: W("c3e", 0), b: W("c3f", 0), bg: B.court(), cam: { from
     C.fog(S, { y: 700, h: 200, color: "#8fa4d0", op: 0.22, seed: 5, depth: 0.55, drift: 80 });
     const dd = S.actor("dadG", DAD, 620, 900, 0.9, { seed: 9, expr: "neutral", pivot: [620, 900], depth: 0.8 });
     const kk = S.actor("kimC", KIM25, 1130, 940, 1.08, { seed: 111, expr: "neutral", pivot: [1130, 940] });
-    kk.k("self", "--x", t0, 480, 0); kk.walk(t0 + 0.05, t1 - 0.2, -480, { arms: false, step: 0.3 }); kk.turn(D.W("c3e", 5), -8, -3, 0.5);
+    kk.k("self", "--x", t0, 480, 0); kk.walk(t0 + 0.05, t1 - 0.2, -480, { arms: false, step: 0.3 }); 
     S.layer(PR.briefcase(0, 0), 0.9); const bc = S.q("pr"); S.key(bc, "--x", t0, 800, 0); S.key(bc, "--y", t0, 900, 0); S.key(bc, "--x", t0 + 0.02, 330, t1 - t0 - 0.22, "none");
     DK.tag(S, "c2T", "YOUR FATHER'S WORLD", "OF COURTROOMS NEVER LEAVES YOU", 120, 330, t0 + 0.3, { w: 860 });
     DK.hud(S, "hc2", { from: 2017, to: 2018, t0, t1: Math.min(t1 - 0.05, t0 + 1.2), marks: [{ y: 2017, label: "KKW" }] });
     badge(S, RECON);
   } });
-card({ id: "johnson", a: W("c3f", 0), b: W("c3h", 0), year: 2018, seed: 25, kick: "2018 · PRESIDENTIAL COMMUTATION", lines: ["ALICE MARIE", "JOHNSON"], hi: 1, size: 84, sub: "SERVING A LIFE SENTENCE · YOU HELP WIN HER RELEASE", subSize: 26, icon: ic.doc, ix: 1500, iy: 540, hud: { from: 2017, to: 2018, marks: [{ y: 2017, label: "KKW" }, { y: 2018, label: "2018" }] }, src: "SOURCE: HISTORY.COM · BRITANNICA" });
+card({ id: "johnson", a: W("c3f", 0), b: W("c3h", 0), year: 2018, seed: 25, kick: "2018 · PRESIDENTIAL COMMUTATION", lines: ["ALICE MARIE", "JOHNSON"], hi: 1, size: 84, sub: "LIFE SENTENCE · YOU HELP WIN HER RELEASE", subSize: 30, icon: ic.doc, ix: 1500, iy: 540, hud: { from: 2017, to: 2018, marks: [{ y: 2017, label: "KKW" }, { y: 2018, label: "2018" }] }, src: "SOURCE: HISTORY.COM · BRITANNICA" });
 card({ id: "skims19", a: W("c3h", 0), b: W("c3g", 0), year: 2019, seed: 26, kick: "2019 · YOU LAUNCH", lines: ["SKIMS"], hi: 0, size: 150, sub: "A SHAPEWEAR BRAND · MOTHER OF FOUR", subSize: 32, icon: ic.four, ix: 1480, iy: 560, iat: Math.max(0.3, D.W("c3h", 13) - D.W("c3h", 0)), hud: { from: 2018, to: 2019, marks: [{ y: 2018, label: "2018" }, { y: 2019, label: "SKIMS" }] } });
 card({ id: "justice", a: W("c3g", 0), b: W("c3i", 0), year: 2020, seed: 27, kick: "2020 · DOCUMENTARY", lines: ["THE JUSTICE", "PROJECT"], hi: 1, size: 100, sub: "YOUR WORK ON CRIMINAL JUSTICE REFORM", subSize: 30, icon: ic.clap, ix: 1480, iy: 560, hud: { from: 2019, to: 2020, marks: [{ y: 2019, label: "SKIMS" }, { y: 2020, label: "2020" }] } });
-card({ id: "forbes", a: W("c3i", 0), b: W("c3j", 0), year: 2021, seed: 28, kick: "2021 · FORBES", lines: ["BILLIONAIRE"], hi: 0, size: 100, sub: "FORBES COUNTS YOU AMONG THE WORLD'S BILLIONAIRES", subSize: 24,
+card({ id: "forbes", a: W("c3i", 0), b: W("c3j", 0), year: 2021, seed: 28, kick: "2021 · FORBES", lines: ["BILLIONAIRE"], hi: 0, size: 100, sub: "FORBES: AMONG THE WORLD'S BILLIONAIRES", subSize: 32,
   icon: (S, cx, cy, t) => ic.stamp(S, cx, cy, D.W("c3i", 5), "BILLIONAIRE", "FORBES · 2021"), ix: 1500, iy: 560, hud: { from: 2020, to: 2021, marks: [{ y: 2020, label: "2020" }, { y: 2021, label: "FORBES" }] }, src: "SOURCE: FORBES" });
 card({ id: "babybar", a: W("c3j", 0), b: W("c3k", 0), year: 2021, seed: 29, kick: "DECEMBER 2021", lines: ["THE CALIFORNIA", "BABY BAR EXAM"], hi: 1, size: 80, sub: "PASSED ON THE FOURTH ATTEMPT", subSize: 32, icon: ic.attempts, ix: 1500, iy: 560, iat: Math.max(0.3, D.W("c3j", 11) - D.W("c3j", 0) - 0.9), hud: { from: 2021, to: 2021, marks: [{ y: 2021, label: "DEC 2021" }] }, src: "SOURCE: BRITANNICA" });
 
@@ -922,7 +922,7 @@ D.shot({ id: "skims", a: W("s6", 0), b: W("c3l", 0), bg: B.boutique(), cam: { fr
   } });
 card({ id: "fund", a: W("c3l", 0), b: W("c3m", 0), year: 2025, seed: 31, kick: "NOVEMBER 2025", lines: ["A $225 MILLION", "FUNDING ROUND"], hi: 1, size: 84, sub: "LED BY GOLDMAN SACHS ALTERNATIVES", subSize: 30, icon: ic.funding, ix: 1500, iy: 540, iat: Math.max(0.3, D.W("c3l", 5) - D.W("c3l", 0) - 0.2), hud: { from: 2023, to: 2025, marks: [{ y: 2023, label: "2023" }, { y: 2025, label: "NOV 2025" }] }, src: "SOURCE: GOLDMAN SACHS ALTERNATIVES PRESS RELEASE · NOV 12, 2025" });
 card({ id: "valnote", a: W("c3m", 0), b: W("c3n", 0), year: 2025, seed: 32, kick: "VALUATION IS NOT REVENUE", lines: ["$5 BILLION"], hi: 0, size: 120,
-  icon: (S, cx, cy, t) => ic.bars(S, cx, cy, t, [{ label: "COMPANY VALUATION", val: 1.0, txt: "$5B", col: "#c98a12" }, { label: "2025 NET SALES (TARGET)", val: 0.2, txt: "$1B+", col: "#3d6a9c" }], [D.W("c3m", 2), D.W("c3m2", 8)]), ix: 1500, iy: 480, hud: { from: 2025, to: 2025, marks: [{ y: 2025, label: "NOV 2025" }] },
+  icon: (S, cx, cy, t) => ic.bars(S, cx, cy, t, [{ label: "VALUATION", val: 1.0, txt: "$5B", col: "#c98a12" }, { label: "NET SALES 2025", val: 0.2, txt: "$1B+", col: "#3d6a9c" }], [D.W("c3m", 2), D.W("c3m2", 8)]), ix: 1500, iy: 480, hud: { from: 2025, to: 2025, marks: [{ y: 2025, label: "NOV 2025" }] },
   src: "SOURCE: GOLDMAN SACHS ALTERNATIVES · THE COMPANY SAYS IT IS ON TRACK TO PASS $1B IN NET SALES IN 2025",
   extra(S, t0) {
     S.layer(`<g data-p="vbar"><g transform="translate(140 640)"><rect width="1040" height="86" rx="12" fill="#05070c" opacity=".78"/><text x="520" y="58" text-anchor="middle" font-family='${FONT}' font-weight="800" font-size="35" fill="#ffb84a" letter-spacing="1.5">COMPANY VALUATION: $5 BILLION — NOVEMBER 2025</text></g></g>`, 1.0);
@@ -951,10 +951,10 @@ scene({ id: "endq", a: W("c3o", 0), b: "end", bg: B.avenue(), cam: { from: [0, -
     C.fog(S, { y: 650, h: 220, color: "#ffcfa0", op: 0.32, seed: 3, depth: 0.55, drift: 120 });
     C.dust(S, { n: 22, seed: 23, box: [100, 100, 1700, 800], color: "#ffe9c0", depth: 1.1, op: 0.5 });
     S.layer(FG.leaves("L"), 1.7); S.layer(FG.leaves("R"), 1.75);
-    S.layer(`<defs><linearGradient id="eband" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070c" stop-opacity="0"/><stop offset=".25" stop-color="#05070c" stop-opacity=".62"/><stop offset=".75" stop-color="#05070c" stop-opacity=".62"/><stop offset="1" stop-color="#05070c" stop-opacity="0"/></linearGradient></defs><rect x="0" y="180" width="1920" height="330" fill="url(#eband)"/>`, 0);
+    S.layer(`<defs><linearGradient id="eband" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070c" stop-opacity="0"/><stop offset=".25" stop-color="#05070c" stop-opacity=".62"/><stop offset=".75" stop-color="#05070c" stop-opacity=".62"/><stop offset="1" stop-color="#05070c" stop-opacity="0"/></linearGradient></defs><rect x="0" y="170" width="1920" height="420" fill="url(#eband)"/>`, 0);
     TX(S, "q1", 960, 290, 40, "#cfe0ff", "NOW IMAGINE IT WAS YOUR LIFE", { anchor: "middle", ls: 10, w: 700, sw: 5, depth: 0 });
     TX(S, "q2", 960, 420, 84, "#fff", "WHAT WOULD YOU HAVE", { anchor: "middle", ls: 4, sw: 7, depth: 0 });
-    TX(S, "q3", 960, 505, 84, "#ffb84a", "DONE DIFFERENTLY?", { anchor: "middle", ls: 4, sw: 7, depth: 0 });
+    TX(S, "q3", 960, 530, 84, "#ffb84a", "DONE DIFFERENTLY?", { anchor: "middle", ls: 4, sw: 7, depth: 0 });
     appear(S, "q1", D.W("c3o", 0) + 0.1, 0.5); appear(S, "q2", D.W("c3o", 6) - 0.1, 0.5); appear(S, "q3", D.W("c3o", 8), 0.5);
   } });
 
