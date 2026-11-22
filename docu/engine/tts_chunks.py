@@ -158,7 +158,8 @@ def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
         if quiet < 0.05:
             rep["warnings"].append(f"{sents[si]['id']}|{sents[si + 1]['id']}: no real pause here (quiet {quiet * 1000:.0f} ms, {how})")
         cuts.append(c)
-        rep.setdefault("cuts", []).append({"between": f"{sents[si]['id']}|{sents[si + 1]['id']}", "t": round(c, 3), "gap_ms": round((b - a) * 1000), "quiet_ms": round(quiet * 1000), "how": how})
+        rep.setdefault("cuts", []).append({"between": f"{sents[si]['id']}|{sents[si + 1]['id']}", "t": round(c, 3), "gap_ms": round((b - a) * 1000), "quiet_ms": round(quiet * 1000), "how": how,
+                                              "whisper_end": round(a, 3), "whisper_start": round(b, 3), "window": [round(lo, 3), round(hi, 3)]})
     cuts.append(total)
     pieces = []
     fade = int(rate * 0.006)
@@ -364,6 +365,9 @@ def cmd_selftest(a):
                 inside += lo - 0.005 <= c["t"] <= hi + 0.005
                 errs.append(c["t"] - (lo + hi) / 2)
             n = len(rep["cuts"])
+            for c, (t0, t1) in zip(rep["cuts"], zip(truth[:-1], truth[1:])):
+                if not t0["end"] - 0.005 <= c["t"] <= t1["start"] + 0.005:
+                    print(f"   MISS {c['between']}: cut {c['t']} s | true pause {t0['end']:.3f}..{t1['start']:.3f} | whisper last-word end {c['whisper_end']} / next-word start {c['whisper_start']} | window {c['window']} | {c['how']} quiet {c['quiet_ms']} ms")
             bad_dur = [p for p in pieces if len(p) < 0.5 * rate]
             ok = inside == n and not bad_dur and rep["ok"]
             ok_all &= ok
