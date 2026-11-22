@@ -76,21 +76,62 @@ jobs:
             exit 1
           fi
 
-      - name: Generate narration (Gemini TTS free tier; cached sentences are skipped)
+      - name: Restore Whisper model cache
+        id: whisper-model
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - name: Install faster-whisper (also used to cut continuous narration into sentences)
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+
+      - name: Generate narration - ONE Gemini free-tier request per run of consecutive uncached sentences
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # The free tier allows only a few Gemini TTS requests per day. Each chapter is attempted in order; the first one that
-          # cannot be finished stops the loop (finished sentences are cached for the next daily run). Nothing is routed around the limit.
+          # Sentences already in the cache (chapter 1, s1..s6, c2a/c2b/c2c, ...) are never regenerated; they only mark the boundaries
+          # of a run. 25 s between requests (free tier: 3 per minute). The first HTTP 429 stops every new request (exit code 3);
+          # nothing is retried after 429 and nothing is routed around the limit. Raw chunks are saved at once.
+          for C in c1 c2 c3; do
+            set +e
+            python3 docu/engine/tts_chunks.py generate --project "$PROJECT" --chapter "$C" --spacing 25 --max-requests 3
+            RC=$?
+            set -e
+            if [ "$RC" = "3" ]; then echo "::warning::free-tier daily limit reached at chapter $C; no more requests today. Re-run after the reset."; break; fi
+            if [ "$RC" != "0" ]; then echo "::warning::chunk generation for $C stopped (exit $RC)"; break; fi
+          done
+
+      - name: Save story cache (raw chunks are protected before any cutting)
+        if: always()
+        run: mkdir -p .cache/story; echo "KEY=story-cache-v2-$(find .cache/story -type f | sort | sha256sum | cut -c1-24)" >> "$GITHUB_ENV"; echo "COUNT=$(find .cache/story -type f | wc -l)" >> "$GITHUB_ENV"
+
+      - uses: actions/cache/save@v5
+        if: always() && env.COUNT != '0'
+        with:
+          path: .cache/story
+          key: ${{ env.KEY }}
+
+      - name: Cut continuous audio into sentences (Whisper word times; NO API key in this step)
+        run: |
+          for C in c1 c2 c3; do
+            .venv-whisper/bin/python docu/engine/tts_chunks.py split --project "$PROJECT" --chapter "$C" || echo "::warning::chapter $C: some chunks are missing or were rejected (see log)"
+          done
+
+      - name: Core TTS stage in cache-only mode (GEMINI_API_KEY is NOT set here, so no request can be sent)
+        run: |
           DONE=""
           for C in c1 c2 c3; do
-            if python3 docu/engine/run.py tts --project "$PROJECT" --chapter "$C"; then DONE="$DONE $C"
-            else echo "::warning::chapter $C is not finished (free-tier daily limit). Re-run later; cached sentences are reused."; break; fi
+            if env -u GEMINI_API_KEY python3 docu/engine/run.py tts --project "$PROJECT" --chapter "$C"; then DONE="$DONE $C"
+            else echo "::warning::chapter $C is not complete yet (missing sentences). Re-run after the daily reset; cached audio is reused."; break; fi
           done
           echo "DONE_CHAPTERS=${DONE# }" >> "$GITHUB_ENV"
           echo "chapters with complete narration: ${DONE# }"
 
-      - name: Save story cache right away
+      - name: Save story cache after cutting
         if: always()
         run: mkdir -p .cache/story; echo "KEY=story-cache-v2-$(find .cache/story -type f | sort | sha256sum | cut -c1-24)" >> "$GITHUB_ENV"; echo "COUNT=$(find .cache/story -type f | wc -l)" >> "$GITHUB_ENV"
 
@@ -108,26 +149,15 @@ jobs:
             python3 docu/engine/run.py fit --project "$PROJECT" --chapter "$C" || true
           done
 
-      - name: Restore Whisper model cache
-        if: env.DONE_CHAPTERS != ''
-        id: whisper-model
-        uses: actions/cache/restore@v5
-        with:
-          path: ~/.cache/huggingface/hub
-          key: faster-whisper-small-v1
-
-      - name: Word timestamps (faster-whisper)
+      - name: Word timestamps (faster-whisper, per sentence, as before)
         if: env.DONE_CHAPTERS != ''
         run: |
-          python3 -m venv .venv-whisper
-          .venv-whisper/bin/pip install --upgrade pip
-          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
           for C in $DONE_CHAPTERS; do
             .venv-whisper/bin/python docu/engine/run.py whisper --project "$PROJECT" --chapter "$C"
           done
 
       - name: Save Whisper model cache
-        if: env.DONE_CHAPTERS != '' && steps.whisper-model.outputs.cache-hit != 'true'
+        if: always() && steps.whisper-model.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: ~/.cache/huggingface/hub
@@ -151,6 +181,8 @@ jobs:
             build/docu/kim-docu-6min/*/timing_report.md
             build/docu/kim-docu-6min/*/tts_meta.json
             build/docu/kim-docu-6min/*/audio_meta.json
+            build/docu/kim-docu-6min/*/chunk_report.json
+            build/docu/kim-docu-6min/*/chunks_log.json
           if-no-files-found: warn
           retention-days: 30
 

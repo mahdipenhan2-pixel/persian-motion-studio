@@ -113,4 +113,40 @@ check(_all["s3"] == "When you are nine, your parents separate.", "kim-docu-6min:
 check(_six["voice"] == proj["voice"], "kim-docu-6min: same voice/style as the approved audio")
 check(all(2 <= len(c["sentences"]) <= 40 for c in _six["chapters"]), "kim-docu-6min: every chapter within the core limit")
 check(len(_six["sources"]) >= 6, "kim-docu-6min: sources recorded")
+
+# ---- 8. chunked narration (one request per run of uncached sentences; no API in these tests) ----
+import tempfile as _tf, numpy as _np
+sys.path.insert(0, str(DOCU / "engine"))
+import tts_chunks as TC
+_p6 = P.load("kim-docu-6min"); _c2 = P.chapter(_p6, "c2")
+_cfg = P.core_config(_p6, _c2)["tts"]
+_scr = P.core_script(_p6, _c2)
+_cache = Path(_tf.mkdtemp()); _old = TC.core.AUDIO_CACHE; TC.core.AUDIO_CACHE = _cache
+for _s in _scr["sentences"][:2] + [x for x in _scr["sentences"] if x["id"] in ("s2", "s5")]:
+    (_cache / f"{TC.core.sentence_hash(_cfg, TC.core.spoken(_s))}.wav").write_bytes(b"x")
+_runs = TC.plan_runs(_scr, _cfg)
+check([len(r["sentences"]) for r in _runs] == [13, 4], "chunks: cached sentences are boundaries; every uncached sentence is in exactly one run")
+check(all(not (_cache / f"{x['hash']}.wav").exists() for r in _runs for x in r["sentences"]), "chunks: no cached sentence is planned for regeneration")
+TC.core.AUDIO_CACHE = _old; _sh.rmtree(_cache)
+# splitter on a synthetic continuous signal: three 'sentences' of noise bursts, known pauses
+_rate, _rng = 24000, _np.random.default_rng(3)
+_x, _words, _t = [], [], 0.0
+_sents = [{"id": "a", "text": "one two three"}, {"id": "b", "text": "four five six"}, {"id": "c", "text": "seven eight nine"}]
+_truth = []
+for _si, _s in enumerate(_sents):
+    for _w in _s["text"].split():
+        _n = int(0.35 * _rate); _x.append(_rng.normal(0, 3000, _n)); _words.append({"text": _w, "start": _t + 0.02, "end": _t + 0.33, "norm": TC.core.norm(_w)}); _t += 0.35
+    if _si < 2:
+        _x.append(_rng.normal(0, 5, int(0.5 * _rate))); _truth.append((_t, _t + 0.5)); _t += 0.5
+_pieces, _rep = TC.split_chunk(_rate, _np.concatenate(_x), _words, _sents)
+check(_pieces is not None and len(_pieces) == 3 and _rep["ok"], "splitter: 3 sentences recovered from a continuous signal")
+check(all(a <= c["t"] <= b for c, (a, b) in zip(_rep["cuts"], _truth)), "splitter: every cut falls inside the real pause, never inside a word")
+check(all(len(p) / _rate >= 1.0 for p in _pieces), "splitter: lead/tail silence matched to chapter 1, pieces are complete sentences")
+_bad_words = _words[:4]
+check(TC.split_chunk(_rate, _np.concatenate(_x), _bad_words, _sents)[0] is None, "splitter: refuses to cut when Whisper did not recognise a sentence")
+_wf = (DOCU.parent / ".github" / "workflows" / "docu-6min-audio.yml").read_text(encoding="utf-8")
+_steps = _wf.split("      - name: ")
+_cut = [s_ for s_ in _steps if s_.startswith("Cut continuous")][0]; _core = [s_ for s_ in _steps if s_.startswith("Core TTS stage")][0]; _gen = [s_ for s_ in _steps if s_.startswith("Generate narration")][0]
+check("GEMINI_API_KEY" not in _cut.replace("NO API key", "") and "secrets." not in _cut and "secrets." not in _core, "workflow: the cutting and the core-TTS steps never receive the API key")
+check("--spacing 25" in _gen and 'RC" = "3"' in _gen and "break" in _gen, "workflow: 25 s spacing and an immediate stop on HTTP 429")
 print("ALL OK")
