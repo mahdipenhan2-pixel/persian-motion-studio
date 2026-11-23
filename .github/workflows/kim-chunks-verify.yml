@@ -1,7 +1,7 @@
 name: Kim raw-chunk verify (restore only, no API, no save)
 
 # Read-only check that the four raw Gemini chunks of kim-docu-6min c2/c3 are in the Actions cache.
-# No secrets, no Gemini, no TTS, no cache save, no git push. Starts only when this file itself is pushed to docu-16x9-test30.
+# No secrets, no Gemini, no TTS, no cache save, no git push (it only reads). Starts only when this file itself is pushed to docu-16x9-test30.
 on:
   push:
     branches: ["docu-16x9-test30"]
