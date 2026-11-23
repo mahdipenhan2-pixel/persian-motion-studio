@@ -1,0 +1,15 @@
+{
+  "note": "The camera engine extends the page written by these UNCHANGED files at fixed anchor points. If either file changes, run_motion.py stops and the anchors must be re-checked (python3 studio/tests/test_camera.py t2) before the hashes are updated here.",
+  "files": {
+    "studio/engine/base.html": "5dbe7e3b2045b9c53e1b12dfc99159bf318c3b0d140c6c10592794cf666586c2",
+    "studio/engine/compose.py": "a7ad47f040bf3248539df4966e8e41e1b60b4cdc4acfb638ea65c8bf44d595ab"
+  },
+  "anchors": [
+    "</head>",
+    "</body>",
+    "window.__timelines[\"main\"] = tl;",
+    "const DATA = ",
+    "<div class=\"scene\" id=\"scene-<id>\">",
+    "<section id=\"stage\""
+  ]
+}
