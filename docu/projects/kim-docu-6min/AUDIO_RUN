@@ -1,1 +1,1 @@
-audio run 3 (2026-11-23 09:23 Berlin, after daily free-tier reset; approved 2026-11-22 14:32: exactly 4 requests, stop on first 429)
+audio run 3b (2026-11-23 09:25 Berlin; run 3 stopped at the offline test step, no API request was sent; approved 2026-11-22 14:32: exactly 4 requests, stop on first 429)

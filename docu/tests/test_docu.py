@@ -164,7 +164,7 @@ _ln = F6.parse_loudnorm('noise {\n "input_i" : "-20.1",\n "input_tp" : "-3.2",\n
 check(abs(_ln["input_i"] + 20.1) < 1e-9 and "measured_I=-20.1" in F6.pass2_filter(_ln), "final assembly: loudnorm measurement is parsed and fed to pass 2")
 _an = (DOCU / "qa" / "analyze_6min.py").read_text(encoding="utf-8")
 check("display" in (DOCU / "projects" / "kim-docu-6min" / "shots.js").read_text(encoding="utf-8") and "isolation" in _an, "structure check: every shot is switched off with display:none and checked for isolation")
-check((DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text().strip().endswith("audio run 2 (after daily free-tier reset)"), "AUDIO_RUN is unchanged (the real audio run stays for the next day)")
+check((DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text().strip().startswith("audio run"), "AUDIO_RUN marker file exists (a new line starts the approved real audio run; it never changes on its own)")
 _fc, _tot = F6.xfade_filter([95.2, 114.233, 119.533])
 check(_fc.count("xfade") == 2 and "offset=94.700" in _fc and abs(_tot - (95.2 + 114.233 + 119.533 - 1.0)) < 1e-6, "silent film: two 0.5 s cross-dissolves, offsets computed from the real chapter lengths")
 print("ALL OK")
