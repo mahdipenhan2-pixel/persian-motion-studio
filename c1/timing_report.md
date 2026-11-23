@@ -14,7 +14,7 @@
 - c1h: OK
 - c1h2: WARN
 - c1i: OK
-- c1j: OK
+- c1j: WARN
 - c1k: OK
 
 ### c1a - WARN (match 1.00)
@@ -47,21 +47,21 @@
 
 ### c1c - OK (match 1.00)
 
-- first word vs measured speech onset: -30 ms; last word vs speech end: -50 ms
+- first word vs measured speech onset: -30 ms; last word vs speech end: -30 ms
 
 | # | script word | recognized | start s | end s | status | timing quality | note |
 |---|---|---|---|---|---|---|---|
 | 0 | A | A | 11.31 | 11.41 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 300 ms early) |
 | 1 | famous | famous | 11.41 | 11.77 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 2 | family. | family, | 11.77 | 12.31 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 3 | Television | television | 12.69 | 13.05 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 2 | family. | family, | 11.77 | 12.33 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 3 | Television | television | 12.67 | 13.05 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 4 | cameras. | cameras, | 13.05 | 13.63 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 5 | Fashion, | fashion, | 14.07 | 14.55 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 5 | Fashion, | fashion, | 14.07 | 14.57 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 6 | fame, | fame, | 14.97 | 15.35 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 7 | and | and | 15.79 | 15.91 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 7 | and | and | 15.81 | 15.91 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 8 | a | a | 15.91 | 16.01 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 9 | business | business | 16.01 | 16.37 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 10 | empire. | empire. | 16.37 | 16.85 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 10 | empire. | empire. | 16.37 | 16.87 | exact | exact | exact normalized token match; Whisper word timestamp |
 
 ### c1d - OK (match 1.00)
 
@@ -69,15 +69,15 @@
 
 | # | script word | recognized | start s | end s | status | timing quality | note |
 |---|---|---|---|---|---|---|---|
-| 0 | But | But | 17.86 | 18.03 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 270 ms early) |
-| 1 | none | none | 18.03 | 18.35 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 0 | But | But, | 17.86 | 18.03 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 270 ms early) |
+| 1 | none | none | 18.11 | 18.35 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 2 | of | of | 18.35 | 18.53 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 3 | that | that | 18.53 | 18.69 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 4 | exists | exists | 18.69 | 18.99 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 5 | yet. | yet. | 18.99 | 19.37 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 4 | exists | exists | 18.69 | 18.97 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 5 | yet. | yet. | 18.97 | 19.37 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 6 | Your | Your | 19.95 | 20.13 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 7 | story | story | 20.13 | 20.53 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 8 | begins | begins | 20.53 | 21.03 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 7 | story | story | 20.13 | 20.51 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 8 | begins | begins | 20.51 | 21.03 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 9 | in | in | 21.03 | 21.35 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 10 | Los | Los | 21.35 | 21.51 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 11 | Angeles. | Angeles. | 21.51 | 21.93 | exact | exact | exact normalized token match; Whisper word timestamp |
@@ -113,11 +113,11 @@
 | 4 | Los | Los | 29.25 | 29.43 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 5 | Angeles | Angeles | 29.43 | 29.85 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 6 | of | of | 29.85 | 30.17 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 7 | 1980: | 1980, | 30.17 | 30.83 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 8 | palm | palm | 31.27 | 31.53 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 9 | trees, | trees, | 31.53 | 31.93 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 10 | film | film | 32.31 | 32.61 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 11 | studios, | studios, | 32.61 | 33.07 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 7 | 1980: | 1980, | 30.17 | 30.85 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 8 | palm | palm | 31.27 | 31.55 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 9 | trees, | trees, | 31.55 | 31.93 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 10 | film | film | 32.31 | 32.63 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 11 | studios, | studios, | 32.63 | 33.09 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 12 | and | and | 33.57 | 33.73 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 13 | a | a | 33.73 | 33.85 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 14 | city | city | 33.85 | 34.09 | exact | exact | exact normalized token match; Whisper word timestamp |
@@ -150,7 +150,7 @@
 ### c1f - WARN (match 1.00)
 
 - 2 word(s) aligned with differences or estimated boundaries
-- first word vs measured speech onset: -30 ms; last word vs speech end: -120 ms
+- first word vs measured speech onset: -30 ms; last word vs speech end: -100 ms
 
 | # | script word | recognized | start s | end s | status | timing quality | note |
 |---|---|---|---|---|---|---|---|
@@ -159,18 +159,18 @@
 | 2 | up | up | 42.57 | 42.83 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 3 | beside | beside | 42.83 | 43.25 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 4 | your | your | 43.25 | 43.51 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 5 | older | older | 43.51 | 43.79 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 6 | sister, | sister | 43.79 | 44.17 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 7 | Kourtney. | Courtney, | 44.235 | 44.69 | aligned | estimated | ESTIMATED boundary from matched character positions; review audio |
-| 8 | Later | later | 45.19 | 45.45 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 5 | older | older | 43.51 | 43.77 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 6 | sister, | sister, | 43.77 | 44.17 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 7 | Kourtney. | Courtney. | 44.45 | 44.73 | aligned | estimated | ESTIMATED boundary from matched character positions; review audio |
+| 8 | Later | Later | 45.27 | 45.45 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 9 | come | come | 45.45 | 45.75 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 10 | a | a | 45.75 | 45.87 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 11 | sister, | sister | 45.87 | 46.13 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 12 | Khloé, | Khloe | 46.13 | 46.482 | aligned | estimated | ESTIMATED boundary from matched character positions; review audio |
-| 13 | and | and | 46.57 | 47.01 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 11 | sister, | sister, | 45.87 | 46.15 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 12 | Khloé, | Chloe, | 46.374 | 46.506 | aligned | estimated | ESTIMATED boundary from matched character positions; review audio |
+| 13 | and | and | 46.91 | 47.01 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 14 | a | a | 47.01 | 47.11 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 15 | brother, | brother | 47.11 | 47.31 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 16 | Rob. | Rob. | 47.31 | 47.81 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 15 | brother, | brother, | 47.11 | 47.31 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 16 | Rob. | Rob. | 47.61 | 47.83 | exact | exact | exact normalized token match; Whisper word timestamp |
 
 ### s3 - OK (match 1.00)
 
@@ -233,14 +233,14 @@
 | 2 | him | him | 62.49 | 62.63 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 3 | in | in | 62.63 | 62.81 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 4 | April | April | 62.81 | 63.13 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 5 | 1991, | 1991, | 63.13 | 63.87 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 6 | one | one | 64.51 | 64.75 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 5 | 1991, | 1991, | 63.13 | 64.01 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 6 | one | one | 64.49 | 64.75 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 7 | month | month | 64.75 | 65.09 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 8 | after | after | 65.09 | 65.41 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 9 | her | her | 65.41 | 65.59 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 10 | divorce | divorce | 65.59 | 65.97 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 11 | is | is | 65.97 | 66.25 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 12 | final. | final. | 66.25 | 66.59 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 9 | her | her | 65.41 | 65.57 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 10 | divorce | divorce | 65.57 | 66.03 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 11 | is | is | 66.03 | 66.23 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 12 | final. | final. | 66.23 | 66.59 | exact | exact | exact normalized token match; Whisper word timestamp |
 
 ### c1h2 - WARN (match 1.00)
 
@@ -253,8 +253,8 @@
 | 1 | marriage | marriage | 67.85 | 68.27 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 2 | will | will | 68.27 | 68.49 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 3 | last | last | 68.49 | 68.89 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 4 | until | until | 68.89 | 69.29 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 5 | 2014. | 2014. | 69.29 | 70.37 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 4 | until | until | 68.89 | 69.27 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 5 | 2014. | 2014. | 69.27 | 70.37 | exact | exact | exact normalized token match; Whisper word timestamp |
 
 ### c1i - OK (match 1.00)
 
@@ -264,11 +264,11 @@
 |---|---|---|---|---|---|---|---|
 | 0 | On | On | 71.56 | 71.69 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 290 ms early) |
 | 1 | July | July | 71.69 | 71.93 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 2 | 30th, | 30th, | 71.93 | 72.77 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 3 | 1976, | 1976 | 72.89 | 73.65 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 4 | in | in | 73.65 | 74.23 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 2 | 30th, | 30th, | 71.93 | 72.75 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 3 | 1976, | 1976 | 72.89 | 73.61 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 4 | in | in | 73.61 | 74.23 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 5 | Montreal, | Montreal, | 74.23 | 74.61 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 6 | Bruce | Bruce | 75.25 | 75.53 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 6 | Bruce | Bruce | 75.27 | 75.53 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 7 | won | won | 75.53 | 75.97 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 8 | the | the | 75.97 | 76.21 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 9 | Olympic | Olympic | 76.21 | 76.65 | exact | exact | exact normalized token match; Whisper word timestamp |
@@ -279,29 +279,30 @@
 | 14 | world | world | 78.87 | 79.15 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 15 | record. | record. | 79.15 | 79.59 | exact | exact | exact normalized token match; Whisper word timestamp |
 
-### c1j - OK (match 1.00)
+### c1j - WARN (match 0.94)
 
+- 1 word(s) could not be matched and remain unhighlighted
 - first word vs measured speech onset: -30 ms; last word vs speech end: -110 ms
 
 | # | script word | recognized | start s | end s | status | timing quality | note |
 |---|---|---|---|---|---|---|---|
-| 0 | The | The | 80.51 | 80.63 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 260 ms early) |
-| 1 | decathlon | Decathlon | 80.63 | 81.21 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 2 | has | has | 81.21 | 81.63 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 3 | ten | ten | 81.63 | 81.99 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 0 | The | The | 80.51 | 80.65 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 260 ms early) |
+| 1 | decathlon | Decathlon | 80.65 | 81.19 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 2 | has | has | 81.19 | 81.63 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 3 | ten |  | - | - | unmatched | unresolved | UNRESOLVED: no reliable Whisper token matched this script word |
 | 4 | events | events | 81.99 | 82.49 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 5 | over | over | 82.49 | 82.81 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 6 | two | two | 82.81 | 83.13 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 7 | days, | days, | 83.13 | 83.41 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 8 | and | and | 83.89 | 83.99 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 8 | and | and | 83.91 | 83.99 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 9 | its | its | 83.99 | 84.11 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 10 | winner | winner | 84.11 | 84.39 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 11 | is | is | 84.39 | 84.63 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 12 | often | often | 84.63 | 84.91 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 13 | called | called | 84.91 | 85.23 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 14 | the | the | 85.23 | 85.43 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 15 | world's | world's | 85.43 | 85.93 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 16 | greatest | greatest | 85.93 | 86.25 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 15 | world's | world's | 85.43 | 85.95 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 16 | greatest | greatest | 85.95 | 86.25 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 17 | athlete. | athlete. | 86.25 | 86.81 | exact | exact | exact normalized token match; Whisper word timestamp |
 
 ### c1k - OK (match 1.00)
@@ -312,8 +313,8 @@
 |---|---|---|---|---|---|---|---|
 | 0 | Now | Now | 87.73 | 87.99 | exact | exact | exact normalized token match; Whisper word timestamp; start moved to the measured speech onset (Whisper was 220 ms early) |
 | 1 | that | that | 87.99 | 88.27 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 2 | name | name | 88.27 | 88.59 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 3 | is | is | 88.59 | 88.85 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 2 | name | name | 88.27 | 88.57 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 3 | is | is | 88.57 | 88.85 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 4 | part | part | 88.85 | 89.09 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 5 | of | of | 89.09 | 89.23 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 6 | your | your | 89.23 | 89.35 | exact | exact | exact normalized token match; Whisper word timestamp |
@@ -329,6 +330,6 @@
 | 16 | father | father | 92.13 | 92.51 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 17 | into | into | 92.51 | 93.13 | exact | exact | exact normalized token match; Whisper word timestamp |
 | 18 | a | a | 93.13 | 93.29 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 19 | public | public | 93.29 | 93.67 | exact | exact | exact normalized token match; Whisper word timestamp |
-| 20 | figure. | figure. | 93.67 | 94.09 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 19 | public | public | 93.29 | 93.69 | exact | exact | exact normalized token match; Whisper word timestamp |
+| 20 | figure. | figure. | 93.69 | 94.09 | exact | exact | exact normalized token match; Whisper word timestamp |
 
