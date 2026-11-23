@@ -1,0 +1,90 @@
+{
+  "sample_rate": 24000,
+  "lead": 5.0,
+  "gap": 0.3,
+  "tail": 0.7,
+  "pad": 0.25,
+  "total": 95.2,
+  "sentences": [
+    {
+      "id": "c1a",
+      "offset": 5.0,
+      "duration": 3.12
+    },
+    {
+      "id": "c1b",
+      "offset": 8.42,
+      "duration": 2.32
+    },
+    {
+      "id": "c1c",
+      "offset": 11.04,
+      "duration": 6.28
+    },
+    {
+      "id": "c1d",
+      "offset": 17.62,
+      "duration": 4.88
+    },
+    {
+      "id": "s1",
+      "offset": 22.8,
+      "duration": 4.88
+    },
+    {
+      "id": "c1s",
+      "offset": 27.98,
+      "duration": 7.52
+    },
+    {
+      "id": "c1e",
+      "offset": 35.8,
+      "duration": 5.8
+    },
+    {
+      "id": "c1f",
+      "offset": 41.9,
+      "duration": 6.4
+    },
+    {
+      "id": "s3",
+      "offset": 48.6,
+      "duration": 2.88
+    },
+    {
+      "id": "c1g",
+      "offset": 51.78,
+      "duration": 4.84
+    },
+    {
+      "id": "s4",
+      "offset": 56.92,
+      "duration": 4.4
+    },
+    {
+      "id": "c1h",
+      "offset": 61.62,
+      "duration": 5.48
+    },
+    {
+      "id": "c1h2",
+      "offset": 67.4,
+      "duration": 3.6
+    },
+    {
+      "id": "c1i",
+      "offset": 71.3,
+      "duration": 8.68
+    },
+    {
+      "id": "c1j",
+      "offset": 80.28,
+      "duration": 6.96
+    },
+    {
+      "id": "c1k",
+      "offset": 87.54,
+      "duration": 6.96
+    }
+  ]
+}

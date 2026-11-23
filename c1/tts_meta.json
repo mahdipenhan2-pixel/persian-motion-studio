@@ -1,0 +1,103 @@
+{
+  "model": "gemini-3.8-flash-tts",
+  "voice": "Kore",
+  "requests_used": 0,
+  "sentences": [
+    {
+      "id": "c1a",
+      "hash": "11dc515d05d2842ac5bd1d49d03d4924406ce6613ab9985575e0b54d75a1cdaa",
+      "cache_hit": true,
+      "duration": 3.12
+    },
+    {
+      "id": "c1b",
+      "hash": "c764bb7974814abb5a8fc050e6d12b55899f5ecf5f78594ce0e1afdf76c4b371",
+      "cache_hit": true,
+      "duration": 2.32
+    },
+    {
+      "id": "c1c",
+      "hash": "294e516a1a22d5754f4c4a129e05da5515712966939b3d30b519fc83c2e6a2d0",
+      "cache_hit": true,
+      "duration": 6.28
+    },
+    {
+      "id": "c1d",
+      "hash": "1bb209bbe6e2fc994ad59696d3006db93cc8c2ec5e1d1b6838356ff5208fc4c2",
+      "cache_hit": true,
+      "duration": 4.88
+    },
+    {
+      "id": "s1",
+      "hash": "7e6801d2d030510363f61cbe237ebb9a12a12e857227c90bdb28894e3d00612f",
+      "cache_hit": true,
+      "duration": 4.88
+    },
+    {
+      "id": "c1s",
+      "hash": "7f1cd58615d4113297cc3e0d97c5ddc8a722f4184628f4ae4eb1c4594320185a",
+      "cache_hit": true,
+      "duration": 7.52
+    },
+    {
+      "id": "c1e",
+      "hash": "fe7037307acef7f656c303093f2041f5acaa0659128da1001ca68186e9bb973e",
+      "cache_hit": true,
+      "duration": 5.8
+    },
+    {
+      "id": "c1f",
+      "hash": "8fe35949ed446c603c0a56cb4b796ee31efb9e5d8e93cf0eff44ccc87670100d",
+      "cache_hit": true,
+      "duration": 6.4
+    },
+    {
+      "id": "s3",
+      "hash": "fc6114bc41a8b02d48cbf5df827bcd655e26ffff4a81e8f4a5346d0fcfe14c6d",
+      "cache_hit": true,
+      "duration": 2.88
+    },
+    {
+      "id": "c1g",
+      "hash": "d9c2ff05a5cf7593618ded02d7b82414dbcf2d1d409ef946cea6b84023fa53e9",
+      "cache_hit": true,
+      "duration": 4.84
+    },
+    {
+      "id": "s4",
+      "hash": "be0e6e204a6155e7ab8747f3a06638a1f0ec5d3e819fa961ded23f2bdd078303",
+      "cache_hit": true,
+      "duration": 4.4
+    },
+    {
+      "id": "c1h",
+      "hash": "dedfc26a956e7f07f7f8cbf5af564d8e1890e9f82c0a5ede3f0d98bb2bfbb3db",
+      "cache_hit": true,
+      "duration": 5.48
+    },
+    {
+      "id": "c1h2",
+      "hash": "c81de0a14bf3c091cbcc3503e8751b882178e6406e449f5f5840aa293467117c",
+      "cache_hit": true,
+      "duration": 3.6
+    },
+    {
+      "id": "c1i",
+      "hash": "078ee03a94e09d9ff614b007efaca9a9598499b08ee2e9572150dc88efbaedb0",
+      "cache_hit": true,
+      "duration": 8.68
+    },
+    {
+      "id": "c1j",
+      "hash": "8903835b46e0765817ddf1fd468fa2027787db07bf07c53c1c19db64e07f4d39",
+      "cache_hit": true,
+      "duration": 6.96
+    },
+    {
+      "id": "c1k",
+      "hash": "226c71f0c1224d76823d7a63c2770ebf0752015d7fcbfa71e87dab888d6bbc48",
+      "cache_hit": true,
+      "duration": 6.96
+    }
+  ]
+}

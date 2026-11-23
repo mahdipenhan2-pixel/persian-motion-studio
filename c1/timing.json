@@ -1,0 +1,4182 @@
+{
+  "stage": 2,
+  "timestamp_reference": "narration.wav",
+  "audio": {
+    "sample_rate": 24000,
+    "lead": 5.0,
+    "gap": 0.3,
+    "tail": 0.7,
+    "pad": 0.25,
+    "total": 95.2,
+    "sentences": [
+      {
+        "id": "c1a",
+        "offset": 5.0,
+        "duration": 3.12
+      },
+      {
+        "id": "c1b",
+        "offset": 8.42,
+        "duration": 2.32
+      },
+      {
+        "id": "c1c",
+        "offset": 11.04,
+        "duration": 6.28
+      },
+      {
+        "id": "c1d",
+        "offset": 17.62,
+        "duration": 4.88
+      },
+      {
+        "id": "s1",
+        "offset": 22.8,
+        "duration": 4.88
+      },
+      {
+        "id": "c1s",
+        "offset": 27.98,
+        "duration": 7.52
+      },
+      {
+        "id": "c1e",
+        "offset": 35.8,
+        "duration": 5.8
+      },
+      {
+        "id": "c1f",
+        "offset": 41.9,
+        "duration": 6.4
+      },
+      {
+        "id": "s3",
+        "offset": 48.6,
+        "duration": 2.88
+      },
+      {
+        "id": "c1g",
+        "offset": 51.78,
+        "duration": 4.84
+      },
+      {
+        "id": "s4",
+        "offset": 56.92,
+        "duration": 4.4
+      },
+      {
+        "id": "c1h",
+        "offset": 61.62,
+        "duration": 5.48
+      },
+      {
+        "id": "c1h2",
+        "offset": 67.4,
+        "duration": 3.6
+      },
+      {
+        "id": "c1i",
+        "offset": 71.3,
+        "duration": 8.68
+      },
+      {
+        "id": "c1j",
+        "offset": 80.28,
+        "duration": 6.96
+      },
+      {
+        "id": "c1k",
+        "offset": 87.54,
+        "duration": 6.96
+      }
+    ]
+  },
+  "sentences": [
+    {
+      "id": "c1a",
+      "text": "What if you were born as Kim Kardashian?",
+      "offset": 5.0,
+      "duration": 3.12,
+      "words": [
+        {
+          "i": 0,
+          "text": "What",
+          "start": 0.25,
+          "end": 0.47,
+          "recognized": [
+            "What"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 280 ms early)"
+          ],
+          "abs_start": 5.25,
+          "abs_end": 5.47,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 1,
+          "text": "if",
+          "start": 0.47,
+          "end": 0.69,
+          "recognized": [
+            "if"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 5.47,
+          "abs_end": 5.69,
+          "energy_rel": 0.55
+        },
+        {
+          "i": 2,
+          "text": "you",
+          "start": 0.69,
+          "end": 0.83,
+          "recognized": [
+            "you"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 5.69,
+          "abs_end": 5.83,
+          "energy_rel": 1.58
+        },
+        {
+          "i": 3,
+          "text": "were",
+          "start": 0.83,
+          "end": 0.93,
+          "recognized": [
+            "were"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 5.83,
+          "abs_end": 5.93,
+          "energy_rel": 1.67
+        },
+        {
+          "i": 4,
+          "text": "born",
+          "start": 0.93,
+          "end": 1.29,
+          "recognized": [
+            "born"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 5.93,
+          "abs_end": 6.29,
+          "energy_rel": 1.14
+        },
+        {
+          "i": 5,
+          "text": "as",
+          "start": 1.29,
+          "end": 1.61,
+          "recognized": [
+            "as"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 6.29,
+          "abs_end": 6.61,
+          "energy_rel": 0.51
+        },
+        {
+          "i": 6,
+          "text": "Kim",
+          "start": 1.61,
+          "end": 1.91,
+          "recognized": [
+            "Kim"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 6.61,
+          "abs_end": 6.91,
+          "energy_rel": 0.77
+        },
+        {
+          "i": 7,
+          "text": "Kardashian?",
+          "start": 1.91,
+          "end": 2.27,
+          "recognized": [
+            "Kardashian?"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 6.91,
+          "abs_end": 7.27,
+          "energy_rel": 0.93
+        }
+      ],
+      "summary": {
+        "status": "WARN",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -390 ms",
+          "first/last word is still >300 ms away from the measured speech edge"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 8,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 8,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -390
+      }
+    },
+    {
+      "id": "c1b",
+      "text": "How would your life unfold?",
+      "offset": 8.42,
+      "duration": 2.32,
+      "words": [
+        {
+          "i": 0,
+          "text": "How",
+          "start": 0.17,
+          "end": 0.41,
+          "recognized": [
+            "How"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 200 ms early)"
+          ],
+          "abs_start": 8.59,
+          "abs_end": 8.83,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 1,
+          "text": "would",
+          "start": 0.41,
+          "end": 0.61,
+          "recognized": [
+            "would"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 8.83,
+          "abs_end": 9.03,
+          "energy_rel": 1.31
+        },
+        {
+          "i": 2,
+          "text": "your",
+          "start": 0.61,
+          "end": 0.83,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 9.03,
+          "abs_end": 9.25,
+          "energy_rel": 1.25
+        },
+        {
+          "i": 3,
+          "text": "life",
+          "start": 0.83,
+          "end": 1.19,
+          "recognized": [
+            "life"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 9.25,
+          "abs_end": 9.61,
+          "energy_rel": 0.67
+        },
+        {
+          "i": 4,
+          "text": "unfold?",
+          "start": 1.19,
+          "end": 1.65,
+          "recognized": [
+            "unfold?"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 9.61,
+          "abs_end": 10.07,
+          "energy_rel": 0.58
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -250 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 5,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 5,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -250
+      }
+    },
+    {
+      "id": "c1c",
+      "text": "A famous family. Television cameras. Fashion, fame, and a business empire.",
+      "offset": 11.04,
+      "duration": 6.28,
+      "words": [
+        {
+          "i": 0,
+          "text": "A",
+          "start": 0.27,
+          "end": 0.37,
+          "recognized": [
+            "A"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 300 ms early)"
+          ],
+          "abs_start": 11.31,
+          "abs_end": 11.41,
+          "energy_rel": 0.6
+        },
+        {
+          "i": 1,
+          "text": "famous",
+          "start": 0.37,
+          "end": 0.73,
+          "recognized": [
+            "famous"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 11.41,
+          "abs_end": 11.77,
+          "energy_rel": 1.27
+        },
+        {
+          "i": 2,
+          "text": "family.",
+          "start": 0.73,
+          "end": 1.27,
+          "recognized": [
+            "family,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 11.77,
+          "abs_end": 12.31,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 3,
+          "text": "Television",
+          "start": 1.65,
+          "end": 2.01,
+          "recognized": [
+            "television"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 12.69,
+          "abs_end": 13.05,
+          "energy_rel": 1.57
+        },
+        {
+          "i": 4,
+          "text": "cameras.",
+          "start": 2.01,
+          "end": 2.59,
+          "recognized": [
+            "cameras,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 13.05,
+          "abs_end": 13.63,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 5,
+          "text": "Fashion,",
+          "start": 3.03,
+          "end": 3.51,
+          "recognized": [
+            "fashion,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 14.07,
+          "abs_end": 14.55,
+          "energy_rel": 0.68
+        },
+        {
+          "i": 6,
+          "text": "fame,",
+          "start": 3.93,
+          "end": 4.31,
+          "recognized": [
+            "fame,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 14.97,
+          "abs_end": 15.35,
+          "energy_rel": 0.8
+        },
+        {
+          "i": 7,
+          "text": "and",
+          "start": 4.75,
+          "end": 4.87,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 15.79,
+          "abs_end": 15.91,
+          "energy_rel": 0.81
+        },
+        {
+          "i": 8,
+          "text": "a",
+          "start": 4.87,
+          "end": 4.97,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 15.91,
+          "abs_end": 16.01,
+          "energy_rel": 1.15
+        },
+        {
+          "i": 9,
+          "text": "business",
+          "start": 4.97,
+          "end": 5.33,
+          "recognized": [
+            "business"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 16.01,
+          "abs_end": 16.37,
+          "energy_rel": 1.06
+        },
+        {
+          "i": 10,
+          "text": "empire.",
+          "start": 5.33,
+          "end": 5.81,
+          "recognized": [
+            "empire."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 16.37,
+          "abs_end": 16.85,
+          "energy_rel": 0.7
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -50 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 11,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 11,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -50
+      }
+    },
+    {
+      "id": "c1d",
+      "text": "But none of that exists yet. Your story begins in Los Angeles.",
+      "offset": 17.62,
+      "duration": 4.88,
+      "words": [
+        {
+          "i": 0,
+          "text": "But",
+          "start": 0.24,
+          "end": 0.41,
+          "recognized": [
+            "But"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 270 ms early)"
+          ],
+          "abs_start": 17.86,
+          "abs_end": 18.03,
+          "energy_rel": 1.04
+        },
+        {
+          "i": 1,
+          "text": "none",
+          "start": 0.41,
+          "end": 0.73,
+          "recognized": [
+            "none"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 18.03,
+          "abs_end": 18.35,
+          "energy_rel": 1.29
+        },
+        {
+          "i": 2,
+          "text": "of",
+          "start": 0.73,
+          "end": 0.91,
+          "recognized": [
+            "of"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 18.35,
+          "abs_end": 18.53,
+          "energy_rel": 0.96
+        },
+        {
+          "i": 3,
+          "text": "that",
+          "start": 0.91,
+          "end": 1.07,
+          "recognized": [
+            "that"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 18.53,
+          "abs_end": 18.69,
+          "energy_rel": 1.06
+        },
+        {
+          "i": 4,
+          "text": "exists",
+          "start": 1.07,
+          "end": 1.37,
+          "recognized": [
+            "exists"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 18.69,
+          "abs_end": 18.99,
+          "energy_rel": 0.86
+        },
+        {
+          "i": 5,
+          "text": "yet.",
+          "start": 1.37,
+          "end": 1.75,
+          "recognized": [
+            "yet."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 18.99,
+          "abs_end": 19.37,
+          "energy_rel": 0.88
+        },
+        {
+          "i": 6,
+          "text": "Your",
+          "start": 2.33,
+          "end": 2.51,
+          "recognized": [
+            "Your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 19.95,
+          "abs_end": 20.13,
+          "energy_rel": 1.69
+        },
+        {
+          "i": 7,
+          "text": "story",
+          "start": 2.51,
+          "end": 2.91,
+          "recognized": [
+            "story"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 20.13,
+          "abs_end": 20.53,
+          "energy_rel": 1.12
+        },
+        {
+          "i": 8,
+          "text": "begins",
+          "start": 2.91,
+          "end": 3.41,
+          "recognized": [
+            "begins"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 20.53,
+          "abs_end": 21.03,
+          "energy_rel": 0.91
+        },
+        {
+          "i": 9,
+          "text": "in",
+          "start": 3.41,
+          "end": 3.73,
+          "recognized": [
+            "in"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 21.03,
+          "abs_end": 21.35,
+          "energy_rel": 0.68
+        },
+        {
+          "i": 10,
+          "text": "Los",
+          "start": 3.73,
+          "end": 3.89,
+          "recognized": [
+            "Los"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 21.35,
+          "abs_end": 21.51,
+          "energy_rel": 1.32
+        },
+        {
+          "i": 11,
+          "text": "Angeles.",
+          "start": 3.89,
+          "end": 4.31,
+          "recognized": [
+            "Angeles."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 21.51,
+          "abs_end": 21.93,
+          "energy_rel": 0.7
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -240 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 12,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 12,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -240
+      }
+    },
+    {
+      "id": "s1",
+      "text": "You are born in Los Angeles on October 21st, 1980.",
+      "offset": 22.8,
+      "duration": 4.88,
+      "words": [
+        {
+          "i": 0,
+          "text": "You",
+          "start": 0.26,
+          "end": 0.43,
+          "recognized": [
+            "You"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 290 ms early)"
+          ],
+          "abs_start": 23.06,
+          "abs_end": 23.23,
+          "energy_rel": 1.18
+        },
+        {
+          "i": 1,
+          "text": "are",
+          "start": 0.48,
+          "end": 0.53,
+          "recognized": [
+            "were"
+          ],
+          "matched_frac": 0.667,
+          "status": "aligned",
+          "timing_quality": "estimated",
+          "notes": [
+            "ESTIMATED boundary from matched character positions; review audio"
+          ],
+          "abs_start": 23.28,
+          "abs_end": 23.33,
+          "energy_rel": 1.51
+        },
+        {
+          "i": 2,
+          "text": "born",
+          "start": 0.53,
+          "end": 0.85,
+          "recognized": [
+            "born"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 23.33,
+          "abs_end": 23.65,
+          "energy_rel": 1.29
+        },
+        {
+          "i": 3,
+          "text": "in",
+          "start": 0.85,
+          "end": 1.11,
+          "recognized": [
+            "in"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 23.65,
+          "abs_end": 23.91,
+          "energy_rel": 1.09
+        },
+        {
+          "i": 4,
+          "text": "Los",
+          "start": 1.11,
+          "end": 1.31,
+          "recognized": [
+            "Los"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 23.91,
+          "abs_end": 24.11,
+          "energy_rel": 1.46
+        },
+        {
+          "i": 5,
+          "text": "Angeles",
+          "start": 1.31,
+          "end": 1.83,
+          "recognized": [
+            "Angeles"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 24.11,
+          "abs_end": 24.63,
+          "energy_rel": 0.91
+        },
+        {
+          "i": 6,
+          "text": "on",
+          "start": 1.83,
+          "end": 2.21,
+          "recognized": [
+            "on"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 24.63,
+          "abs_end": 25.01,
+          "energy_rel": 0.57
+        },
+        {
+          "i": 7,
+          "text": "October",
+          "start": 2.21,
+          "end": 2.45,
+          "recognized": [
+            "October"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 25.01,
+          "abs_end": 25.25,
+          "energy_rel": 0.64
+        },
+        {
+          "i": 8,
+          "text": "21st,",
+          "start": 2.45,
+          "end": 3.49,
+          "recognized": [
+            "21st,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 25.25,
+          "abs_end": 26.29,
+          "energy_rel": 0.82
+        },
+        {
+          "i": 9,
+          "text": "1980.",
+          "start": 3.57,
+          "end": 4.31,
+          "recognized": [
+            "1980."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 26.37,
+          "abs_end": 27.11,
+          "energy_rel": 0.74
+        }
+      ],
+      "summary": {
+        "status": "WARN",
+        "reasons": [
+          "1 word(s) aligned with differences or estimated boundaries",
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -140 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 9,
+          "aligned": 1,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 9,
+          "estimated": 1,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -140
+      }
+    },
+    {
+      "id": "c1s",
+      "text": "Your world is the Los Angeles of 1980: palm trees, film studios, and a city built on fame.",
+      "offset": 27.98,
+      "duration": 7.52,
+      "words": [
+        {
+          "i": 0,
+          "text": "Your",
+          "start": 0.24,
+          "end": 0.45,
+          "recognized": [
+            "Your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 270 ms early)"
+          ],
+          "abs_start": 28.22,
+          "abs_end": 28.43,
+          "energy_rel": 1.71
+        },
+        {
+          "i": 1,
+          "text": "world",
+          "start": 0.45,
+          "end": 0.83,
+          "recognized": [
+            "World"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 28.43,
+          "abs_end": 28.81,
+          "energy_rel": 2.06
+        },
+        {
+          "i": 2,
+          "text": "is",
+          "start": 0.83,
+          "end": 1.13,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 28.81,
+          "abs_end": 29.11,
+          "energy_rel": 0.63
+        },
+        {
+          "i": 3,
+          "text": "the",
+          "start": 1.13,
+          "end": 1.27,
+          "recognized": [
+            "the"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 29.11,
+          "abs_end": 29.25,
+          "energy_rel": 0.99
+        },
+        {
+          "i": 4,
+          "text": "Los",
+          "start": 1.27,
+          "end": 1.45,
+          "recognized": [
+            "Los"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 29.25,
+          "abs_end": 29.43,
+          "energy_rel": 1.22
+        },
+        {
+          "i": 5,
+          "text": "Angeles",
+          "start": 1.45,
+          "end": 1.87,
+          "recognized": [
+            "Angeles"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 29.43,
+          "abs_end": 29.85,
+          "energy_rel": 1.02
+        },
+        {
+          "i": 6,
+          "text": "of",
+          "start": 1.87,
+          "end": 2.19,
+          "recognized": [
+            "of"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 29.85,
+          "abs_end": 30.17,
+          "energy_rel": 0.96
+        },
+        {
+          "i": 7,
+          "text": "1980:",
+          "start": 2.19,
+          "end": 2.85,
+          "recognized": [
+            "1980,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 30.17,
+          "abs_end": 30.83,
+          "energy_rel": 0.62
+        },
+        {
+          "i": 8,
+          "text": "palm",
+          "start": 3.29,
+          "end": 3.55,
+          "recognized": [
+            "palm"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 31.27,
+          "abs_end": 31.53,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 9,
+          "text": "trees,",
+          "start": 3.55,
+          "end": 3.95,
+          "recognized": [
+            "trees,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 31.53,
+          "abs_end": 31.93,
+          "energy_rel": 1.27
+        },
+        {
+          "i": 10,
+          "text": "film",
+          "start": 4.33,
+          "end": 4.63,
+          "recognized": [
+            "film"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 32.31,
+          "abs_end": 32.61,
+          "energy_rel": 0.89
+        },
+        {
+          "i": 11,
+          "text": "studios,",
+          "start": 4.63,
+          "end": 5.09,
+          "recognized": [
+            "studios,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 32.61,
+          "abs_end": 33.07,
+          "energy_rel": 1.08
+        },
+        {
+          "i": 12,
+          "text": "and",
+          "start": 5.59,
+          "end": 5.75,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 33.57,
+          "abs_end": 33.73,
+          "energy_rel": 0.52
+        },
+        {
+          "i": 13,
+          "text": "a",
+          "start": 5.75,
+          "end": 5.87,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 33.73,
+          "abs_end": 33.85,
+          "energy_rel": 1.17
+        },
+        {
+          "i": 14,
+          "text": "city",
+          "start": 5.87,
+          "end": 6.11,
+          "recognized": [
+            "city"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 33.85,
+          "abs_end": 34.09,
+          "energy_rel": 1.01
+        },
+        {
+          "i": 15,
+          "text": "built",
+          "start": 6.11,
+          "end": 6.49,
+          "recognized": [
+            "built"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 34.09,
+          "abs_end": 34.47,
+          "energy_rel": 0.77
+        },
+        {
+          "i": 16,
+          "text": "on",
+          "start": 6.49,
+          "end": 6.79,
+          "recognized": [
+            "on"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 34.47,
+          "abs_end": 34.77,
+          "energy_rel": 0.46
+        },
+        {
+          "i": 17,
+          "text": "fame.",
+          "start": 6.79,
+          "end": 7.11,
+          "recognized": [
+            "fame."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 34.77,
+          "abs_end": 35.09,
+          "energy_rel": 0.45
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -50 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 18,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 18,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -50
+      }
+    },
+    {
+      "id": "c1e",
+      "text": "Your father, Robert, is a lawyer. Your mother, Kris, is raising a growing family.",
+      "offset": 35.8,
+      "duration": 5.8,
+      "words": [
+        {
+          "i": 0,
+          "text": "Your",
+          "start": 0.19,
+          "end": 0.33,
+          "recognized": [
+            "Your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 220 ms early)"
+          ],
+          "abs_start": 35.99,
+          "abs_end": 36.13,
+          "energy_rel": 0.93
+        },
+        {
+          "i": 1,
+          "text": "father,",
+          "start": 0.33,
+          "end": 0.69,
+          "recognized": [
+            "father,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 36.13,
+          "abs_end": 36.49,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 2,
+          "text": "Robert,",
+          "start": 0.99,
+          "end": 1.31,
+          "recognized": [
+            "Robert,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 36.79,
+          "abs_end": 37.11,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 3,
+          "text": "is",
+          "start": 1.65,
+          "end": 1.77,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 37.45,
+          "abs_end": 37.57,
+          "energy_rel": 0.55
+        },
+        {
+          "i": 4,
+          "text": "a",
+          "start": 1.77,
+          "end": 1.87,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 37.57,
+          "abs_end": 37.67,
+          "energy_rel": 1.14
+        },
+        {
+          "i": 5,
+          "text": "lawyer.",
+          "start": 1.87,
+          "end": 2.11,
+          "recognized": [
+            "lawyer."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 37.67,
+          "abs_end": 37.91,
+          "energy_rel": 1.37
+        },
+        {
+          "i": 6,
+          "text": "Your",
+          "start": 2.73,
+          "end": 2.81,
+          "recognized": [
+            "Your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 38.53,
+          "abs_end": 38.61,
+          "energy_rel": 1.06
+        },
+        {
+          "i": 7,
+          "text": "mother,",
+          "start": 2.81,
+          "end": 3.03,
+          "recognized": [
+            "mother,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 38.61,
+          "abs_end": 38.83,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 8,
+          "text": "Kris,",
+          "start": 3.274,
+          "end": 3.37,
+          "recognized": [
+            "Chris,"
+          ],
+          "matched_frac": 0.75,
+          "status": "aligned",
+          "timing_quality": "estimated",
+          "notes": [
+            "ESTIMATED boundary from matched character positions; review audio"
+          ],
+          "abs_start": 39.074,
+          "abs_end": 39.17,
+          "energy_rel": 1.48
+        },
+        {
+          "i": 9,
+          "text": "is",
+          "start": 3.77,
+          "end": 3.91,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 39.57,
+          "abs_end": 39.71,
+          "energy_rel": 0.46
+        },
+        {
+          "i": 10,
+          "text": "raising",
+          "start": 3.91,
+          "end": 4.25,
+          "recognized": [
+            "raising"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 39.71,
+          "abs_end": 40.05,
+          "energy_rel": 0.99
+        },
+        {
+          "i": 11,
+          "text": "a",
+          "start": 4.25,
+          "end": 4.45,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 40.05,
+          "abs_end": 40.25,
+          "energy_rel": 1.01
+        },
+        {
+          "i": 12,
+          "text": "growing",
+          "start": 4.45,
+          "end": 4.77,
+          "recognized": [
+            "growing"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 40.25,
+          "abs_end": 40.57,
+          "energy_rel": 0.81
+        },
+        {
+          "i": 13,
+          "text": "family.",
+          "start": 4.77,
+          "end": 5.27,
+          "recognized": [
+            "family."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 40.57,
+          "abs_end": 41.07,
+          "energy_rel": 0.7
+        }
+      ],
+      "summary": {
+        "status": "WARN",
+        "reasons": [
+          "1 word(s) aligned with differences or estimated boundaries",
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -130 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 13,
+          "aligned": 1,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 13,
+          "estimated": 1,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -130
+      }
+    },
+    {
+      "id": "c1f",
+      "text": "You grow up beside your older sister, Kourtney. Later come a sister, Khloé, and a brother, Rob.",
+      "offset": 41.9,
+      "duration": 6.4,
+      "words": [
+        {
+          "i": 0,
+          "text": "You",
+          "start": 0.25,
+          "end": 0.41,
+          "recognized": [
+            "You"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 280 ms early)"
+          ],
+          "abs_start": 42.15,
+          "abs_end": 42.31,
+          "energy_rel": 1.2
+        },
+        {
+          "i": 1,
+          "text": "grow",
+          "start": 0.41,
+          "end": 0.67,
+          "recognized": [
+            "grow"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 42.31,
+          "abs_end": 42.57,
+          "energy_rel": 1.29
+        },
+        {
+          "i": 2,
+          "text": "up",
+          "start": 0.67,
+          "end": 0.93,
+          "recognized": [
+            "up"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 42.57,
+          "abs_end": 42.83,
+          "energy_rel": 1.41
+        },
+        {
+          "i": 3,
+          "text": "beside",
+          "start": 0.93,
+          "end": 1.35,
+          "recognized": [
+            "beside"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 42.83,
+          "abs_end": 43.25,
+          "energy_rel": 1.13
+        },
+        {
+          "i": 4,
+          "text": "your",
+          "start": 1.35,
+          "end": 1.61,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 43.25,
+          "abs_end": 43.51,
+          "energy_rel": 1.14
+        },
+        {
+          "i": 5,
+          "text": "older",
+          "start": 1.61,
+          "end": 1.89,
+          "recognized": [
+            "older"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 43.51,
+          "abs_end": 43.79,
+          "energy_rel": 0.87
+        },
+        {
+          "i": 6,
+          "text": "sister,",
+          "start": 1.89,
+          "end": 2.27,
+          "recognized": [
+            "sister"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 43.79,
+          "abs_end": 44.17,
+          "energy_rel": 1.04
+        },
+        {
+          "i": 7,
+          "text": "Kourtney.",
+          "start": 2.335,
+          "end": 2.79,
+          "recognized": [
+            "Courtney,"
+          ],
+          "matched_frac": 0.875,
+          "status": "aligned",
+          "timing_quality": "estimated",
+          "notes": [
+            "ESTIMATED boundary from matched character positions; review audio"
+          ],
+          "abs_start": 44.235,
+          "abs_end": 44.69,
+          "energy_rel": 0.6
+        },
+        {
+          "i": 8,
+          "text": "Later",
+          "start": 3.29,
+          "end": 3.55,
+          "recognized": [
+            "later"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 45.19,
+          "abs_end": 45.45,
+          "energy_rel": 1.01
+        },
+        {
+          "i": 9,
+          "text": "come",
+          "start": 3.55,
+          "end": 3.85,
+          "recognized": [
+            "come"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 45.45,
+          "abs_end": 45.75,
+          "energy_rel": 0.8
+        },
+        {
+          "i": 10,
+          "text": "a",
+          "start": 3.85,
+          "end": 3.97,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 45.75,
+          "abs_end": 45.87,
+          "energy_rel": 0.92
+        },
+        {
+          "i": 11,
+          "text": "sister,",
+          "start": 3.97,
+          "end": 4.23,
+          "recognized": [
+            "sister"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 45.87,
+          "abs_end": 46.13,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 12,
+          "text": "Khloé,",
+          "start": 4.23,
+          "end": 4.582,
+          "recognized": [
+            "Khloe"
+          ],
+          "matched_frac": 0.8,
+          "status": "aligned",
+          "timing_quality": "estimated",
+          "notes": [
+            "ESTIMATED boundary from matched character positions; review audio"
+          ],
+          "abs_start": 46.13,
+          "abs_end": 46.482,
+          "energy_rel": 0.84
+        },
+        {
+          "i": 13,
+          "text": "and",
+          "start": 4.67,
+          "end": 5.11,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 46.57,
+          "abs_end": 47.01,
+          "energy_rel": 0.63
+        },
+        {
+          "i": 14,
+          "text": "a",
+          "start": 5.11,
+          "end": 5.21,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 47.01,
+          "abs_end": 47.11,
+          "energy_rel": 0.96
+        },
+        {
+          "i": 15,
+          "text": "brother,",
+          "start": 5.21,
+          "end": 5.41,
+          "recognized": [
+            "brother"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 47.11,
+          "abs_end": 47.31,
+          "energy_rel": 1.48
+        },
+        {
+          "i": 16,
+          "text": "Rob.",
+          "start": 5.41,
+          "end": 5.91,
+          "recognized": [
+            "Rob."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 47.31,
+          "abs_end": 47.81,
+          "energy_rel": 0.66
+        }
+      ],
+      "summary": {
+        "status": "WARN",
+        "reasons": [
+          "2 word(s) aligned with differences or estimated boundaries",
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -120 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 15,
+          "aligned": 2,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 15,
+          "estimated": 2,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -120
+      }
+    },
+    {
+      "id": "s3",
+      "text": "When you are nine, your parents separate.",
+      "offset": 48.6,
+      "duration": 2.88,
+      "words": [
+        {
+          "i": 0,
+          "text": "When",
+          "start": 0.26,
+          "end": 0.45,
+          "recognized": [
+            "When"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 290 ms early)"
+          ],
+          "abs_start": 48.86,
+          "abs_end": 49.05,
+          "energy_rel": 1.03
+        },
+        {
+          "i": 1,
+          "text": "you",
+          "start": 0.45,
+          "end": 0.65,
+          "recognized": [
+            "you"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 49.05,
+          "abs_end": 49.25,
+          "energy_rel": 1.61
+        },
+        {
+          "i": 2,
+          "text": "are",
+          "start": 0.65,
+          "end": 0.75,
+          "recognized": [
+            "are"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 49.25,
+          "abs_end": 49.35,
+          "energy_rel": 1.26
+        },
+        {
+          "i": 3,
+          "text": "nine,",
+          "start": 0.75,
+          "end": 1.03,
+          "recognized": [
+            "nine,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 49.35,
+          "abs_end": 49.63,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 4,
+          "text": "your",
+          "start": 1.43,
+          "end": 1.55,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 50.03,
+          "abs_end": 50.15,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 5,
+          "text": "parents",
+          "start": 1.55,
+          "end": 1.95,
+          "recognized": [
+            "parents"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 50.15,
+          "abs_end": 50.55,
+          "energy_rel": 0.53
+        },
+        {
+          "i": 6,
+          "text": "separate.",
+          "start": 1.95,
+          "end": 2.43,
+          "recognized": [
+            "separate."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 50.55,
+          "abs_end": 51.03,
+          "energy_rel": 0.37
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -170 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 7,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 7,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -170
+      }
+    },
+    {
+      "id": "c1g",
+      "text": "It is 1989, and the home you know is about to change.",
+      "offset": 51.78,
+      "duration": 4.84,
+      "words": [
+        {
+          "i": 0,
+          "text": "It",
+          "start": 0.24,
+          "end": 0.35,
+          "recognized": [
+            "It"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 270 ms early)"
+          ],
+          "abs_start": 52.02,
+          "abs_end": 52.13,
+          "energy_rel": 1.28
+        },
+        {
+          "i": 1,
+          "text": "is",
+          "start": 0.35,
+          "end": 0.51,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 52.13,
+          "abs_end": 52.29,
+          "energy_rel": 1.45
+        },
+        {
+          "i": 2,
+          "text": "1989,",
+          "start": 0.51,
+          "end": 1.31,
+          "recognized": [
+            "1989"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 52.29,
+          "abs_end": 53.09,
+          "energy_rel": 1.06
+        },
+        {
+          "i": 3,
+          "text": "and",
+          "start": 1.31,
+          "end": 2.25,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 53.09,
+          "abs_end": 54.03,
+          "energy_rel": 0.52
+        },
+        {
+          "i": 4,
+          "text": "the",
+          "start": 2.25,
+          "end": 2.37,
+          "recognized": [
+            "the"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 54.03,
+          "abs_end": 54.15,
+          "energy_rel": 0.95
+        },
+        {
+          "i": 5,
+          "text": "home",
+          "start": 2.37,
+          "end": 2.65,
+          "recognized": [
+            "home"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 54.15,
+          "abs_end": 54.43,
+          "energy_rel": 1.05
+        },
+        {
+          "i": 6,
+          "text": "you",
+          "start": 2.65,
+          "end": 2.87,
+          "recognized": [
+            "you"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 54.43,
+          "abs_end": 54.65,
+          "energy_rel": 1.93
+        },
+        {
+          "i": 7,
+          "text": "know",
+          "start": 2.87,
+          "end": 3.09,
+          "recognized": [
+            "know"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 54.65,
+          "abs_end": 54.87,
+          "energy_rel": 1.65
+        },
+        {
+          "i": 8,
+          "text": "is",
+          "start": 3.09,
+          "end": 3.49,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 54.87,
+          "abs_end": 55.27,
+          "energy_rel": 0.83
+        },
+        {
+          "i": 9,
+          "text": "about",
+          "start": 3.49,
+          "end": 3.77,
+          "recognized": [
+            "about"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 55.27,
+          "abs_end": 55.55,
+          "energy_rel": 0.94
+        },
+        {
+          "i": 10,
+          "text": "to",
+          "start": 3.77,
+          "end": 4.01,
+          "recognized": [
+            "to"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 55.55,
+          "abs_end": 55.79,
+          "energy_rel": 0.5
+        },
+        {
+          "i": 11,
+          "text": "change.",
+          "start": 4.01,
+          "end": 4.33,
+          "recognized": [
+            "change."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 55.79,
+          "abs_end": 56.11,
+          "energy_rel": 0.65
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -200 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 12,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 12,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -200
+      }
+    },
+    {
+      "id": "s4",
+      "text": "Two years later, your mother marries Olympic champion Bruce Jenner.",
+      "offset": 56.92,
+      "duration": 4.4,
+      "words": [
+        {
+          "i": 0,
+          "text": "Two",
+          "start": 0.22,
+          "end": 0.37,
+          "recognized": [
+            "Two"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 250 ms early)"
+          ],
+          "abs_start": 57.14,
+          "abs_end": 57.29,
+          "energy_rel": 1.04
+        },
+        {
+          "i": 1,
+          "text": "years",
+          "start": 0.37,
+          "end": 0.59,
+          "recognized": [
+            "years"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 57.29,
+          "abs_end": 57.51,
+          "energy_rel": 1.17
+        },
+        {
+          "i": 2,
+          "text": "later,",
+          "start": 0.59,
+          "end": 0.97,
+          "recognized": [
+            "later,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 57.51,
+          "abs_end": 57.89,
+          "energy_rel": 0.96
+        },
+        {
+          "i": 3,
+          "text": "your",
+          "start": 1.31,
+          "end": 1.41,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 58.23,
+          "abs_end": 58.33,
+          "energy_rel": 1.42
+        },
+        {
+          "i": 4,
+          "text": "mother",
+          "start": 1.41,
+          "end": 1.69,
+          "recognized": [
+            "mother"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 58.33,
+          "abs_end": 58.61,
+          "energy_rel": 1.24
+        },
+        {
+          "i": 5,
+          "text": "marries",
+          "start": 1.69,
+          "end": 2.15,
+          "recognized": [
+            "marries"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 58.61,
+          "abs_end": 59.07,
+          "energy_rel": 1.16
+        },
+        {
+          "i": 6,
+          "text": "Olympic",
+          "start": 2.15,
+          "end": 2.57,
+          "recognized": [
+            "Olympic"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 59.07,
+          "abs_end": 59.49,
+          "energy_rel": 0.55
+        },
+        {
+          "i": 7,
+          "text": "champion",
+          "start": 2.57,
+          "end": 3.15,
+          "recognized": [
+            "champion,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 59.49,
+          "abs_end": 60.07,
+          "energy_rel": 0.59
+        },
+        {
+          "i": 8,
+          "text": "Bruce",
+          "start": 3.43,
+          "end": 3.59,
+          "recognized": [
+            "Bruce"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 60.35,
+          "abs_end": 60.51,
+          "energy_rel": 0.38
+        },
+        {
+          "i": 9,
+          "text": "Jenner.",
+          "start": 3.59,
+          "end": 4.07,
+          "recognized": [
+            "Jenner."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 60.51,
+          "abs_end": 60.99,
+          "energy_rel": 0.4
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: 30 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 10,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 10,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": 30
+      }
+    },
+    {
+      "id": "c1h",
+      "text": "She marries him in April 1991, one month after her divorce is final.",
+      "offset": 61.62,
+      "duration": 5.48,
+      "words": [
+        {
+          "i": 0,
+          "text": "She",
+          "start": 0.23,
+          "end": 0.39,
+          "recognized": [
+            "She"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 260 ms early)"
+          ],
+          "abs_start": 61.85,
+          "abs_end": 62.01,
+          "energy_rel": 0.95
+        },
+        {
+          "i": 1,
+          "text": "marries",
+          "start": 0.39,
+          "end": 0.87,
+          "recognized": [
+            "marries"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 62.01,
+          "abs_end": 62.49,
+          "energy_rel": 1.8
+        },
+        {
+          "i": 2,
+          "text": "him",
+          "start": 0.87,
+          "end": 1.01,
+          "recognized": [
+            "him"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 62.49,
+          "abs_end": 62.63,
+          "energy_rel": 1.01
+        },
+        {
+          "i": 3,
+          "text": "in",
+          "start": 1.01,
+          "end": 1.19,
+          "recognized": [
+            "in"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 62.63,
+          "abs_end": 62.81,
+          "energy_rel": 0.75
+        },
+        {
+          "i": 4,
+          "text": "April",
+          "start": 1.19,
+          "end": 1.51,
+          "recognized": [
+            "April"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 62.81,
+          "abs_end": 63.13,
+          "energy_rel": 0.73
+        },
+        {
+          "i": 5,
+          "text": "1991,",
+          "start": 1.51,
+          "end": 2.25,
+          "recognized": [
+            "1991,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 63.13,
+          "abs_end": 63.87,
+          "energy_rel": 1.19
+        },
+        {
+          "i": 6,
+          "text": "one",
+          "start": 2.89,
+          "end": 3.13,
+          "recognized": [
+            "one"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 64.51,
+          "abs_end": 64.75,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 7,
+          "text": "month",
+          "start": 3.13,
+          "end": 3.47,
+          "recognized": [
+            "month"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 64.75,
+          "abs_end": 65.09,
+          "energy_rel": 1.55
+        },
+        {
+          "i": 8,
+          "text": "after",
+          "start": 3.47,
+          "end": 3.79,
+          "recognized": [
+            "after"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 65.09,
+          "abs_end": 65.41,
+          "energy_rel": 0.34
+        },
+        {
+          "i": 9,
+          "text": "her",
+          "start": 3.79,
+          "end": 3.97,
+          "recognized": [
+            "her"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 65.41,
+          "abs_end": 65.59,
+          "energy_rel": 1.03
+        },
+        {
+          "i": 10,
+          "text": "divorce",
+          "start": 3.97,
+          "end": 4.35,
+          "recognized": [
+            "divorce"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 65.59,
+          "abs_end": 65.97,
+          "energy_rel": 1.03
+        },
+        {
+          "i": 11,
+          "text": "is",
+          "start": 4.35,
+          "end": 4.63,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 65.97,
+          "abs_end": 66.25,
+          "energy_rel": 0.49
+        },
+        {
+          "i": 12,
+          "text": "final.",
+          "start": 4.63,
+          "end": 4.97,
+          "recognized": [
+            "final."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 66.25,
+          "abs_end": 66.59,
+          "energy_rel": 0.74
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -20 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 13,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 13,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -20
+      }
+    },
+    {
+      "id": "c1h2",
+      "text": "Their marriage will last until 2014.",
+      "offset": 67.4,
+      "duration": 3.6,
+      "words": [
+        {
+          "i": 0,
+          "text": "Their",
+          "start": 0.26,
+          "end": 0.45,
+          "recognized": [
+            "Their"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 290 ms early)"
+          ],
+          "abs_start": 67.66,
+          "abs_end": 67.85,
+          "energy_rel": 1.25
+        },
+        {
+          "i": 1,
+          "text": "marriage",
+          "start": 0.45,
+          "end": 0.87,
+          "recognized": [
+            "marriage"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 67.85,
+          "abs_end": 68.27,
+          "energy_rel": 1.74
+        },
+        {
+          "i": 2,
+          "text": "will",
+          "start": 0.87,
+          "end": 1.09,
+          "recognized": [
+            "will"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 68.27,
+          "abs_end": 68.49,
+          "energy_rel": 0.99
+        },
+        {
+          "i": 3,
+          "text": "last",
+          "start": 1.09,
+          "end": 1.49,
+          "recognized": [
+            "last"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 68.49,
+          "abs_end": 68.89,
+          "energy_rel": 1.01
+        },
+        {
+          "i": 4,
+          "text": "until",
+          "start": 1.49,
+          "end": 1.89,
+          "recognized": [
+            "until"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 68.89,
+          "abs_end": 69.29,
+          "energy_rel": 0.58
+        },
+        {
+          "i": 5,
+          "text": "2014.",
+          "start": 1.89,
+          "end": 2.97,
+          "recognized": [
+            "2014."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 69.29,
+          "abs_end": 70.37,
+          "energy_rel": 0.91
+        }
+      ],
+      "summary": {
+        "status": "WARN",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -360 ms",
+          "first/last word is still >300 ms away from the measured speech edge"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 6,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 6,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -360
+      }
+    },
+    {
+      "id": "c1i",
+      "text": "On July 30th, 1976, in Montreal, Bruce won the Olympic decathlon and set a world record.",
+      "offset": 71.3,
+      "duration": 8.68,
+      "words": [
+        {
+          "i": 0,
+          "text": "On",
+          "start": 0.26,
+          "end": 0.39,
+          "recognized": [
+            "On"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 290 ms early)"
+          ],
+          "abs_start": 71.56,
+          "abs_end": 71.69,
+          "energy_rel": 1.84
+        },
+        {
+          "i": 1,
+          "text": "July",
+          "start": 0.39,
+          "end": 0.63,
+          "recognized": [
+            "July"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 71.69,
+          "abs_end": 71.93,
+          "energy_rel": 1.75
+        },
+        {
+          "i": 2,
+          "text": "30th,",
+          "start": 0.63,
+          "end": 1.47,
+          "recognized": [
+            "30th,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 71.93,
+          "abs_end": 72.77,
+          "energy_rel": 0.95
+        },
+        {
+          "i": 3,
+          "text": "1976,",
+          "start": 1.59,
+          "end": 2.35,
+          "recognized": [
+            "1976"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 72.89,
+          "abs_end": 73.65,
+          "energy_rel": 1.43
+        },
+        {
+          "i": 4,
+          "text": "in",
+          "start": 2.35,
+          "end": 2.93,
+          "recognized": [
+            "in"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 73.65,
+          "abs_end": 74.23,
+          "energy_rel": 0.94
+        },
+        {
+          "i": 5,
+          "text": "Montreal,",
+          "start": 2.93,
+          "end": 3.31,
+          "recognized": [
+            "Montreal,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 74.23,
+          "abs_end": 74.61,
+          "energy_rel": 1.05
+        },
+        {
+          "i": 6,
+          "text": "Bruce",
+          "start": 3.95,
+          "end": 4.23,
+          "recognized": [
+            "Bruce"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 75.25,
+          "abs_end": 75.53,
+          "energy_rel": 1.18
+        },
+        {
+          "i": 7,
+          "text": "won",
+          "start": 4.23,
+          "end": 4.67,
+          "recognized": [
+            "won"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 75.53,
+          "abs_end": 75.97,
+          "energy_rel": 1.51
+        },
+        {
+          "i": 8,
+          "text": "the",
+          "start": 4.67,
+          "end": 4.91,
+          "recognized": [
+            "the"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 75.97,
+          "abs_end": 76.21,
+          "energy_rel": 0.95
+        },
+        {
+          "i": 9,
+          "text": "Olympic",
+          "start": 4.91,
+          "end": 5.35,
+          "recognized": [
+            "Olympic"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 76.21,
+          "abs_end": 76.65,
+          "energy_rel": 1.21
+        },
+        {
+          "i": 10,
+          "text": "decathlon",
+          "start": 5.35,
+          "end": 6.05,
+          "recognized": [
+            "Decathlon"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 76.65,
+          "abs_end": 77.35,
+          "energy_rel": 0.62
+        },
+        {
+          "i": 11,
+          "text": "and",
+          "start": 6.05,
+          "end": 6.75,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 77.35,
+          "abs_end": 78.05,
+          "energy_rel": 0.56
+        },
+        {
+          "i": 12,
+          "text": "set",
+          "start": 6.75,
+          "end": 7.29,
+          "recognized": [
+            "set"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 78.05,
+          "abs_end": 78.59,
+          "energy_rel": 0.61
+        },
+        {
+          "i": 13,
+          "text": "a",
+          "start": 7.29,
+          "end": 7.57,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 78.59,
+          "abs_end": 78.87,
+          "energy_rel": 0.7
+        },
+        {
+          "i": 14,
+          "text": "world",
+          "start": 7.57,
+          "end": 7.85,
+          "recognized": [
+            "world"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 78.87,
+          "abs_end": 79.15,
+          "energy_rel": 1.36
+        },
+        {
+          "i": 15,
+          "text": "record.",
+          "start": 7.85,
+          "end": 8.29,
+          "recognized": [
+            "record."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 79.15,
+          "abs_end": 79.59,
+          "energy_rel": 0.69
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: 0 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 16,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 16,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": 0
+      }
+    },
+    {
+      "id": "c1j",
+      "text": "The decathlon has ten events over two days, and its winner is often called the world's greatest athlete.",
+      "offset": 80.28,
+      "duration": 6.96,
+      "words": [
+        {
+          "i": 0,
+          "text": "The",
+          "start": 0.23,
+          "end": 0.35,
+          "recognized": [
+            "The"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 260 ms early)"
+          ],
+          "abs_start": 80.51,
+          "abs_end": 80.63,
+          "energy_rel": 1.13
+        },
+        {
+          "i": 1,
+          "text": "decathlon",
+          "start": 0.35,
+          "end": 0.93,
+          "recognized": [
+            "Decathlon"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 80.63,
+          "abs_end": 81.21,
+          "energy_rel": 1.05
+        },
+        {
+          "i": 2,
+          "text": "has",
+          "start": 0.93,
+          "end": 1.35,
+          "recognized": [
+            "has"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 81.21,
+          "abs_end": 81.63,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 3,
+          "text": "ten",
+          "start": 1.35,
+          "end": 1.71,
+          "recognized": [
+            "ten"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 81.63,
+          "abs_end": 81.99,
+          "energy_rel": 0.97
+        },
+        {
+          "i": 4,
+          "text": "events",
+          "start": 1.71,
+          "end": 2.21,
+          "recognized": [
+            "events"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 81.99,
+          "abs_end": 82.49,
+          "energy_rel": 1.07
+        },
+        {
+          "i": 5,
+          "text": "over",
+          "start": 2.21,
+          "end": 2.53,
+          "recognized": [
+            "over"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 82.49,
+          "abs_end": 82.81,
+          "energy_rel": 0.88
+        },
+        {
+          "i": 6,
+          "text": "two",
+          "start": 2.53,
+          "end": 2.85,
+          "recognized": [
+            "two"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 82.81,
+          "abs_end": 83.13,
+          "energy_rel": 1.03
+        },
+        {
+          "i": 7,
+          "text": "days,",
+          "start": 2.85,
+          "end": 3.13,
+          "recognized": [
+            "days,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 83.13,
+          "abs_end": 83.41,
+          "energy_rel": 1.1
+        },
+        {
+          "i": 8,
+          "text": "and",
+          "start": 3.61,
+          "end": 3.71,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 83.89,
+          "abs_end": 83.99,
+          "energy_rel": 0.55
+        },
+        {
+          "i": 9,
+          "text": "its",
+          "start": 3.71,
+          "end": 3.83,
+          "recognized": [
+            "its"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 83.99,
+          "abs_end": 84.11,
+          "energy_rel": 1.03
+        },
+        {
+          "i": 10,
+          "text": "winner",
+          "start": 3.83,
+          "end": 4.11,
+          "recognized": [
+            "winner"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 84.11,
+          "abs_end": 84.39,
+          "energy_rel": 1.55
+        },
+        {
+          "i": 11,
+          "text": "is",
+          "start": 4.11,
+          "end": 4.35,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 84.39,
+          "abs_end": 84.63,
+          "energy_rel": 0.95
+        },
+        {
+          "i": 12,
+          "text": "often",
+          "start": 4.35,
+          "end": 4.63,
+          "recognized": [
+            "often"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 84.63,
+          "abs_end": 84.91,
+          "energy_rel": 0.85
+        },
+        {
+          "i": 13,
+          "text": "called",
+          "start": 4.63,
+          "end": 4.95,
+          "recognized": [
+            "called"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 84.91,
+          "abs_end": 85.23,
+          "energy_rel": 1.04
+        },
+        {
+          "i": 14,
+          "text": "the",
+          "start": 4.95,
+          "end": 5.15,
+          "recognized": [
+            "the"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 85.23,
+          "abs_end": 85.43,
+          "energy_rel": 0.79
+        },
+        {
+          "i": 15,
+          "text": "world's",
+          "start": 5.15,
+          "end": 5.65,
+          "recognized": [
+            "world's"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 85.43,
+          "abs_end": 85.93,
+          "energy_rel": 0.86
+        },
+        {
+          "i": 16,
+          "text": "greatest",
+          "start": 5.65,
+          "end": 5.97,
+          "recognized": [
+            "greatest"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 85.93,
+          "abs_end": 86.25,
+          "energy_rel": 0.75
+        },
+        {
+          "i": 17,
+          "text": "athlete.",
+          "start": 5.97,
+          "end": 6.53,
+          "recognized": [
+            "athlete."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 86.25,
+          "abs_end": 86.81,
+          "energy_rel": 0.65
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -110 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 18,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 18,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -110
+      }
+    },
+    {
+      "id": "c1k",
+      "text": "Now that name is part of your family, and Los Angeles is about to turn your father into a public figure.",
+      "offset": 87.54,
+      "duration": 6.96,
+      "words": [
+        {
+          "i": 0,
+          "text": "Now",
+          "start": 0.19,
+          "end": 0.45,
+          "recognized": [
+            "Now"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp",
+            "start moved to the measured speech onset (Whisper was 220 ms early)"
+          ],
+          "abs_start": 87.73,
+          "abs_end": 87.99,
+          "energy_rel": 2.13
+        },
+        {
+          "i": 1,
+          "text": "that",
+          "start": 0.45,
+          "end": 0.73,
+          "recognized": [
+            "that"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 87.99,
+          "abs_end": 88.27,
+          "energy_rel": 1.64
+        },
+        {
+          "i": 2,
+          "text": "name",
+          "start": 0.73,
+          "end": 1.05,
+          "recognized": [
+            "name"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 88.27,
+          "abs_end": 88.59,
+          "energy_rel": 1.64
+        },
+        {
+          "i": 3,
+          "text": "is",
+          "start": 1.05,
+          "end": 1.31,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 88.59,
+          "abs_end": 88.85,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 4,
+          "text": "part",
+          "start": 1.31,
+          "end": 1.55,
+          "recognized": [
+            "part"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 88.85,
+          "abs_end": 89.09,
+          "energy_rel": 0.67
+        },
+        {
+          "i": 5,
+          "text": "of",
+          "start": 1.55,
+          "end": 1.69,
+          "recognized": [
+            "of"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 89.09,
+          "abs_end": 89.23,
+          "energy_rel": 0.76
+        },
+        {
+          "i": 6,
+          "text": "your",
+          "start": 1.69,
+          "end": 1.81,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 89.23,
+          "abs_end": 89.35,
+          "energy_rel": 0.81
+        },
+        {
+          "i": 7,
+          "text": "family,",
+          "start": 1.81,
+          "end": 2.23,
+          "recognized": [
+            "family,"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 89.35,
+          "abs_end": 89.77,
+          "energy_rel": 1.0
+        },
+        {
+          "i": 8,
+          "text": "and",
+          "start": 2.43,
+          "end": 2.77,
+          "recognized": [
+            "and"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 89.97,
+          "abs_end": 90.31,
+          "energy_rel": 0.49
+        },
+        {
+          "i": 9,
+          "text": "Los",
+          "start": 2.77,
+          "end": 2.97,
+          "recognized": [
+            "Los"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 90.31,
+          "abs_end": 90.51,
+          "energy_rel": 2.01
+        },
+        {
+          "i": 10,
+          "text": "Angeles",
+          "start": 2.97,
+          "end": 3.41,
+          "recognized": [
+            "Angeles"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 90.51,
+          "abs_end": 90.95,
+          "energy_rel": 1.63
+        },
+        {
+          "i": 11,
+          "text": "is",
+          "start": 3.41,
+          "end": 3.81,
+          "recognized": [
+            "is"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 90.95,
+          "abs_end": 91.35,
+          "energy_rel": 1.2
+        },
+        {
+          "i": 12,
+          "text": "about",
+          "start": 3.81,
+          "end": 4.01,
+          "recognized": [
+            "about"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 91.35,
+          "abs_end": 91.55,
+          "energy_rel": 1.47
+        },
+        {
+          "i": 13,
+          "text": "to",
+          "start": 4.01,
+          "end": 4.21,
+          "recognized": [
+            "to"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 91.55,
+          "abs_end": 91.75,
+          "energy_rel": 0.67
+        },
+        {
+          "i": 14,
+          "text": "turn",
+          "start": 4.21,
+          "end": 4.41,
+          "recognized": [
+            "turn"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 91.75,
+          "abs_end": 91.95,
+          "energy_rel": 0.68
+        },
+        {
+          "i": 15,
+          "text": "your",
+          "start": 4.41,
+          "end": 4.59,
+          "recognized": [
+            "your"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 91.95,
+          "abs_end": 92.13,
+          "energy_rel": 1.37
+        },
+        {
+          "i": 16,
+          "text": "father",
+          "start": 4.59,
+          "end": 4.97,
+          "recognized": [
+            "father"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 92.13,
+          "abs_end": 92.51,
+          "energy_rel": 1.16
+        },
+        {
+          "i": 17,
+          "text": "into",
+          "start": 4.97,
+          "end": 5.59,
+          "recognized": [
+            "into"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 92.51,
+          "abs_end": 93.13,
+          "energy_rel": 0.54
+        },
+        {
+          "i": 18,
+          "text": "a",
+          "start": 5.59,
+          "end": 5.75,
+          "recognized": [
+            "a"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 93.13,
+          "abs_end": 93.29,
+          "energy_rel": 1.13
+        },
+        {
+          "i": 19,
+          "text": "public",
+          "start": 5.75,
+          "end": 6.13,
+          "recognized": [
+            "public"
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 93.29,
+          "abs_end": 93.67,
+          "energy_rel": 0.76
+        },
+        {
+          "i": 20,
+          "text": "figure.",
+          "start": 6.13,
+          "end": 6.55,
+          "recognized": [
+            "figure."
+          ],
+          "matched_frac": 1.0,
+          "status": "exact",
+          "timing_quality": "exact",
+          "notes": [
+            "exact normalized token match; Whisper word timestamp"
+          ],
+          "abs_start": 93.67,
+          "abs_end": 94.09,
+          "energy_rel": 0.57
+        }
+      ],
+      "summary": {
+        "status": "OK",
+        "reasons": [
+          "first word vs measured speech onset: -30 ms; last word vs speech end: -30 ms"
+        ],
+        "match_ratio": 1.0,
+        "counts": {
+          "exact": 21,
+          "aligned": 0,
+          "bracketed": 0,
+          "unmatched": 0,
+          "skipped": 0
+        },
+        "timing_quality_counts": {
+          "exact": 21,
+          "estimated": 0,
+          "unresolved": 0,
+          "none": 0
+        },
+        "first_word_vs_speech_onset_ms": -30,
+        "last_word_vs_speech_end_ms": -30
+      }
+    }
+  ],
+  "summary": {
+    "status": "WARN",
+    "per_sentence": {
+      "c1a": "WARN",
+      "c1b": "OK",
+      "c1c": "OK",
+      "c1d": "OK",
+      "s1": "WARN",
+      "c1s": "OK",
+      "c1e": "WARN",
+      "c1f": "WARN",
+      "s3": "OK",
+      "c1g": "OK",
+      "s4": "OK",
+      "c1h": "OK",
+      "c1h2": "WARN",
+      "c1i": "OK",
+      "c1j": "OK",
+      "c1k": "OK"
+    }
+  }
+}

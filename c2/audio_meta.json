@@ -1,0 +1,115 @@
+{
+  "sample_rate": 24000,
+  "lead": 0.7,
+  "gap": 0.3,
+  "tail": 0.7,
+  "pad": 0.25,
+  "total": 110.550208,
+  "sentences": [
+    {
+      "id": "c2a",
+      "offset": 0.7,
+      "duration": 5.04
+    },
+    {
+      "id": "c2b",
+      "offset": 6.04,
+      "duration": 6.2
+    },
+    {
+      "id": "s2",
+      "offset": 12.54,
+      "duration": 4.88
+    },
+    {
+      "id": "c2c",
+      "offset": 17.72,
+      "duration": 3.48
+    },
+    {
+      "id": "c2c2",
+      "offset": 21.5,
+      "duration": 6.555041666666667
+    },
+    {
+      "id": "c2d",
+      "offset": 28.355042,
+      "duration": 6.935
+    },
+    {
+      "id": "c2d2",
+      "offset": 35.590042,
+      "duration": 3.215
+    },
+    {
+      "id": "c2e",
+      "offset": 39.105042,
+      "duration": 4.815
+    },
+    {
+      "id": "c2e2",
+      "offset": 44.220042,
+      "duration": 6.915041666666666
+    },
+    {
+      "id": "c2f",
+      "offset": 51.435083,
+      "duration": 2.995
+    },
+    {
+      "id": "c2g",
+      "offset": 54.730083,
+      "duration": 5.454958333333333
+    },
+    {
+      "id": "c2h",
+      "offset": 60.485042,
+      "duration": 4.815
+    },
+    {
+      "id": "c2i",
+      "offset": 65.600042,
+      "duration": 3.935
+    },
+    {
+      "id": "c2j",
+      "offset": 69.835042,
+      "duration": 6.105041666666667
+    },
+    {
+      "id": "c2k",
+      "offset": 76.240083,
+      "duration": 2.915
+    },
+    {
+      "id": "c2k2",
+      "offset": 79.455083,
+      "duration": 4.345
+    },
+    {
+      "id": "s5",
+      "offset": 84.100083,
+      "duration": 5.96
+    },
+    {
+      "id": "c2l",
+      "offset": 90.360083,
+      "duration": 5.6150416666666665
+    },
+    {
+      "id": "c2m",
+      "offset": 96.275125,
+      "duration": 2.805041666666667
+    },
+    {
+      "id": "c2m2",
+      "offset": 99.380167,
+      "duration": 6.575
+    },
+    {
+      "id": "c2n",
+      "offset": 106.255167,
+      "duration": 3.5950416666666665
+    }
+  ]
+}
