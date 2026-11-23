@@ -1,0 +1,122 @@
+name: Kim cache rescue (restore only, no API, no save)
+
+# One-time rescue of the existing narration files c2a, c2b, c2c (project kim-docu-6min).
+# Restores ONE exact Actions cache key read-only and packs the files into two artifacts.
+# No secrets, no Gemini, no TTS, no package installs, no cache save, no git push.
+# Triggered only when this file itself is pushed to docu-16x9-test30.
+on:
+  push:
+    branches: ["docu-16x9-test30"]
+    paths: [".github/workflows/kim-cache-rescue.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kim-cache-rescue
+  cancel-in-progress: false
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository (read-only)
+        uses: actions/checkout@v7
+
+      # Exact key, no restore-keys fallback. A miss stops the job here; nothing is generated.
+      - name: Restore the exact existing cache (read-only, never saves)
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-cache-v2-2b688b83e84b99c5aa4f7ca8
+          fail-on-cache-miss: true
+
+      - name: Collect c2a / c2b / c2c and write MANIFEST.json (Python standard library only)
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, shutil, sys, wave
+          from pathlib import Path
+
+          if any(k.startswith("GEMINI") for k in os.environ):
+              sys.exit("ERROR: a GEMINI variable is present; refusing to continue")
+
+          want = {"c2a": "d77251c349a7", "c2b": "9741822f7155", "c2c": "a96b087a69ba"}
+          proj = json.loads(Path("docu/projects/kim-docu-6min/project.json").read_text(encoding="utf-8"))
+          text = {}
+          for ch in proj.get("chapters", []):
+              for s in ch.get("sentences", []):
+                  if s.get("id") in want:
+                      text[s["id"]] = s.get("text")
+
+          audio = Path(".cache/story/audio")
+          if not audio.is_dir():
+              sys.exit("ERROR: .cache/story/audio is missing in the restored cache")
+          out = Path("rescue")
+          out.mkdir()
+          manifest = []
+          for sid, prefix in want.items():
+              hits = sorted(audio.glob(prefix + "*.wav"))
+              if len(hits) != 1:
+                  sys.exit(f"ERROR: {sid}: expected exactly 1 cached file for prefix {prefix}, found {len(hits)}")
+              src = hits[0]
+              dst = out / f"{sid}.wav"
+              shutil.copyfile(src, dst)
+              with wave.open(str(dst), "rb") as w:
+                  frames, rate = w.getnframes(), w.getframerate()
+                  channels, width = w.getnchannels(), w.getsampwidth()
+              if frames <= 0 or rate <= 0:
+                  sys.exit(f"ERROR: {sid}: empty or unreadable WAV")
+              data = dst.read_bytes()
+              if hashlib.sha256(data).hexdigest() != hashlib.sha256(src.read_bytes()).hexdigest():
+                  sys.exit(f"ERROR: {sid}: copy does not match the cached file")
+              manifest.append({
+                  "id": sid,
+                  "text": text.get(sid),
+                  "cache_file": f".cache/story/audio/{src.name}",
+                  "bytes": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+                  "duration_s": round(frames / rate, 3),
+                  "sample_rate": rate,
+                  "channels": channels,
+                  "sample_width_bytes": width,
+              })
+          info = {
+              "source_cache_key": "story-cache-v2-2b688b83e84b99c5aa4f7ca8",
+              "source_run_that_used_it": "45019700450",
+              "files": manifest,
+          }
+          (out / "MANIFEST.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(json.dumps(info, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Verify both artifact folders before upload
+        run: |
+          set -e
+          test "$(ls rescue | sort | tr '\n' ' ')" = "MANIFEST.json c2a.wav c2b.wav c2c.wav "
+          for f in rescue/c2a.wav rescue/c2b.wav rescue/c2c.wav; do
+            n=$(basename "$f" .wav)
+            grep -q "\"$n\"" rescue/MANIFEST.json
+          done
+          echo "Snapshot: $(find .cache/story -type f | wc -l) files, $(du -sb .cache/story | cut -f1) bytes"
+          find .cache/story -type f | sort | sha256sum | cut -c1-24 | sed 's/^/Snapshot file-list hash: story-cache-v2-/'
+          echo "Per-file SHA-256 of the snapshot:"
+          ( cd .cache/story && find . -type f -print0 | sort -z | xargs -0 sha256sum )
+          sha256sum rescue/*.wav
+
+      - name: Upload kim-c2-rescue
+        uses: actions/upload-artifact@v7
+        with:
+          name: kim-c2-rescue
+          path: rescue/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload kim-story-cache-snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: kim-story-cache-snapshot
+          path: .cache/story/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 90
