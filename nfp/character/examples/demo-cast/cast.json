@@ -1,0 +1,47 @@
+{
+  "schema": "nfp.cast/1",
+  "project": "demo-cast",
+  "characters": [
+    {
+      "id": "zahra",
+      "display_name": "زهرا",
+      "role": "راوی و شخصیت اصلی",
+      "style": "flat_cartoon_v2",
+      "identity": {
+        "skin": "#c98f6a",
+        "hair_color": "#1c1210",
+        "eye_color": "#4a2a1a",
+        "marks": ["glasses"]
+      },
+      "stages": {
+        "child": { "build": "child", "hair": "child_pony" },
+        "adult": { "build": "woman", "hair": "long_straight" }
+      },
+      "wardrobe": {
+        "casual": { "outfit": "tee2007", "top": "#24242c", "pants": "#3b5a8a", "shoe": "#2b2230", "sleeve": "short" },
+        "formal": { "outfit": "blazer", "top": "#3a4a6a", "pants": "#22222a", "shoe": "#1b1b22", "shoe_type": "flat", "accessories": ["earrings"] }
+      },
+      "defaults": { "stage": "adult", "wardrobe": "casual", "expr": "neutral" },
+      "provenance": { "real_person": false, "depiction": "fictional" }
+    },
+    {
+      "id": "karim",
+      "display_name": "کریم",
+      "role": "پدربزرگ",
+      "style": "flat_cartoon_v2",
+      "identity": {
+        "skin": "#b9845c",
+        "hair_color": "#8a8580",
+        "eye_color": "#3a2a1a"
+      },
+      "stages": {
+        "adult": { "build": "man", "hair": "short_man" }
+      },
+      "wardrobe": {
+        "home": { "outfit": "suit", "top": "#5a4a3a", "pants": "#3a3028", "shoe": "#2b2230", "accent": "#a63a3a" }
+      },
+      "defaults": { "stage": "adult", "wardrobe": "home", "expr": "happy" },
+      "provenance": { "real_person": false }
+    }
+  ]
+}

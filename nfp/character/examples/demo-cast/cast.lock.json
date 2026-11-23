@@ -1,0 +1,8 @@
+{
+  "schema": "nfp.cast.lock/1",
+  "project": "demo-cast",
+  "characters": {
+    "karim": "7cfef814bc1e50f578521b54f64661796400060f835877d4af787e6d1912d1a4",
+    "zahra": "318cb5b0e3c67ed97063b4012e88d724ff6f1ddd734ef065da4045640f1ebda9"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "style": "flat_cartoon_v2",
+  "note": "Vocabulary the flat_cartoon_v2 renderer (the existing articulated SVG rig, docu kit 10_chars.js) accepts. Pure data: the Character Engine validates casts against it without loading the rig. A future style ships its own catalogue with the same keys.",
+  "builds": ["baby", "child", "teen", "woman", "man"],
+  "hair": ["none", "baby_tuft", "child_pony", "teen_long", "long_straight", "big80s", "short_man", "slick", "wavy_long", "bob"],
+  "outfits": ["kidtee", "sweat80s", "babygrow", "tee2007", "crop", "dress", "suit", "blazer", "track", "onesie"],
+  "shoe_types": ["sneaker", "pump", "flat"],
+  "sleeves": ["none", "short", "long"],
+  "legs": ["pants", "bare"],
+  "accessories": ["earrings"],
+  "marks": ["glasses"],
+  "face": {
+    "shape": ["default"],
+    "brows": ["default"],
+    "nose": ["default"]
+  },
+  "expressions": ["neutral", "happy", "laugh", "surprised", "shock", "worried", "nervous", "sad", "cry", "smirk", "proud", "determined", "angry", "shout"],
+  "depiction": ["fictional", "symbolic"],
+  "allows_real_person": true
+}
