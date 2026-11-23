@@ -1,0 +1,19 @@
+/* NFP Character Engine - flat_cartoon_v2 renderer: the CSS the rig (rig/10_chars.js) needs to be animated.
+   Taken from the rule block of docu/engine/base.html @ fa94f06 (lines 15-25), unchanged in meaning.
+   Only rig rules: no layout, no parallax camera (.lay), no fonts, nothing project-specific.
+
+   Every rig part is <g data-p="name"> whose origin is its own pivot. Animation writes the custom properties
+   --x --y (px), --r (deg), --s --sx --sy (scale); this rule turns them into a transform around that pivot.
+   Registered with inherits:false, otherwise a parent's --x/--y/--r would leak into every nested part. */
+@property --x  { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --y  { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --r  { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --s  { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --sx { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --sy { syntax: "<number>"; inherits: false; initial-value: 1; }
+
+[data-p] {
+  transform-origin: 0 0;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)) rotate(calc(var(--r) * 1deg))
+             scale(calc(var(--s) * var(--sx)), calc(var(--s) * var(--sy)));
+}

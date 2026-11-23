@@ -1,0 +1,109 @@
+{
+  "schema": "nfp.provenance/1",
+  "renderer": "flat_cartoon_v2",
+  "source": {
+    "repository": "mahdipenhan2-pixel/persian-motion-studio",
+    "branch": "docu-16x9-test30",
+    "commit": "fa94f062b440bca4971d32b0aba45d10710d7a77",
+    "protection_tag": "nfp-protect-2026-11-23-docu-16x9-test30"
+  },
+  "copied_on": "2026-11-23",
+  "method": "byte-identical copy of the git blobs (git cat-file blob <commit>:<path>); never edited",
+  "files": [
+    {
+      "path": "rig/00_core.js",
+      "source_path": "docu/engine/kit/00_core.js",
+      "sha256": "c891ced8324c7b0553da0d223a295d15d17a8125fb75b4f20fbabc44e782ed65",
+      "bytes": 1735,
+      "modified": false
+    },
+    {
+      "path": "rig/10_chars.js",
+      "source_path": "docu/engine/kit/10_chars.js",
+      "sha256": "89ada1d0951bc4df10513c185cc40637090f022764b60b068a782ea13c49640f",
+      "bytes": 26539,
+      "modified": false
+    }
+  ],
+  "derived": [
+    {
+      "path": "rig.css",
+      "source_path": "docu/engine/base.html",
+      "source_lines": "15-25",
+      "note": "only the @property registrations and the [data-p] transform rule; no layout, no parallax, no fonts"
+    }
+  ],
+  "not_copied": [
+    "docu/engine/kit/50_director.js",
+    "docu/engine/kit/40_fx.js",
+    "docu/engine/kit/20_backgrounds.js",
+    "docu/engine/kit/21_scenes.js",
+    "docu/engine/kit/41_cine.js",
+    "docu/engine/kit/42_scenes_cine.js",
+    "docu/engine/base.html",
+    "docu/projects/*"
+  ],
+  "kim_identity_defaults": {
+    "note": "Fallback values inside rig/10_chars.js that equal the Kim project's character. They only apply when a field is missing, so the Character Engine must always pass every field (tested by tests/rig_render_check.mjs).",
+    "values": [
+      {
+        "field": "skin",
+        "value": "#d99a73",
+        "where": "actor() defaults, line 217",
+        "equals": "KIM.skin (kim-test30)"
+      },
+      {
+        "field": "hairColor",
+        "value": "#1c1210",
+        "where": "actor() defaults, line 217",
+        "equals": "KIM.hairColor (kim-test30)"
+      },
+      {
+        "field": "eyeColor",
+        "value": "#5a3320",
+        "where": "head(), line 146",
+        "equals": "KIM.eyeColor (kim-test30)"
+      },
+      {
+        "field": "accent",
+        "value": "#e4483f",
+        "where": "actor() defaults line 217 and outfit() line 79",
+        "equals": "KIM.accent"
+      },
+      {
+        "field": "lip (adult woman face)",
+        "value": "#c4666b",
+        "where": "head(), line 165",
+        "equals": "KIM25.lip (kim-docu-6min)"
+      }
+    ],
+    "generic_placeholders": [
+      {
+        "field": "top",
+        "value": "#f0b63a"
+      },
+      {
+        "field": "pants",
+        "value": "#3b4a8c"
+      },
+      {
+        "field": "shoe",
+        "value": "#2b2230"
+      },
+      {
+        "field": "outfit",
+        "value": "kidtee"
+      },
+      {
+        "field": "lip (teen face)",
+        "value": "#d98a86"
+      },
+      {
+        "field": "under (blazer)",
+        "value": "#f6e9d6"
+      }
+    ]
+  },
+  "license": "Project-owned code of this repository (same owner); no third-party assets.",
+  "update_rule": "Any change to the copies is deliberate: update this file and the hashes checked by tests/test_rig.py in the same change."
+}
