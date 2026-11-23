@@ -1,0 +1,22 @@
+{
+  "schema": "nfp.adapter.neutral/1",
+  "style": "flat_cartoon_v2",
+  "note": "Values the Character Adapter uses ONLY for optional wardrobe fields a cast leaves empty. They are deliberately different from every rig default in renderers/flat_cartoon_v2/rig/10_chars.js (Kim identity colours and generic placeholders), so an unset field can never fall through to the rig, and a leak is always detectable. Identity fields (skin, hair_color, eye_color) and outfit/top are never filled from here: they must come from the locked cast.",
+  "wardrobe": {
+    "pants": "#4a5160",
+    "shoe": "#3a3634",
+    "shoe_type": "flat",
+    "sleeve": "short",
+    "legs": "pants",
+    "accent": "#5f7d8c",
+    "under": "#ece6dc"
+  },
+  "lip_rule": {
+    "note": "lip is derived from the character's own skin (mixed toward a muted rose), never a fixed colour: two characters with different skin get different lips, and none inherits the rig's #c4666b / #d98a86.",
+    "mix_with": "#9c4f58",
+    "amount": 0.45
+  },
+  "placement": {
+    "detail": 0
+  }
+}

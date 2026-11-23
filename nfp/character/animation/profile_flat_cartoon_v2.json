@@ -1,0 +1,366 @@
+{
+ "schema": "nfp.anim.profile/1",
+ "style": "flat_cartoon_v2",
+ "note": "Data mirror of what the flat_cartoon_v2 rig (renderers/flat_cartoon_v2/rig/10_chars.js, unchanged) exposes for animation. The planner is pure Python and plans against this file; tests/anim_render_check.mjs proves every value here equals the real rig (K.chars) in a browser, so the two can never silently drift.",
+ "builds": [
+  "baby",
+  "child",
+  "teen",
+  "woman",
+  "man"
+ ],
+ "hair": [
+  "none",
+  "baby_tuft",
+  "child_pony",
+  "teen_long",
+  "long_straight",
+  "big80s",
+  "short_man",
+  "slick"
+ ],
+ "hair_aliases": {
+  "bob": "teen_long",
+  "wavy_long": "teen_long"
+ },
+ "long_hair": [
+  "long_straight"
+ ],
+ "outfits": [
+  "kidtee",
+  "sweat80s",
+  "babygrow",
+  "tee2007",
+  "crop",
+  "dress",
+  "suit",
+  "blazer",
+  "track",
+  "onesie"
+ ],
+ "shoe_types": [
+  "sneaker",
+  "pump",
+  "flat"
+ ],
+ "sleeves": [
+  "none",
+  "short",
+  "long"
+ ],
+ "legs": [
+  "pants",
+  "bare"
+ ],
+ "parts": [
+  "shadow",
+  "root",
+  "torso",
+  "head",
+  "armL",
+  "armR",
+  "foreL",
+  "foreR",
+  "legL",
+  "legR",
+  "shinL",
+  "shinR",
+  "shoeL",
+  "shoeR",
+  "eyeL",
+  "eyeR",
+  "irisL",
+  "irisR",
+  "lidL",
+  "lidR",
+  "browL",
+  "browR",
+  "blush"
+ ],
+ "optional_parts": {
+  "hairBack": "only when hair is one of long_hair"
+ },
+ "virtual_parts": {
+  "self": "the wrapper the runtime builds around the actor (stage position, entrance scale, visibility, opacity)",
+  "mouth": "the 12 swap mouths [data-m]: prop 'shape', discrete",
+  "tears": "[data-x=tears]: prop 'display' 0/1",
+  "sweat": "[data-x=sweat]: prop 'display' 0/1"
+ },
+ "numeric_props": [
+  "--x",
+  "--y",
+  "--r",
+  "--s",
+  "--sx",
+  "--sy",
+  "opacity"
+ ],
+ "discrete_props": [
+  "shape",
+  "display",
+  "visible"
+ ],
+ "rest": {
+  "--x": 0,
+  "--y": 0,
+  "--r": 0,
+  "--s": 1,
+  "--sx": 1,
+  "--sy": 1,
+  "opacity": 1,
+  "visible": 1,
+  "display": 0,
+  "shape": "neutral"
+ },
+ "rest_overrides": {
+  "blush.opacity": 0.25
+ },
+ "mouths": [
+  "neutral",
+  "smile",
+  "grin",
+  "open",
+  "small",
+  "o",
+  "shock",
+  "sad",
+  "frown",
+  "smirk",
+  "worried",
+  "proud"
+ ],
+ "closed_mouths": [
+  "neutral",
+  "smile",
+  "sad",
+  "frown",
+  "smirk",
+  "worried",
+  "proud"
+ ],
+ "open_mouths": [
+  "grin",
+  "open",
+  "small",
+  "o",
+  "shock"
+ ],
+ "expressions": {
+  "neutral": {
+   "by": 0,
+   "br": 0,
+   "ey": 1,
+   "mouth": "neutral",
+   "blush": 0.25
+  },
+  "happy": {
+   "by": -5,
+   "br": -6,
+   "ey": 0.92,
+   "mouth": "smile",
+   "blush": 0.55
+  },
+  "laugh": {
+   "by": -8,
+   "br": -8,
+   "ey": 0.5,
+   "mouth": "grin",
+   "blush": 0.65
+  },
+  "surprised": {
+   "by": -18,
+   "br": -4,
+   "ey": 1.2,
+   "mouth": "o",
+   "blush": 0.2
+  },
+  "shock": {
+   "by": -26,
+   "br": 6,
+   "ey": 1.35,
+   "mouth": "shock",
+   "blush": 0.1
+  },
+  "worried": {
+   "by": -4,
+   "br": 18,
+   "ey": 1.06,
+   "mouth": "worried",
+   "blush": 0.15
+  },
+  "nervous": {
+   "by": -6,
+   "br": 22,
+   "ey": 1.1,
+   "mouth": "worried",
+   "blush": 0.2,
+   "sweat": 1
+  },
+  "sad": {
+   "by": 2,
+   "br": 24,
+   "ey": 0.84,
+   "mouth": "sad",
+   "blush": 0.1
+  },
+  "cry": {
+   "by": 2,
+   "br": 28,
+   "ey": 0.7,
+   "mouth": "frown",
+   "blush": 0.55,
+   "tears": 1
+  },
+  "smirk": {
+   "by": -3,
+   "br": -12,
+   "ey": 0.9,
+   "mouth": "smirk",
+   "blush": 0.3
+  },
+  "proud": {
+   "by": -8,
+   "br": -10,
+   "ey": 0.45,
+   "mouth": "proud",
+   "blush": 0.5
+  },
+  "determined": {
+   "by": 6,
+   "br": -16,
+   "ey": 0.88,
+   "mouth": "neutral",
+   "blush": 0.2
+  },
+  "angry": {
+   "by": 8,
+   "br": -26,
+   "ey": 0.92,
+   "mouth": "frown",
+   "blush": 0.3
+  },
+  "shout": {
+   "by": -6,
+   "br": 6,
+   "ey": 1,
+   "mouth": "open",
+   "blush": 0.3
+  }
+ },
+ "geometry": {
+  "baby": {
+   "legH": 30,
+   "torsoH": 54,
+   "armU": 28,
+   "armF": 24,
+   "headS": 0.66
+  },
+  "child": {
+   "legH": 92,
+   "torsoH": 96,
+   "armU": 52,
+   "armF": 46,
+   "headS": 0.94
+  },
+  "teen": {
+   "legH": 150,
+   "torsoH": 122,
+   "armU": 68,
+   "armF": 62,
+   "headS": 0.78
+  },
+  "woman": {
+   "legH": 196,
+   "torsoH": 138,
+   "armU": 80,
+   "armF": 74,
+   "headS": 0.6
+  },
+  "man": {
+   "legH": 170,
+   "torsoH": 150,
+   "armU": 90,
+   "armF": 82,
+   "headS": 0.66
+  }
+ },
+ "face": {
+  "baby": {
+   "ex": 18,
+   "ey": 22,
+   "ir": 15
+  },
+  "child": {
+   "ex": 17,
+   "ey": 22,
+   "ir": 13
+  },
+  "teen": {
+   "ex": 18,
+   "ey": 20,
+   "ir": 12
+  },
+  "woman": {
+   "ex": 20,
+   "ey": 17,
+   "ir": 11
+  },
+  "man": {
+   "ex": 17,
+   "ey": 22,
+   "ir": 13
+  }
+ },
+ "base_pose": [
+  {
+   "part": "armL",
+   "prop": "--r",
+   "val": 4
+  },
+  {
+   "part": "armR",
+   "prop": "--r",
+   "val": -4
+  },
+  {
+   "part": "foreL",
+   "prop": "--r",
+   "val": 4
+  },
+  {
+   "part": "foreR",
+   "prop": "--r",
+   "val": -4
+  },
+  {
+   "part": "irisL",
+   "prop": "--y",
+   "val": 2
+  },
+  {
+   "part": "irisR",
+   "prop": "--y",
+   "val": 2
+  }
+ ],
+ "eases": [
+  "none",
+  "sine.in",
+  "sine.out",
+  "sine.inOut",
+  "power1.in",
+  "power1.out",
+  "power1.inOut",
+  "power2.in",
+  "power2.out",
+  "power2.inOut",
+  "back.out(1.6)",
+  "back.in(1.6)"
+ ],
+ "unsupported": {
+  "hand_gestures": "hands are a single circle at the end of the forearm: no fingers, no hand shapes. Only arm/forearm angles exist.",
+  "visemes": "only the 12 swap mouths exist; lip sync maps sounds onto them (no dedicated viseme drawings).",
+  "true_sitting": "no hip/pelvis pivot and front view only: sitting is approximated by thigh/shin rotation + lowering the root.",
+  "head_3d_turn": "the head only tilts/shifts in 2D; no profile view."
+ }
+}

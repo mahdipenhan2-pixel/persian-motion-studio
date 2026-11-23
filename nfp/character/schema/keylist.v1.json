@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nfp.anim.keylist/1",
+  "title": "NFP Character Engine - KeyList (C3b output, C3d input)",
+  "description": "The complete, deterministic animation of one or more characters. Extra rules not expressible here are enforced by animation/keys.py validate_keylist and NFPCharacterRuntime.validate: keys sorted by (f, actor, part, prop); no two keys of one channel overlap; 'from' equals the channel's previous value (starting at the rig rest value); f + df <= frames; t = f/fps and dur = df/fps rounded to 6 decimals; prop allowed for the part; hairBack only for long hair.",
+  "type": "object",
+  "required": [
+    "schema",
+    "fps",
+    "frames",
+    "duration",
+    "stage",
+    "actors",
+    "keys",
+    "digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "nfp.anim.keylist/1"
+    },
+    "fps": {
+      "const": 30
+    },
+    "frames": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "duration": {
+      "type": "number"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the canonical JSON of everything except this field (sorted keys, no spaces, integral numbers written as integers); checked by both validators. An integrity check, not a signature."
+    },
+    "stage": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      }
+    },
+    "actors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "dom_id",
+          "fingerprint",
+          "spec",
+          "x",
+          "y",
+          "scale"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+          },
+          "dom_id": {
+            "type": "string",
+            "description": "C1 isolation id: nfp-c-<project>-<character>-<n>",
+            "pattern": "^nfp-c-[a-z0-9-]{1,200}$"
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "C1 identity fingerprint; both validators recompute it from spec (skin, hairColor, eyeColor, glasses) and refuse a mismatch. It is put on the DOM as data-nfp-fp."
+          },
+          "spec": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "accent",
+              "build",
+              "detail",
+              "earrings",
+              "eyeColor",
+              "glasses",
+              "hair",
+              "hairColor",
+              "legs",
+              "lip",
+              "outfit",
+              "pants",
+              "shoe",
+              "shoeType",
+              "skin",
+              "sleeve",
+              "top",
+              "under"
+            ],
+            "description": "complete argument of K.chars.actor(spec): every field explicit, never the rig's fallback",
+            "properties": {
+              "accent": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "eyeColor": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "hairColor": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "lip": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "pants": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "shoe": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "skin": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "top": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "under": {
+                "type": "string",
+                "pattern": "^#[0-9a-f]{6}$"
+              },
+              "detail": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "earrings": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "glasses": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "build": {
+                "enum": [
+                  "baby",
+                  "child",
+                  "teen",
+                  "woman",
+                  "man"
+                ]
+              },
+              "hair": {
+                "enum": [
+                  "none",
+                  "baby_tuft",
+                  "child_pony",
+                  "teen_long",
+                  "long_straight",
+                  "big80s",
+                  "short_man",
+                  "slick"
+                ]
+              },
+              "outfit": {
+                "enum": [
+                  "kidtee",
+                  "sweat80s",
+                  "babygrow",
+                  "tee2007",
+                  "crop",
+                  "dress",
+                  "suit",
+                  "blazer",
+                  "track",
+                  "onesie"
+                ]
+              },
+              "shoeType": {
+                "enum": [
+                  "sneaker",
+                  "pump",
+                  "flat"
+                ]
+              },
+              "sleeve": {
+                "enum": [
+                  "none",
+                  "short",
+                  "long"
+                ]
+              },
+              "legs": {
+                "enum": [
+                  "pants",
+                  "bare"
+                ]
+              }
+            }
+          },
+          "x": {
+            "type": "number",
+            "minimum": -100000,
+            "maximum": 100000
+          },
+          "y": {
+            "type": "number",
+            "minimum": -100000,
+            "maximum": 100000
+          },
+          "scale": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 20
+          }
+        }
+      }
+    },
+    "keys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "actor",
+          "part",
+          "prop",
+          "t",
+          "f",
+          "val",
+          "from",
+          "dur",
+          "df",
+          "ease",
+          "src"
+        ],
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "part": {
+            "type": "string",
+            "description": "a rig part (shadow, root, torso, head, armL ... blush, hairBack) or a virtual one: self, mouth, tears, sweat"
+          },
+          "prop": {
+            "enum": [
+              "--x",
+              "--y",
+              "--r",
+              "--s",
+              "--sx",
+              "--sy",
+              "opacity",
+              "visible",
+              "display",
+              "shape"
+            ]
+          },
+          "t": {
+            "type": "number",
+            "minimum": 0
+          },
+          "f": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "df": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "val": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "from": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "ease": {
+            "enum": [
+              "none",
+              "sine.in",
+              "sine.out",
+              "sine.inOut",
+              "power1.in",
+              "power1.out",
+              "power1.inOut",
+              "power2.in",
+              "power2.out",
+              "power2.inOut",
+              "back.out(1.6)",
+              "back.in(1.6)"
+            ]
+          },
+          "src": {
+            "type": "string",
+            "description": "the action (or idle / lipsync) that made the key"
+          }
+        }
+      }
+    },
+    "lipsync": {
+      "type": "object"
+    },
+    "idle": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "array"
+    }
+  }
+}

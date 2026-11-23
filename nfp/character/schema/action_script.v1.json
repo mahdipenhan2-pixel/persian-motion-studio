@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nfp.anim.actions/1",
+  "title": "NFP Character Engine - action script (C3b input)",
+  "description": "Characters from a locked C1 cast placed on a stage, plus timed actions. Read by animation/script.py; the planner re-checks everything here and more (overlaps, stage presence, timeline range).",
+  "type": "object",
+  "required": [
+    "schema",
+    "duration",
+    "actors",
+    "actions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "nfp.anim.actions/1"
+    },
+    "_note": {
+      "type": "string"
+    },
+    "fps": {
+      "const": 30,
+      "default": 30,
+      "description": "C3 supports 30 fps only; any other value is refused by the planner"
+    },
+    "duration": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "seconds"
+    },
+    "stage": {
+      "type": "object",
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "default": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    "timing": {
+      "description": "word timings: a path (relative to this file) or inline JSON in any format timing_normalize.py accepts (Studio timing.json, Docu DATA, Whisper segments, word list)",
+      "type": [
+        "string",
+        "object",
+        "array"
+      ]
+    },
+    "actors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "cast",
+          "character"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+          },
+          "cast": {
+            "type": "string",
+            "description": "C1 project directory (cast.json + cast.lock.json), relative to this file"
+          },
+          "character": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "wardrobe": {
+            "type": "string"
+          },
+          "expr": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "integer"
+          },
+          "x": {
+            "type": "number",
+            "minimum": -100000,
+            "maximum": 100000
+          },
+          "y": {
+            "type": "number",
+            "minimum": -100000,
+            "maximum": 100000,
+            "description": "stage position of the feet"
+          },
+          "scale": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 20
+          },
+          "idle": {
+            "type": "boolean",
+            "default": true,
+            "description": "breathing + seeded blinks in free channels"
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "actor",
+          "do",
+          "t"
+        ],
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "do": {
+            "enum": [
+              "enter",
+              "exit",
+              "walk",
+              "run",
+              "move",
+              "blink",
+              "breathe",
+              "look",
+              "turn",
+              "nod",
+              "arm",
+              "arms_rest",
+              "wave",
+              "point",
+              "lean",
+              "hop",
+              "shiver",
+              "expr",
+              "sit",
+              "stand",
+              "talk"
+            ]
+          },
+          "t": {
+            "type": "number",
+            "minimum": 0,
+            "description": "start, seconds (snapped to the frame grid)"
+          },
+          "dur": {
+            "type": "number",
+            "minimum": 0,
+            "description": "seconds; each action has a default except walk/run/move/breathe"
+          },
+          "style": {
+            "enum": [
+              "pop",
+              "fade",
+              "walk"
+            ]
+          },
+          "from_dx": {
+            "type": "number"
+          },
+          "gait": {
+            "enum": [
+              "walk",
+              "run"
+            ]
+          },
+          "dx": {
+            "type": "number"
+          },
+          "dy": {
+            "type": "number"
+          },
+          "step": {
+            "type": "number"
+          },
+          "amp": {
+            "type": "number"
+          },
+          "arms": {
+            "type": "boolean"
+          },
+          "dir": {
+            "enum": [
+              "left",
+              "right",
+              "up",
+              "down",
+              "center"
+            ]
+          },
+          "deg": {
+            "type": "number"
+          },
+          "side": {
+            "enum": [
+              "L",
+              "R",
+              "both"
+            ]
+          },
+          "r": {
+            "type": "number"
+          },
+          "fore": {
+            "type": "number"
+          },
+          "ease": {
+            "type": "string"
+          },
+          "hold": {
+            "type": "number"
+          },
+          "h": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "description": "expression name from the style catalogue"
+          },
+          "facing": {
+            "enum": [
+              "left",
+              "right"
+            ]
+          },
+          "angle": {
+            "type": "number"
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offset": {
+            "type": "number",
+            "description": "talk: seconds added to every word time"
+          },
+          "viseme": {
+            "type": "boolean",
+            "default": true
+          },
+          "estimated": {
+            "type": "boolean",
+            "default": true,
+            "description": "talk: use words whose timing is estimated (labelled lipsync:estimated); false leaves them silent"
+          }
+        }
+      }
+    }
+  }
+}

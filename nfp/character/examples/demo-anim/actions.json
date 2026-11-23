@@ -1,0 +1,32 @@
+{
+  "schema": "nfp.anim.actions/1",
+  "_note": "C3 demo scenario: enter, stand, blink + breathe (idle), look left/right, walk, stop, speak a Persian sentence with word timing, change expression, wave, exit. Uses the C1 demo cast (locked).",
+  "fps": 30,
+  "duration": 18.0,
+  "stage": { "width": 1920, "height": 1080 },
+  "timing": "timing.json",
+  "actors": [
+    { "id": "zahra", "cast": "../demo-cast", "character": "zahra", "stage": "adult", "wardrobe": "casual",
+      "expr": "neutral", "x": 760, "y": 1000, "scale": 1.0, "idle": true, "seed": 7 }
+  ],
+  "actions": [
+    { "actor": "zahra", "do": "enter", "t": 0.5, "dur": 2.4, "style": "walk", "from_dx": -900 },
+    { "actor": "zahra", "do": "expr", "t": 3.2, "name": "happy" },
+    { "actor": "zahra", "do": "look", "t": 3.7, "dir": "left" },
+    { "actor": "zahra", "do": "turn", "t": 3.7, "deg": -6, "dur": 0.3 },
+    { "actor": "zahra", "do": "look", "t": 4.4, "dir": "right" },
+    { "actor": "zahra", "do": "turn", "t": 4.4, "deg": 6, "dur": 0.3 },
+    { "actor": "zahra", "do": "look", "t": 5.1, "dir": "center" },
+    { "actor": "zahra", "do": "turn", "t": 5.1, "deg": 0, "dur": 0.3 },
+    { "actor": "zahra", "do": "walk", "t": 5.7, "dur": 1.8, "dx": 360 },
+    { "actor": "zahra", "do": "expr", "t": 7.9, "name": "neutral" },
+    { "actor": "zahra", "do": "talk", "t": 8.2, "sentences": ["s1", "s2"] },
+    { "actor": "zahra", "do": "nod", "t": 10.6, "dur": 0.4 },
+    { "actor": "zahra", "do": "arm", "t": 11.0, "side": "L", "r": 30, "fore": 50, "dur": 0.4 },
+    { "actor": "zahra", "do": "arms_rest", "t": 12.4, "dur": 0.4 },
+    { "actor": "zahra", "do": "expr", "t": 13.1, "name": "laugh", "dur": 0.25 },
+    { "actor": "zahra", "do": "wave", "t": 13.4, "dur": 1.4, "side": "R" },
+    { "actor": "zahra", "do": "expr", "t": 14.9, "name": "happy" },
+    { "actor": "zahra", "do": "exit", "t": 15.0, "dur": 2.4, "style": "walk", "dx": 1000 }
+  ]
+}
