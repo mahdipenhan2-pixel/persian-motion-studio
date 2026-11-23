@@ -1,0 +1,16 @@
+  /* NFP Camera Motion Engine. No will-change hints: they freeze the raster scale and make frames depend on
+     seek history; without them every frame is rasterised fresh at its exact scale (deterministic).
+      Media frames sit OUTSIDE the caption band (y 560-1360) and leave the progress bar
+     (y 64-72) and the handle line (y >= 1660) visible. Geometry must match camera/presets.py FRAMES. */
+  .cam-media { position: absolute; left: 0; right: 0; overflow: hidden; }
+  .cam-frame-top { top: 96px; height: 452px; }
+  .cam-frame-bottom { top: 1372px; height: 268px; }
+  .cam-layer { position: absolute; inset: 0; transform-origin: 50% 50%; }
+  .cam-img { display: block; width: 100%; height: 100%; }
+  /* the scrim keeps text over the picture readable and melts both frame edges into the background */
+  .cam-frame-top .cam-scrim { position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(__BG_RGB__,1) 0%, rgba(__BG_RGB__,0.12) 16%, rgba(__BG_RGB__,0.28) 64%, rgba(__BG_RGB__,1) 100%); }
+  .cam-frame-bottom .cam-scrim { position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(__BG_RGB__,1) 0%, rgba(__BG_RGB__,0.12) 20%, rgba(__BG_RGB__,0.28) 64%, rgba(__BG_RGB__,1) 100%); }
+  .cam-graphics { position: absolute; inset: 0; transform-origin: 50% 50%; }
+  .scene { transform-origin: 50% 50%; }
