@@ -1,1 +1,1 @@
-audio run 3b (2026-11-23 09:25 Berlin; run 3 stopped at the offline test step, no API request was sent; approved 2026-11-22 14:32: exactly 4 requests, stop on first 429)
+audio run 4 NO_API (2026-11-23, re-cut of the 4 cached raw chunks only; verified 4/4 in cache; no Gemini/TTS/API request possible in this run; approved by Mehdi 10:54 Berlin)
