@@ -177,4 +177,14 @@ _t = TC.core.script_tokens("The final episode airs in June 2021, after two hundr
 _r, _ratio = TC.core.align_words(_t, TC.spoken_numbers(_ww("The", "final", "episode", "airs", "in", "June", "2021,", "after", "294", "episodes."), {t["norm"] for t in _t}), 0.6)
 check(all(r["start"] is not None for r in _r), "c2m2 aligns completely with '294' heard by Whisper")
 
+# ---- 11. NO_API mode + verify-raw (re-cut of cached raw chunks must never be able to reach the API)
+import os as _os, tempfile as _tf
+_src = (DOCU / "engine" / "tts_chunks.py").read_text(encoding="utf-8")
+check("def no_api(" in _src and "EXIT_NO_API" in _src and "core.synth_once = _refuse" in _src, "generate has a NO_API guard that replaces the API call")
+check(_src.index("if no_api(a.project):") < _src.index('key = os.environ.get("GEMINI_API_KEY"'), "the NO_API guard runs before the API key is even read")
+_os.environ["DOCU_NO_API"] = "1"
+check(TC.no_api("kim-docu-6min") is True, "DOCU_NO_API=1 switches NO_API mode on")
+del _os.environ["DOCU_NO_API"]
+check(TC.no_api("kim-docu-6min") == ("NO_API" in (DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text(encoding="utf-8")), "the AUDIO_RUN marker decides NO_API mode")
+
 print("ALL OK")

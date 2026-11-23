@@ -39,6 +39,8 @@ CHUNKS = core.CACHE / "chunks"
 HOP = 0.010              # energy frame (s)
 LEAD, TAIL = 0.27, 0.375  # measured median silence around the approved chapter-1 sentences (s)
 EXIT_QUOTA = 3
+EXIT_NO_API = 5
+EXIT_RAW_MISSING = 6
 MIN_SAFE_PAUSE = 0.15     # a cut is only allowed inside a real pause at least this long (s)
 SAFE_MARGIN = 0.05       # and at least this far (s) from either edge of the pause
 
@@ -397,6 +399,17 @@ def cmd_generate(a):
     runs = plan_runs(script, t, a.max_words)
     print(f"chapter {ch['id']}: {len(runs)} run(s) of uncached sentences: {[len(r['sentences']) for r in runs]}")
     todo = [r for r in runs if not r["path"].exists()]
+    if no_api(a.project):
+        # NO_API mode (marker in AUDIO_RUN or DOCU_NO_API=1): this run may only re-cut raw chunks that are already in the cache.
+        def _refuse(*_a, **_k):
+            raise RuntimeError("NO_API mode: an API request was attempted - refused")
+        core.synth_once = _refuse
+        if todo:
+            print(f"STOP (NO_API mode): {len(todo)} raw chunk(s) are missing from the cache: "
+                  f"{[r['path'].name for r in todo]}. No API request is sent in this mode.")
+            return EXIT_NO_API
+        print("NO_API mode: every raw chunk is present - nothing is requested; the cut/verify steps run on the cached chunks")
+        return 0
     if not todo:
         print("every run already has its raw chunk - no API request needed")
         return 0
@@ -439,6 +452,50 @@ def cmd_generate(a):
             break
     (build / "chunks_log.json").write_text(json.dumps({"requests": used, "log": log}), encoding="utf-8")
     return 0
+
+
+def no_api(project):
+    """True when this run must not call any API: DOCU_NO_API=1, or the word NO_API in the project's AUDIO_RUN marker file."""
+    if os.environ.get("DOCU_NO_API", "").strip() == "1":
+        return True
+    marker = Path(__file__).resolve().parents[1] / "projects" / project / "AUDIO_RUN"
+    try:
+        return "NO_API" in marker.read_text(encoding="utf-8")
+    except OSError:
+        return False
+
+
+def cmd_verify_raw(a):
+    """Read-only check that the raw chunks are in the cache: no API, no network, nothing is written."""
+    proj, ch, build = R.setup(a.project, a.chapter)
+    cfg, script = core.load_inputs()
+    bad = 0
+    seen = set()
+    for r in plan_runs(script, cfg["tts"], a.max_words):
+        ids = [x["id"] for x in r["sentences"]]
+        seen.add(r["path"].name)
+        if not r["path"].exists():
+            print(f"MISSING {r['path'].name}  run {ids[0]}..{ids[-1]}")
+            bad += 1
+            continue
+        info = core.wav_info(r["path"])
+        sha = hashlib.sha256(r["path"].read_bytes()).hexdigest()
+        print(f"OK {r['path'].name}  plan hash matches  {info['duration']:.2f}s  sha256={sha}  run {ids[0]}..{ids[-1]}")
+    for spec in a.expect or []:
+        name, _, sec = spec.partition(":")
+        f = CHUNKS / name
+        if name in seen:
+            continue
+        if not f.exists():
+            print(f"MISSING {name}")
+            bad += 1
+            continue
+        info = core.wav_info(f)
+        sha = hashlib.sha256(f.read_bytes()).hexdigest()
+        good = (not sec) or abs(info["duration"] - float(sec)) <= 0.15
+        print(f"{'OK' if good else 'MISMATCH'} {name}  {info['duration']:.2f}s (expected {sec or '-'})  sha256={sha}")
+        bad += 0 if good else 1
+    return EXIT_RAW_MISSING if bad else 0
 
 
 def cmd_split(a):
@@ -588,6 +645,11 @@ def main():
             p.add_argument("--spacing", type=float, default=25.0)
             p.add_argument("--max-requests", type=int, default=7)
             p.add_argument("--attempts", type=int, default=2)
+    p = sub.add_parser("verify-raw")
+    p.add_argument("--project", required=True)
+    p.add_argument("--chapter", required=True)
+    p.add_argument("--max-words", type=int, default=200)
+    p.add_argument("--expect", nargs="*", help="chunk-<hash>.wav[:seconds] files that must exist (already cut runs)")
     p = sub.add_parser("selftest")
     p.add_argument("--data", required=True, help="folder with approved chapter-1 narration.wav + timing.json")
     p.add_argument("--whisper", choices=["timing", "real"], default="timing")
@@ -597,7 +659,7 @@ def main():
     p.add_argument("--verbose", action="store_true", help="print every cut with the words around it")
     p.add_argument("--whisper-like", action="store_true", help="emulate the early/glued word edges measured on real Whisper")
     a = ap.parse_args()
-    sys.exit({"generate": cmd_generate, "split": cmd_split, "selftest": cmd_selftest}[a.cmd](a))
+    sys.exit({"generate": cmd_generate, "split": cmd_split, "verify-raw": cmd_verify_raw, "selftest": cmd_selftest}[a.cmd](a))
 
 
 if __name__ == "__main__":
