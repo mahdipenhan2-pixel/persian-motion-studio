@@ -167,4 +167,14 @@ check("display" in (DOCU / "projects" / "kim-docu-6min" / "shots.js").read_text(
 check((DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text().strip().startswith("audio run"), "AUDIO_RUN marker file exists (a new line starts the approved real audio run; it never changes on its own)")
 _fc, _tot = F6.xfade_filter([95.2, 114.233, 119.533])
 check(_fc.count("xfade") == 2 and "offset=94.700" in _fc and abs(_tot - (95.2 + 114.233 + 119.533 - 1.0)) < 1e-6, "silent film: two 0.5 s cross-dissolves, offsets computed from the real chapter lengths")
+# ---- 10. spoken numbers: Whisper digits are spelled out like the script before matching (audio was right, only spelling differed)
+def _ww(*ts):
+    return [{"text": t, "start": i * 0.3, "end": i * 0.3 + 0.28, "norm": TC.core.norm(t)} for i, t in enumerate(ts)]
+check(TC.number_words(294) == ["two", "hundred", "and", "ninety-four"], "number words: 294")
+check([w["text"] for w in TC.spoken_numbers(_ww("than", "$4", "billion."), set())] == ["than", "four", "billion.", "dollars"], "'$4 billion' becomes 'four billion dollars'")
+check([w["text"] for w in TC.spoken_numbers(_ww("in", "2007"), {"2007"})] == ["in", "2007"], "a number the script writes as digits is left alone")
+_t = TC.core.script_tokens("The final episode airs in June 2021, after two hundred and ninety-four episodes.")
+_r, _ratio = TC.core.align_words(_t, TC.spoken_numbers(_ww("The", "final", "episode", "airs", "in", "June", "2021,", "after", "294", "episodes."), {t["norm"] for t in _t}), 0.6)
+check(all(r["start"] is not None for r in _r), "c2m2 aligns completely with '294' heard by Whisper")
+
 print("ALL OK")

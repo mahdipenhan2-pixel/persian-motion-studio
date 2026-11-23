@@ -174,6 +174,64 @@ def choose_cuts(runs, est, reach=1.3):
     return [(cen[k], ln[k]) for k in path]
 
 
+# ----------------------------------------------------------------------------- spoken numbers
+# Whisper writes "$4 billion" and "294", the script says "four billion dollars" and "two hundred and ninety-four". The audio is right,
+# only the spelling differs, so the Whisper side is spelled out like the script before words are matched. Only a number that the
+# script does NOT contain as digits is expanded ("2007" stays "2007"). The locked core is not touched.
+import re as _re
+
+_ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen",
+         "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+_SCALE = {"thousand", "million", "billion", "trillion"}
+
+
+def number_words(n):
+    """0..999,999,999,999 as spoken English tokens (British 'and', hyphenated tens), e.g. 294 -> two hundred and ninety-four."""
+    if n < 20:
+        return [_ONES[n]]
+    if n < 100:
+        return [_TENS[n // 10] + ("-" + _ONES[n % 10] if n % 10 else "")]
+    if n < 1000:
+        return [_ONES[n // 100], "hundred"] + (["and"] + number_words(n % 100) if n % 100 else [])
+    for size, name in ((10 ** 9, "billion"), (10 ** 6, "million"), (1000, "thousand")):
+        if n >= size:
+            head = number_words(n // size) + [name]
+            rest = n % size
+            if rest:
+                head += (["and"] if rest < 100 else []) + number_words(rest)
+            return head
+    return [str(n)]
+
+
+def spoken_numbers(words, script_norms):
+    """words: [{text,start,end,norm}] from Whisper. Returns the list with digit numbers spelled out (time shared equally)."""
+    out, i = [], 0
+    while i < len(words):
+        w = words[i]
+        m = _re.fullmatch(r"(\$?)(\d{1,3}(?:,\d{3})+|\d+)([.,;:!?]*)", w["text"].strip())
+        if not m or w["norm"] in script_norms:
+            out.append(w)
+            i += 1
+            continue
+        money = m.group(1) == "$"
+        parts = number_words(int(m.group(2).replace(",", "")))
+        span = (w["end"] - w["start"]) / max(1, len(parts))
+        for k, t in enumerate(parts):
+            out.append({"text": t, "start": w["start"] + k * span, "end": w["start"] + (k + 1) * span, "norm": core.norm(t)})
+        if money:
+            nxt = words[i + 1] if i + 1 < len(words) else None
+            if nxt is not None and core.norm(nxt["text"]) in _SCALE:
+                out.append(nxt)
+                i += 1
+            last = out[-1]
+            d = min(0.12, max(0.04, (last["end"] - last["start"]) / 2))
+            out.append({"text": "dollars", "start": last["end"], "end": last["end"] + d, "norm": "dollars"})
+        i += 1
+    return out
+
+
+
 def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
     """x: continuous samples. words: [{text,start,end,norm}] from Whisper (chunk time). sents: [{id,text}].
     Returns (pieces, report). pieces[i] = float samples of sentence i (lead/tail silence matched to chapter 1)."""
@@ -184,6 +242,7 @@ def split_chunk(rate, x, words, sents, min_word=0.6, lead=LEAD, tail=TAIL):
             t["i"] = len(toks)
             toks.append(t)
             owner.append(si)
+    words = spoken_numbers(words, {t["norm"] for t in toks})
     rows, ratio = core.align_words(toks, words, min_word)
     n = len(sents)
     rep = {"match_ratio": round(ratio, 3), "sentences": [], "warnings": [], "ok": True}
@@ -316,6 +375,7 @@ def verify_pieces(rate, pieces, sents, wcfg, workdir, min_cover=0.9):
                 if nm and w.end > w.start:
                     words.append({"text": w.word.strip(), "start": float(w.start), "end": float(w.end), "norm": nm})
         toks = core.script_tokens(s["text"])
+        words = spoken_numbers(words, {t["norm"] for t in toks})
         rows, ratio = core.align_words(toks, words, 0.6) if words else ([], 0.0)
         idx = [k for k, t in enumerate(toks) if t["norm"]]
         got = [k for k in idx if rows and rows[k]["start"] is not None]
