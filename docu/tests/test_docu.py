@@ -187,4 +187,23 @@ check(TC.no_api("kim-docu-6min") is True, "DOCU_NO_API=1 switches NO_API mode on
 del _os.environ["DOCU_NO_API"]
 check(TC.no_api("kim-docu-6min") == ("NO_API" in (DOCU / "projects" / "kim-docu-6min" / "AUDIO_RUN").read_text(encoding="utf-8")), "the AUDIO_RUN marker decides NO_API mode")
 
+# ---- 12. untimed words (Whisper could not time them): estimated for subtitles only, never moves the audio
+import sys as _sys
+_sys.path.insert(0, str(DOCU / "engine"))
+from untimed import estimate_untimed as _est
+_tm = {"sentences": [{"id": "s", "offset": 10.0, "duration": 3.0, "summary": {},
+    "words": [{"text": "He", "abs_start": 10.2, "abs_end": 10.4},
+              {"text": "earned", "abs_start": None, "abs_end": None},
+              {"text": "four", "abs_start": None, "abs_end": None},
+              {"text": "billion", "abs_start": 11.4, "abs_end": 11.9}]}]}
+_before = repr(_tm)
+_o = _est(_tm)
+check(repr(_tm) == _before, "estimate_untimed does not modify its input (the core timing stays as it is)")
+_w = _o["sentences"][0]["words"]
+check(all(w["abs_start"] is not None and w["abs_end"] > w["abs_start"] for w in _w), "every untimed word gets a start and a longer end")
+check(all(_w[i]["abs_end"] <= _w[i + 1]["abs_start"] + 1e-9 for i in range(len(_w) - 1)), "estimated words stay in order and never overlap")
+check(_w[1].get("est") and _w[2].get("est") and not _w[0].get("est") and not _w[3].get("est"), "only the untimed words are flagged est")
+check(_w[0]["abs_start"] == 10.2 and _w[3]["abs_start"] == 11.4, "real Whisper times are never changed")
+check(10.4 - 1e-9 <= _w[1]["abs_start"] and _w[2]["abs_end"] <= 11.4 + 1e-9, "estimates sit inside the gap between the neighbouring timed words")
+
 print("ALL OK")

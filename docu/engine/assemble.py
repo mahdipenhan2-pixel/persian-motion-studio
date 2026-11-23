@@ -7,6 +7,8 @@ is then the sum of the padded lengths before it, and word/sentence times are shi
 import math
 import wave
 
+from untimed import estimate_untimed
+
 FPS = 30
 
 
@@ -69,7 +71,7 @@ def srt_time(t):
 
 def merged_srt(shifted_timings):
     rows, n = [], 0
-    for t in shifted_timings:
+    for t in map(estimate_untimed, shifted_timings):
         S = t["sentences"]
         for i, s in enumerate(S):
             timed = [w for w in s["words"] if w["abs_start"] is not None]

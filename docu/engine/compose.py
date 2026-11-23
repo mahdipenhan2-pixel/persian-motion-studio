@@ -6,6 +6,8 @@ import subprocess
 import wave
 from pathlib import Path
 
+from untimed import estimate_untimed
+
 ENGINE = Path(__file__).resolve().parent
 KIT = ["00_core", "10_chars", "20_backgrounds", "21_scenes", "40_fx", "41_cine", "42_scenes_cine", "50_director"]
 FPS = 30
@@ -40,6 +42,7 @@ def font_faces(fonts_dir):
 def compose(project, chapter, timing, build, fonts_dir, narration_wav, local=False, shim=None):
     if timing["summary"]["status"] == "FAIL":
         raise SystemExit("timing status is FAIL; refusing to build a video from unreliable timestamps.")
+    timing = estimate_untimed(timing)   # words Whisper could not match (numbers) get estimated slots: subtitles highlight them, captions end with the narrator
     build = Path(build)
     out = build / "story"
     (out / "assets" / "fonts").mkdir(parents=True, exist_ok=True)

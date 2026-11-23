@@ -124,9 +124,10 @@
         /** word-timed mouth flaps for one sentence (lip-sync as far as 2D swap-mouths allow) */
         A.talkWords = (sid, from, to) => {
           const sn = byId[sid]; if (!sn) return; const shapes = ["open", "small", "o", "open", "small"];
+          let headEnd = -1;   // a head bob never starts before the previous one ended (two bobs closer than 0.06 s used to overlap by ~30 ms)
           sn.words.forEach((w, i) => { if (!w.hl) return; if (from !== undefined && w.start < from) return; if (to !== undefined && w.end > to) return;
             const d = w.end - w.start, n = Math.max(1, Math.round(d / 0.13));
-            for (let k = 0; k < n; k++) { const t = snap(w.start + (d * k) / n); A.mouthOnly(t, shapes[(i + k) % shapes.length]); A.k("head", "--y", t, k % 2 ? 0 : 2, 0.06); A.mouthOnly(snap(Math.min(w.end, t + (d / n) * 0.62)), "small"); }
+            for (let k = 0; k < n; k++) { const t = snap(w.start + (d * k) / n); A.mouthOnly(t, shapes[(i + k) % shapes.length]); if (t >= headEnd - 1e-6) { A.k("head", "--y", t, k % 2 ? 0 : 2, 0.06); headEnd = t + 0.06; } A.mouthOnly(snap(Math.min(w.end, t + (d / n) * 0.62)), "small"); }
             A.mouthOnly(snap(w.end + 0.02), "neutral"); });
         };
         // base pose
