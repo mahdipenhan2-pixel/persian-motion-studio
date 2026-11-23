@@ -1,0 +1,188 @@
+name: Studio Motion Build (camera engine, cache-only)
+
+# Renders studio/projects/motion-demo-fa with the Camera Motion Engine (studio/engine/run_motion.py) using ONLY
+# narration that already exists in the Actions cache. This workflow has NO Gemini secret at all: the locked core's
+# tts step stops on any cache miss ("GEMINI_API_KEY is empty"), and the steps below stop even earlier if a cached
+# audio file is missing or its content hash differs. No cache is ever saved, so existing caches are never replaced.
+# Runs only when this file itself is pushed to the development branch (never on main).
+on:
+  push:
+    branches: ["claude/nfp-project-audit-jl83y2"]
+    paths: [".github/workflows/studio-motion-build.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-motion-build
+  cancel-in-progress: false
+
+env:
+  PROJECT: motion-demo-fa
+  HF_VERSION: "0.9.83"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Refuse to run with any Gemini variable present
+        run: |
+          if env | grep -qi '^GEMINI'; then echo "::error::A GEMINI variable is present; this workflow must never have one."; exit 1; fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+
+      - name: Install fonts (Vazirmatn for Persian, Inter for Latin)
+        run: |
+          npm install --no-save @fontsource/vazirmatn@5 @fontsource/inter@5
+          mkdir -p assets/fonts
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-400-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/vazirmatn/files/vazirmatn-arabic-700-normal.woff2 assets/fonts/
+          cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 assets/fonts/ || true
+          cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 assets/fonts/ || true
+          ls assets/fonts
+
+      - name: Record tool versions
+        run: |
+          node --version
+          python3 --version
+          ffmpeg -version | head -1
+          npx --yes hyperframes@"$HF_VERSION" --version || true
+
+      - name: Offline tests (locked core, Studio, camera engine T1+T2)
+        run: |
+          python3 scripts/test_stage2_alignment.py
+          python3 studio/tests/test_studio.py
+          python3 studio/tests/test_camera.py
+
+      - name: Project and camera plan
+        run: python3 studio/engine/run_motion.py plan --project "$PROJECT"
+
+      # Exact key of the cache that holds the six Stage 2 sentences (created on main, readable from this branch).
+      # No restore-keys fallback and a hard stop on a miss.
+      - name: Restore the existing narration cache (read-only)
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/story
+          key: story-cache-v2-e0e4a7ced863d713d2f76c02
+          fail-on-cache-miss: true
+
+      - name: Every expected audio file exists with the expected content hash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts"); sys.path.insert(0, "studio/engine")
+          import story_stage2 as core, project as P
+          # audio file name (content-addressed sentence hash) -> SHA-256 of the WAV content (from the cache snapshot)
+          expected = {
+              "450d9a182871280a218daa9353e187490074ffc9ae69d0b221e635ff6779adcb": "4bb1ea971e9955f7fd4128244abce102b2e2402d442b3174b2aeeac6ade5fcd6",
+              "1a4f8abc41da563f72f66a3e19e25b87fe8c50970d60768a244648f6ccdcda36": "fecbb7f3c6de2b17c979aa654876250bb4bb99bb8f1e963c490b45f8e542ee95",
+              "0d2fea3737fb45edf94531f11d71153c27cd29e6507a4a7373e0c5d4c653724c": "60fcbd443c79688c70438691ffc55529d38430ece9d261df20ccc3d1e68b01ce",
+              "fa4e40b4bda8029f5cb42aa45786460d29a2d36047b898cad173e97eff5b52b2": "a597eeaf3bda138c4ddfdcd37c070b0a0ff6c0b5e2390f8111ea9eec34c43efa",
+              "70a9260b2d032f231cfe0467a4095cab3414aa990a1f31c881fb9cc8de03b0fb": "d2dab512b664a40b2522672e74b9920eb62c42a85e692d4d736cf4ca4441201b",
+              "cc12cefd704c71bda548eca26c570e880d5b8bb35debbbc2316ce23560f44273": "bc1b66ad711d2c5ed852b0df3f171bb109e6af0316bb0bfb39fc090a7b579063",
+          }
+          p = P.load("motion-demo-fa")
+          t = P.core_config(p)["tts"]
+          names = [core.sentence_hash(t, s["text"]) for s in P.sentences(p)]
+          if sorted(names) != sorted(expected):
+              sys.exit("ERROR: the project's sentences no longer match the six cached Stage 2 sentences")
+          bad = []
+          for n in names:
+              f = Path(".cache/story/audio") / f"{n}.wav"
+              if not f.is_file():
+                  bad.append(f"{n[:12]}: missing")
+                  continue
+              h = hashlib.sha256(f.read_bytes()).hexdigest()
+              print(f"{n[:12]}: {'OK' if h == expected[n] else 'HASH MISMATCH'}  {h}")
+              if h != expected[n]:
+                  bad.append(f"{n[:12]}: content hash differs")
+          if bad:
+              sys.exit("ERROR: stopping before any further step: " + "; ".join(bad))
+          print("All 6 cached narration files present with the expected content.")
+          PY
+
+      - name: Zero API requests needed (hard stop otherwise)
+        id: check
+        run: |
+          python3 studio/engine/run_motion.py check --project "$PROJECT" | tee check.log
+          grep -q "API requests needed: 0 " check.log || { echo "::error::Some narration is not cached; stopping (no API is ever called)."; exit 1; }
+
+      - name: Narration from cache only (no key in this workflow)
+        run: |
+          python3 studio/engine/run_motion.py tts --project "$PROJECT" | tee tts.log
+          grep -q "API requests used: 0" tts.log
+
+      - name: Prepare audio timeline
+        run: python3 studio/engine/run_motion.py prepare --project "$PROJECT"
+
+      - name: Restore Whisper model cache (read-only; downloads free from HuggingFace on a miss)
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.cache/huggingface/hub
+          key: faster-whisper-small-v1
+
+      - name: Word timestamps per sentence (faster-whisper)
+        run: |
+          python3 -m venv .venv-whisper
+          .venv-whisper/bin/pip install --upgrade pip
+          .venv-whisper/bin/pip install faster-whisper==1.2.1 "av<19"
+          .venv-whisper/bin/python studio/engine/run_motion.py whisper --project "$PROJECT"
+
+      - name: Align script words to speech
+        run: python3 studio/engine/run_motion.py align --project "$PROJECT"
+
+      - name: Build composition with camera motion
+        run: python3 studio/engine/run_motion.py compose --project "$PROJECT"
+
+      - name: Lint composition
+        working-directory: build/studio/motion-demo-fa/story
+        run: npx --yes hyperframes@"$HF_VERSION" lint
+
+      - name: Render MP4
+        working-directory: build/studio/motion-demo-fa/story
+        run: npx --yes hyperframes@"$HF_VERSION" render --output ../story.mp4 --fps 30 --quality standard
+
+      - name: Verify MP4 (locked Stage 2 verify; fails on any problem)
+        run: python3 studio/engine/run_motion.py verify --project "$PROJECT"
+
+      - name: Add report to workflow summary
+        if: always()
+        run: |
+          B="build/studio/$PROJECT"
+          [ -f "$B/timing_report.md" ] && cat "$B/timing_report.md" >> "$GITHUB_STEP_SUMMARY" || true
+          if [ -f "$B/verify.json" ]; then { echo; echo '```json'; cat "$B/verify.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ -f "$B/camera_plan.json" ]; then { echo; echo '### camera plan'; echo '```json'; cat "$B/camera_plan.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: studio-motion-demo-fa
+          path: |
+            build/studio/motion-demo-fa/story.mp4
+            build/studio/motion-demo-fa/story.srt
+            build/studio/motion-demo-fa/timing.json
+            build/studio/motion-demo-fa/timing_report.md
+            build/studio/motion-demo-fa/verify.json
+            build/studio/motion-demo-fa/camera_plan.json
+            build/studio/motion-demo-fa/tts_meta.json
+            build/studio/motion-demo-fa/audio_meta.json
+            build/studio/motion-demo-fa/narration.wav
+            build/studio/motion-demo-fa/frames/
+            build/studio/motion-demo-fa/story/index.html
+          if-no-files-found: warn
+          retention-days: 14
