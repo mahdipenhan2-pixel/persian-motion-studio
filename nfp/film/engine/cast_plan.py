@@ -20,8 +20,10 @@ Every instance is planned by the C3 planner (C1 identity lock + visual guard thr
 own time, then moved to the shot start; the moved KeyList is re-validated by C3's own validate_keylist. All C3 actions
 are available (enter, exit, walk, run, move, blink, breathe, look, turn, nod, arm, arms_rest, wave, point, lean, hop,
 shiver, expr, sit, stand); speech ('talk') comes only from the sentence speakers.
-Voice rule (until the multi-voice module): a speaking character must fit the project's single TTS voice
+Voice rule (legacy, single TTS voice): a speaking character must fit the project's single TTS voice
 (studio/engine/characters/voices.json: a 'man' never speaks with a female voice, a 'woman' never with a male one).
+With the Voice Engine (voice.engine, V4) each speaker has its own voice (nfp/voice casting); then the rule is: the
+sentence audio in <build>/voice/voice_manifest.json was made for the very character whose mouth moves.
 """
 import json
 import math
@@ -214,7 +216,19 @@ def fragment(project, chapter, timing, build):
         raise CastError("sentence(s) " + ", ".join(f"{sid} ({speakers[sid]})" for sid in missing) + " are spoken by a character "
                         "that is not on screen for the whole sentence; widen its shot window or let the narrator say it")
     spk = {talks_done[s] for s in talks_done}
-    if spk:
+    if spk and "engine" in (project.get("voice") or {}):
+        # Voice Engine project: every speaker has its own voice, already checked by the Voice casting (warning /
+        # override / block). Here only: the audio really was made for the character that moves its mouth.
+        import voice_bridge as VB
+        made = VB.manifest_speakers(build)
+        actor_char = {e["actor"]: e["character"] for e in entries}
+        wrong = [f"{sid} (mouth: {talks_done[sid]} = {actor_char[talks_done[sid]]}, audio: {made.get(sid)})"
+                 for sid in sorted(talks_done) if made.get(sid) != actor_char[talks_done[sid]]]
+        quiet = [sid for sid in ids if speakers[sid] == NARRATOR and made.get(sid) not in (None, NARRATOR)]
+        if wrong or quiet:
+            raise CastError("characters: the voice audio does not match the speakers - run `run.py voice` again: "
+                            + "; ".join(wrong + [f"{s} is narrated but its audio is a character" for s in quiet]))
+    elif spk:
         voice_rule(project, {a: builds[a] for a in spk})
     data = {"version": 1, "instances": [{"key": i["key"], "shot": i["shot"], "t0": i["t0"], "t1": i["t1"], "depth": i["depth"]}
                                         for i in instances]}

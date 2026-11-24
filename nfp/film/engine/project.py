@@ -17,7 +17,7 @@ MAX_SENT = 40              # core limit per run
 MAX_CHARS = 160            # core limit per sentence
 MAX_CHAPTER_SECONDS = 165  # core limit is 180 s; keep a margin for gaps/tail
 TOP_KEYS = {"meta", "voice", "audio", "shots", "chapters", "sources", "cast", "characters"}
-SENT_KEYS = {"id", "text", "speak", "speaker"}
+SENT_KEYS = {"id", "text", "speak", "speaker", "pause_before_ms", "pause_after_ms"}
 
 
 class ProjectError(ValueError):
@@ -73,6 +73,11 @@ def validate(p):
             seen_s.add(s["id"])
             if not s.get("text", "").strip() or len(s["text"]) > MAX_CHARS:
                 raise ProjectError(f"sentence {s['id']}: text required and <= {MAX_CHARS} chars")
+            for k in ("pause_before_ms", "pause_after_ms"):
+                if k in s and not (isinstance(s[k], int) and not isinstance(s[k], bool) and 0 <= s[k] <= 5000):
+                    raise ProjectError(f"sentence {s['id']}: {k} must be an integer 0..5000")
+            if ("pause_before_ms" in s or "pause_after_ms" in s) and "engine" not in (p.get("voice") or {}):
+                raise ProjectError(f"sentence {s['id']}: pauses need the Voice Engine (voice.engine); the core's tts has no pauses")
     p.setdefault("voice", {})
     return p
 

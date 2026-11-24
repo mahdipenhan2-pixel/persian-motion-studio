@@ -3,7 +3,9 @@
 
   python3 nfp/film/engine/run.py <command> --project <dir or project.json> [--chapter <id>] [--build <dir>]
 
-Commands: plan, check, tts, fit, prepare, whisper, align, compose, verify
+Commands: plan, check, tts, voice, fit, prepare, whisper, align, compose, verify
+  voice  (V4, only for projects with voice.engine) makes the sentence audio with the Voice Engine (nfp/voice) instead of
+         the core's single-voice tts; such projects refuse `tts`. Legacy projects never load the Voice Engine.
 The locked Stage 2 core does audio, Whisper and alignment (imported unchanged); compose / verify here are 16:9.
 Derived from docu/engine/run.py (docu-16x9-test30, see PROVENANCE.json); changes: projects are folders anywhere
 (nfp/film has no project store of its own), --build, Whisper language = project language, characters (cast_plan.py)."""
@@ -58,6 +60,29 @@ def cmd_fit(proj, ch, build):
         sys.exit(f"ERROR: narration is {total:.1f}s but the target is {target}s. Shorten the text; cached sentences cost nothing to re-run.")
 
 
+def uses_voice_engine(proj):
+    v = proj.get("voice") or {}
+    return isinstance(v, dict) and "engine" in v        # plain check: legacy projects import nothing new
+
+
+def cmd_tts(proj, ch, build):
+    if uses_voice_engine(proj):
+        sys.exit("ERROR: this project uses the Voice Engine (voice.engine): run `voice` instead of `tts` "
+                 "(the core's single-voice tts would replace the per-speaker audio)")
+    core.cmd_tts(None)
+
+
+def cmd_voice(proj, ch, build):
+    if not uses_voice_engine(proj):
+        sys.exit("ERROR: `voice` needs voice.engine in project.json; this project uses the core's `tts`")
+    import voice_bridge as VB
+    m = VB.produce(proj, ch, build)
+    c = m.get("cache") or {}
+    print(f"Voice Engine: {len(m['sentences'])} sentence(s), speakers {sorted(m['speakers'])}, {m['sample_rate']} Hz"
+          + (f", cache {c.get('hits', 0)} hit(s) / {c.get('misses', 0)} miss(es)" if c else "")
+          + (f", QC {m['qc']['summary']}" if "qc" in m else "") + f" -> {build / 'audio'}")
+
+
 def cmd_whisper(proj, ch, build):
     import stage2_whisper as w
     w.BUILD, w.CONFIG = build, build / "config.json"
@@ -86,7 +111,7 @@ def cmd_verify(proj, ch, build):
              tag=os.environ.get("VERIFY_TAG") or "")
 
 
-COMMANDS = {"plan": cmd_plan, "check": lambda p, c, b: core.cmd_check(None), "tts": lambda p, c, b: core.cmd_tts(None),
+COMMANDS = {"plan": cmd_plan, "check": lambda p, c, b: core.cmd_check(None), "tts": cmd_tts, "voice": cmd_voice,
             "fit": cmd_fit, "prepare": lambda p, c, b: core.cmd_prepare(None), "whisper": cmd_whisper,
             "align": lambda p, c, b: core.cmd_align(None), "compose": cmd_compose, "verify": cmd_verify}
 

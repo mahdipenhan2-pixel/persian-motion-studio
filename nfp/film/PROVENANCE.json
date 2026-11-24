@@ -75,7 +75,8 @@
     "meta.lang 'en' (default) or 'fa'; Whisper language follows it",
     "projects are folders anywhere (no project store)",
     "unknown top-level / sentence fields are refused",
-    "optional per-sentence 'speaker', 'cast' and 'characters' (data, planned by C3)"
+    "optional per-sentence 'speaker', 'cast' and 'characters' (data, planned by C3)",
+    "V4: optional sentence pause_before_ms / pause_after_ms (Voice Engine projects only)"
    ]
   },
   {
@@ -85,7 +86,8 @@
     "--build option",
     "verify always expects 1920x1080 (no 720p path)",
     "compose adds characters through cast_plan.py",
-    "fonts directory from NFP_FONTS or assets/fonts"
+    "fonts directory from NFP_FONTS or assets/fonts",
+    "V4: `voice` command (Voice Engine, only for projects with voice.engine); `tts` refused for such projects"
    ]
   },
   {

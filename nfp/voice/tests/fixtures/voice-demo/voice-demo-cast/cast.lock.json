@@ -1,0 +1,9 @@
+{
+  "schema": "nfp.cast.lock/1",
+  "project": "voice-demo-cast",
+  "characters": {
+    "lina": "0c8c6f4090b446ed980f8e4ea0e3a7d00c7c0ba50356cf54eab2bf110f518e1c",
+    "omid": "2835584a706e5ac5697d45224835ea0a6ceed46fa2703448edf605336f08d89c",
+    "sara": "e36b44ae34762045eaabcc672c7421f71579d36f92a0ef77dc1ef11dd9ef7a4f"
+  }
+}

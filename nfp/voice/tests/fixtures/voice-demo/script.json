@@ -1,0 +1,10 @@
+{
+ "language": "en",
+ "sentences": [
+  {"id": "s1", "text": "The valley is quiet before the storm.", "speaker": "narrator"},
+  {"id": "s2", "text": "در این دره خانه‌ای قدیمی هست.", "speaker": "lina", "language": "fa", "pause_before_ms": 300},
+  {"id": "s3", "text": "We waited for the rain to come.", "speaker": "omid", "pause_after_ms": 250},
+  {"id": "s4", "text": "I can hear it on the roof!", "speaker": "sara", "stage": "child"},
+  {"id": "s5", "text": "And then the river was full again.", "speaker": "narrator", "pause_before_ms": 500}
+ ]
+}
