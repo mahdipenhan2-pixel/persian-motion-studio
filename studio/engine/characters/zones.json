@@ -49,6 +49,12 @@
    ]
   }
  },
+ "cta_side_layout": {
+  "note": "template cta with note/handle AND characters: every actor present in that scene must stand on one side of the page centre (x 540); the bottom text box (.zb) of that scene is moved to the other side. Its inner edge keeps gap_px from the characters' widest reach (rest pose, or a pointing / waving arm when that actor gestures in the scene) even when the scene graphics are scaled up to scene_scale_max around the centre (camera moves / transitions). The box must stay at least min_text_width wide.",
+  "gap_px": 24,
+  "min_text_width": 420,
+  "scene_scale_max": 1.25
+ },
  "framing": {
   "default": "bust",
   "min_face_px": 56,

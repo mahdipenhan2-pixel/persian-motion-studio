@@ -159,7 +159,9 @@ def t2():
         c = copy.deepcopy(z)
         fn(c)
         return REG.fingerprint(c)
-    check(fp_after(lambda c: c["identity"].update(skin="#C98F6A")) == fp, "colour case does not matter (#C98F6A == #c98f6a)")
+    zskin = z["identity"]["skin"]
+    check(fp_after(lambda c: c["identity"].update(skin=zskin.upper())) == fp,
+          f"colour case does not matter ({zskin.upper()} == {zskin})")
     check(fp_after(lambda c: c["identity"].update(face={"shape": "default"})) == fp, "an explicit default face equals an absent face")
     check(fp_after(lambda c: c.update(display_name="Z", role="other", id="zz")) == fp, "renaming a character keeps its identity")
     check(fp_after(lambda c: c["wardrobe"]["casual"].update(top="#ffffff")) == fp, "changing clothes keeps the identity")
@@ -215,7 +217,7 @@ def t2():
     r = REG.resolve(cast, "zahra")
     check((r["stage"], r["wardrobe_name"], r["expr"]) == ("adult", "casual", "neutral"), "defaults are applied when a scene says nothing")
     r["identity"]["skin"] = "#000000"
-    check(REG.resolve(cast, "zahra")["identity"]["skin"] == "#c98f6a", "a resolved spec is a copy (editing it cannot leak back)")
+    check(REG.resolve(cast, "zahra")["identity"]["skin"] == zskin, "a resolved spec is a copy (editing it cannot leak back)")
 
     # isolation across projects
     with tempfile.TemporaryDirectory() as td:

@@ -16,6 +16,7 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -95,6 +96,10 @@ def tree_hashes(d):
     return {str(p.relative_to(d)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(d.rglob("*")) if p.is_file()}
 
 
+def doc_actions(b):
+    return json.loads((b / "cast_actions.json").read_text(encoding="utf-8"))["actions"]
+
+
 def strip_cast(p):
     p["meta"].pop("cast", None)
     for s in p["scenes"]:
@@ -134,15 +139,39 @@ def main():
                                                     ("motion-demo-fa", "demo-en", "wrinkled-palms-fa")),
           "only cast-demo-fa uses characters; every existing project is untouched by the layer")
     plan = validate_path(P.PROJECTS / DEMO / "project.json")
-    check(plan and sorted(plan["actors"]) == ["guest", "host"], "cast-demo-fa validates (2 actors, 4 scenes with characters)")
+    check(plan and sorted(plan["actors"]) == ["guest", "host"] and all(plan["scenes"]),
+          "cast-demo-fa validates (2 actors, characters in all 6 scenes)")
+    check(plan["warnings"] == [], f"no warnings: no eligible scene is left without characters ({plan['warnings']})")
+    zb = plan["scenes"][5].get("zb")
+    check(zb and zb["side"] == "right" and zb["width"] >= CS.ZONES["cta_side_layout"]["min_text_width"],
+          f"s6 (cta with note) shows the host: the text box moves to the free right side ({zb})")
+    host_r = CS.reach_px({"build": "woman", "hair": "teen_long"}, plan["actors"]["host"]["placement"], CS.slot_geometry(), False)
+    check(zb and host_r[1] + CS.ZONES["cta_side_layout"]["gap_px"] <= 540 - (540 - zb["left"]) * CS.ZONES["cta_side_layout"]["scene_scale_max"] + 1e-6,
+          f"s6: the host's reach (..{host_r[1]:.0f}px) keeps the gap to the text box even at the maximum scene scale")
 
     def scene(p, sid):
         return next(x for x in p["scenes"] if x["id"] == sid)
     cases = [
-        ("cta with note + characters", lambda p: scene(p, "s6").update(characters={"actors": ["host"]}), "cta"),
-        ("cta with handle + characters", lambda p: (scene(p, "s6")["on_screen"].pop("note"),
-                                                     scene(p, "s6")["on_screen"].update(handle="@x"),
-                                                     scene(p, "s6").update(characters={"actors": ["host"]})), "cta"),
+        ("cta with note + characters on both sides", lambda p: scene(p, "s6").update(
+            characters={"actors": ["host", "guest"], "speaker": "host"}), "one side"),
+        ("cta with handle + a character in the centre", lambda p: (scene(p, "s6")["on_screen"].pop("note"),
+                                                                    scene(p, "s6")["on_screen"].update(handle="@x"),
+                                                                    p["meta"]["cast"]["actors"]["host"].update(x=0.5)),
+         "one side"),
+        ("cta + a pointing arm reaching across the centre", lambda p: scene(p, "s6")["characters"].update(
+            actions=[{"actor": "host", "do": "point", "at": 0.5, "side": "R"}]), "one side"),
+        ("speaker without a declared voice", lambda p: p["meta"]["cast"]["actors"]["host"].pop("voice"),
+         "must declare its voice"),
+        ("woman speaking with a male voice", lambda p: (p["meta"]["cast"]["actors"]["host"].update(voice="Puck"),
+                                                         p["voice"].update(voice="Puck")), "does not fit a 'woman'"),
+        ("man speaking with the project's female voice", lambda p: (
+            p["meta"]["cast"]["actors"]["guest"].update(voice="Kore"),
+            scene(p, "s3")["characters"].update(sentence_speakers={"1": "guest"})), "does not fit a 'man'"),
+        ("man speaking with his own voice while the TTS voice is Kore", lambda p: scene(p, "s3")["characters"].update(
+            sentence_speakers={"1": "guest"}), "one TTS voice per video"),
+        ("listener declaring a voice that does not fit", lambda p: p["meta"]["cast"]["actors"]["guest"].update(voice="Kore"),
+         "does not fit a 'man'"),
+        ("unknown voice", lambda p: p["meta"]["cast"]["actors"]["guest"].update(voice="Zed"), "not in"),
         ("camera media frame bottom", lambda p: scene(p, "s5").update(media={"src": "x.png", "frame": "bottom"},
                                                                        characters={"actors": ["host"]}), "media frame 'bottom'"),
         ("slot top", lambda p: scene(p, "s1")["characters"].update(slot="top"), "not available"),
@@ -178,6 +207,36 @@ def main():
     cj.write_text(json.dumps(c, ensure_ascii=False), encoding="utf-8")
     ok, msg = refused(lambda: validate_path(pj), "identity changed")
     check(ok, f"refused: identity changed since the lock ({msg[:110]})")
+    pj = temp_project(work, "kimlike", lambda p: None)
+    cj = pj.parent / "cast" / "cast-demo-fa" / "cast.json"
+    c = json.loads(cj.read_text(encoding="utf-8"))
+    c["characters"][0]["identity"].update(skin="#b8805c", hair_color="#2a1a14", eye_color="#3a2a1c")
+    c["characters"][0]["stages"]["adult"]["hair"] = "long_straight"
+    cj.write_text(json.dumps(c, ensure_ascii=False), encoding="utf-8")
+    import character.registry as REG
+    (cj.parent / "cast.lock.json").write_text(json.dumps(REG.make_lock(REG.load_cast(cj.parent))), encoding="utf-8")
+    ok, msg = refused(lambda: validate_path(pj), "visual identity guard")
+    check(ok, f"refused: a locked cast whose host is a look-alike of a protected identity ({msg[:110]})")
+    old_min = CS.ZONES["cta_side_layout"]["min_text_width"]
+    CS.ZONES["cta_side_layout"]["min_text_width"] = 600
+    try:
+        ok, msg = refused(lambda: validate_path(P.PROJECTS / DEMO / "project.json"), "minimum 600px")
+    finally:
+        CS.ZONES["cta_side_layout"]["min_text_width"] = old_min
+    check(ok, f"refused: cta text box narrower than the minimum ({msg[:110]})")
+    pj = temp_project(work, "gap5", lambda p: scene(p, "s5").pop("characters"))
+    w5 = validate_path(pj)["warnings"]
+    check(len(w5) == 1 and "scene s5" in w5[0], f"warning (not an error): an eligible scene without characters ({w5})")
+    pj = temp_project(work, "tail", lambda p: (scene(p, "s5").pop("characters"), scene(p, "s6").pop("characters")))
+    wt = validate_path(pj)["warnings"]
+    check(any("last 2 scene(s)" in x for x in wt), f"warning: the cast leaves before the video ends ({wt[-1:]})")
+    pj = temp_project(work, "media5", lambda p: (scene(p, "s5").pop("characters"),
+                                                 scene(p, "s5").update(media={"src": "x.png", "frame": "bottom"})))
+    try:
+        wm = validate_path(pj)["warnings"]
+        check(not any("s5" in x for x in wm), "no warning for a scene whose bottom slot is taken by a media frame")
+    except (CastError, SystemExit) as e:
+        check(False, f"media frame scene: {e}")
 
     print("\n== T1.3 placement: bust default, full only when it really fits")
     slot = CS.slot_geometry()
@@ -210,26 +269,34 @@ def main():
     fps = {x["id"]: x["fingerprint"] for x in kl["actors"]}
     check(fps == {"host": lock["characters"]["maryam"], "guest": lock["characters"]["reza"]},
           "actor fingerprints = cast.lock.json")
-    check(rep["speakers"] == {"s1_1": "host", "s2_1": "host", "s3_1": "guest", "s4_1": "host"}
-          and sorted(rep["deco_hidden"]) == ["s1", "s2", "s3", "s4"],
-          "speakers as declared (s3 via sentence_speakers); .deco hidden only in the 4 scenes with characters")
+    check(rep["speakers"] == {f"s{i}_1": "host" for i in range(1, 7)}
+          and sorted(rep["deco_hidden"]) == ["s1", "s2", "s3", "s4", "s5", "s6"],
+          "every sentence is spoken by the host (female character, female TTS voice Kore); .deco hidden in the 6 "
+          "scenes with characters")
     mouth_actors = {k["actor"] for k in kl["keys"] if k["part"] == "mouth" and k["src"].startswith("lipsync")}
     talks = {}
     for t in kl["lipsync"]["talks"]:
         talks.setdefault(t["actor"], []).extend(t["sentences"])
-    check(mouth_actors == {"host", "guest"} and sorted(sum(talks.values(), [])) == ["s1_1", "s2_1", "s3_1", "s4_1"],
-          "only the declared speakers' mouths move, only on their own sentences")
+    check(mouth_actors == {"host"} and sorted(sum(talks.values(), [])) == [f"s{i}_1" for i in range(1, 7)],
+          "only the host's mouth moves (all 6 sentences); the male guest never gets lip sync")
     spans = CI.scene_spans(data)
     s3 = [w for s_ in timing["sentences"] if s_["id"] == "s3_1" for w in s_["words"] if w["abs_start"] is not None]
     mids = [round((w["abs_start"] + w["abs_end"]) / 2 * 30) for w in s3]
-    host_still = all(sample(kl, f)["host"]["mouth"]["shape"] in ("neutral", "smile") for f in mids)
-    check(host_still, "while the guest speaks (s3), the host's mouth stays closed")
+    s3f = range(int(spans["s3"][0] * 30) + 12, int(spans["s3"][1] * 30) - 12)
+    guest_shapes = {sample(kl, f)["guest"]["mouth"]["shape"] for f in s3f}
+    host_shapes = {sample(kl, f)["host"]["mouth"]["shape"] for f in mids}
+    check(len(guest_shapes) == 1 and len(host_shapes) >= 3,
+          f"s3: the host speaks ({sorted(host_shapes)}), the guest listens: its mouth never moves (only its "
+          f"'surprised' expression {sorted(guest_shapes)})")
     unres = [u["text"] for t in kl["lipsync"]["talks"] for u in t["unresolved_words"]]
     check("شش" in unres, f"the real unmatched word 'شش' gets no mouth motion (unresolved: {unres})")
     iv = rep["actors"]["host"]["intervals"][0]
-    check(len(rep["actors"]["host"]["intervals"]) == 1 and iv[0] == 0 and abs(iv[1] - spans["s4"][1]) < 1e-3
-          and talks["host"] == ["s1_1", "s2_1", "s4_1"] and talks["guest"] == ["s3_1"],
-          f"host stays on screen through s1-s4 as one element (0..{iv[1]}s = end of s4) and is gone when s5 is shown")
+    hv = lambda f: sample(kl, f)["host"].get("self", {}).get("visible", 1)  # noqa: E731  (no visibility key = shown)
+    exits = [x for x in doc_actions(cb) if x["actor"] == "host" and x["do"] in ("exit", "enter")]
+    check(len(rep["actors"]["host"]["intervals"]) == 1 and iv[0] == 0 and abs(iv[1] - kl["duration"]) < 1e-3
+          and not exits and all(hv(f) == 1 for f in range(0, kl["frames"], 15)) and hv(kl["frames"] - 1) == 1,
+          f"host stays on screen as one element from 0 to the last frame ({iv[1]}s), no enter/exit fade, visible in "
+          "s5 and s6")
     g = rep["actors"]["guest"]["intervals"][0]
     gv = lambda f: sample(kl, f)["guest"]["self"]["visible"]  # noqa: E731
     check(gv(int(g[0] * 30) - 2) == 0 and gv(int(g[0] * 30) + 12) == 1 and gv(int(g[1] * 30) + 2) == 0,
@@ -239,8 +306,13 @@ def main():
     gm = lambda f: sample(kl, f)["guest"]["mouth"]["shape"]  # noqa: E731
     check(gm(s2mid) == "neutral" and sample(kl, s3late)["guest"]["browL"]["--y"] == -18,
           f"expressions follow their own scene: guest neutral in s2 ({gm(s2mid)}), surprised only from s3")
-    narr = [s_ for s_ in ("s5_1", "s6_1") if s_ not in rep["speakers"]]
-    check(narr == ["s5_1", "s6_1"], "scenes without characters: narrator (no mouth motion)")
+    pj = temp_project(work, "narr", lambda p: [scene(p, s_)["characters"].update(speaker="narrator") for s_ in ("s5", "s6")])
+    nb = compose("cast-narr", pj, work, timing, fonts)
+    nrep = json.loads((nb / "cast_report.json").read_text(encoding="utf-8"))
+    check(nrep["speakers"]["s5_1"] == nrep["speakers"]["s6_1"] == "narrator"
+          and "s5_1" not in sum((t_["sentences"] for t_ in json.loads((nb / "cast_keylist.json").read_text(
+              encoding="utf-8"))["lipsync"]["talks"]), []),
+          "speaker 'narrator' in a scene with characters: no mouth motion for that sentence")
     kl2, _, _ = CB.build_keylist(validate_path(P.PROJECTS / DEMO / "project.json"), data, timing, P.PROJECTS / DEMO)
     check(kl2["digest"] == kl["digest"], f"deterministic: same input -> same KeyList digest {kl['digest'][:16]}")
 
@@ -253,8 +325,9 @@ def main():
           "character layer sits after the scenes and right before the captions (#stage)")
     ok, msg = refused(lambda: CJ.apply(page, kl, slot, []), "already contains")
     check(ok, f"a page cannot get a second character layer ({msg})")
-    for sid in ("s5", "s6"):
-        check(f"#scene-{sid} .deco" not in page, f"scene {sid} (no characters) keeps its .deco")
+    check(page.count("#scene-s6 .zb {") == 1 and len(re.findall(r"#scene-[\w-]+ \.zb \{", page)) == 1,
+          "only s6 (cta with note) gets a moved text box rule; every other scene keeps its layout")
+    check(rep["text_boxes"] == {"s6": plan["scenes"][5]["zb"]}, "the report lists the moved text box")
 
     print("\n== T2 backward compatibility (byte for byte)")
     mb = compose("motion-camera", "motion-demo-fa", work, timing, fonts)

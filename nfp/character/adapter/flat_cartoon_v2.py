@@ -23,6 +23,7 @@ from pathlib import Path
 
 from .. import registry as REG
 from ..isolation import dom_id as _dom_id
+from .visual_guard import check_cast as check_visual_identity
 
 HERE = Path(__file__).resolve().parent
 PKG = HERE.parent
@@ -78,11 +79,15 @@ _TOKEN = object()
 
 
 def load_checked(project_dir):
-    """C1 load_cast + cast.lock.json check. Any problem -> AdapterError listing every C1 problem."""
+    """C1 load_cast + cast.lock.json check + visual identity guard (no look-alike of a protected identity, see
+    visual_guard.py). Any problem -> AdapterError listing every problem."""
     try:
         cast = REG.load_and_check(project_dir)
     except REG.CastError as e:
         raise AdapterError([f"C1 rejected the cast: {p}" for p in e.problems])
+    looks = check_visual_identity(cast)
+    if looks:
+        raise AdapterError([f"visual identity guard: {p}" for p in looks])
     return CheckedCast(cast, project_dir, _token=_TOKEN)
 
 

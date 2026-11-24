@@ -1,7 +1,7 @@
 """
 NFP Studio - Character layer (C4): validation of the OPTIONAL character fields in project.json + slot placement.
 
-  meta.cast            {dir, actors: {<actor id>: {character, stage, wardrobe, x, framing, detail}}}
+  meta.cast            {dir, actors: {<actor id>: {character, stage, wardrobe, x, framing, detail, voice}}}
   scene.characters     {slot, actors: [<actor id> | {actor, expr}], speaker, sentence_speakers, actions}
 
 The unchanged studio/engine/project.py ignores these keys, so run.py / run_motion.py still build such a project,
@@ -11,12 +11,18 @@ Rules (studio/engine/characters/zones.json, measured from the real page):
   * 9:16 only (Studio has no 16:9 yet). The only character area is the bottom slot x 70-1010, y 1372-1650: every
     template fills the top zone, the caption band y 560-1360 belongs to the locked Stage 2 verify, the handle starts
     at y 1660. 'top' is reserved and refused.
-  * the bottom slot is refused in a scene that uses it: template cta with note/handle, or a camera media frame
-    'bottom'.
+  * the bottom slot is refused in a scene whose camera media frame is 'bottom'. Template cta with note/handle: the
+    characters of that scene must all stand on one side of the centre and the scene's text box (.zb) moves to the
+    other side (cta_side_layout in zones.json); otherwise refused.
   * framing 'bust' (default): the hips sit on the slot's lower edge, legs are cut by the slot; 'full' only when the
     whole body fits and the face is still >= min_face_px tall.
   * the speaker of every sentence is 'narrator' (off screen: no mouth motion) unless the scene names an actor that is
     present in that scene.
+  * voice (voices.json): an actor that speaks must declare its voice; it must be the project's TTS voice (one voice
+    per video in this version) and fit the character's build (a 'man' never speaks with a female voice, a 'woman'
+    never with a male one). A declared voice of a non-speaking actor is checked the same way (except the project
+    voice), ready for per-character voices later.
+  * plan["warnings"]: scenes that could show the cast but show nobody (characters vanish there), e.g. the last scenes.
 Everything raises CastError with a clear message; nothing is silently adjusted.
 """
 import json
@@ -27,9 +33,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent.parent
 ZONES = json.loads((HERE / "zones.json").read_text(encoding="utf-8"))
+VOICES = json.loads((HERE / "voices.json").read_text(encoding="utf-8"))
 ACTOR_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
 CAST_KEYS = {"dir", "actors"}
-ACTOR_KEYS = {"character", "stage", "wardrobe", "x", "framing", "detail"}
+ACTOR_KEYS = {"character", "stage", "wardrobe", "x", "framing", "detail", "voice"}
 SCENE_KEYS = {"slot", "actors", "speaker", "sentence_speakers", "actions"}
 SCENE_ACTOR_KEYS = {"actor", "expr"}
 # C3 actions a presenter may do inside the slot (no walking / running / sitting: the slot is a fixed strip)
@@ -112,6 +119,69 @@ def placement(spec, x_frac, framing, slot, uses_wave=False, uses_point=False, ho
             "framing": framing}
 
 
+def reach_px(spec, place, slot, gestures):
+    """Horizontal page-pixel span [left, right] of one placed actor; gestures (lateral arm reach) only when it
+    points or waves in the scene in question."""
+    M = ZONES["rig_metrics"]
+    ext = M["extent"][f"{spec['build']}/{spec['hair']}"]
+    left, right = ext["left"], ext["right"]
+    if gestures:
+        G = M["gestures"][spec["build"]]
+        left, right = min(left, G["point_left"]), max(right, G["point_right"])
+    x0 = slot["x"] + place["x"]
+    return x0 + left * place["scale"], x0 + right * place["scale"]
+
+
+def cta_layout(where, spans, fmt):
+    """Text box (.zb) of a cta scene with note/handle when characters are present: the free side of the page."""
+    L = ZONES["cta_side_layout"]
+    page_w = ZONES["formats"][fmt]["page"]["width"]
+    cx, edge = page_w / 2, 70
+    lo, hi = min(a for a, _ in spans.values()), max(b for _, b in spans.values())
+    if hi <= cx - L["gap_px"]:
+        side = "right"                                      # characters on the left: text box on the right
+        d = (cx - hi - L["gap_px"]) / L["scene_scale_max"]  # inner edge distance from the centre, scale-safe
+        box = {"left": round(cx - d, 1), "right": edge}
+        width = page_w - edge - box["left"]
+    elif lo >= cx + L["gap_px"]:
+        side = "left"
+        d = (lo - cx - L["gap_px"]) / L["scene_scale_max"]
+        box = {"left": edge, "right": round(page_w - (cx + d), 1)}
+        width = page_w - edge - box["right"]
+    else:
+        raise CastError(f"{where}: template 'cta' with note/handle needs every character of the scene on one side of "
+                        f"the centre (x {cx:.0f}) so the text can move to the other side; present: "
+                        + ", ".join(f"{a} {s[0]:.0f}..{s[1]:.0f}px" for a, s in spans.items()))
+    if width < L["min_text_width"]:
+        raise CastError(f"{where}: template 'cta' with note/handle: only {width:.0f}px left for the text next to the "
+                        f"characters (minimum {L['min_text_width']}px); move them further to the side")
+    return {"side": side, "left": box["left"], "right": box["right"], "width": round(width, 1)}
+
+
+def _tts_voice(proj):
+    import project as P                                     # studio/engine/project.py (read only)
+    v = (proj.get("voice") or {}).get("voice")
+    return v or json.loads(P.DEFAULTS.read_text(encoding="utf-8"))["tts"]["voice"]
+
+
+def check_voice(where, voice, build, speaks, tts_voice):
+    if voice is None:
+        if speaks:
+            raise CastError(f"{where}: this actor speaks, so it must declare its voice (the project TTS voice is "
+                            f"'{tts_voice}')")
+        return
+    if voice not in VOICES["voices"]:
+        raise CastError(f"{where}.voice: '{voice}' is not in studio/engine/characters/voices.json "
+                        f"({', '.join(sorted(VOICES['voices']))}); add it with its perceived gender first")
+    g = VOICES["voices"][voice]
+    if g not in VOICES["build_voice"][build]:
+        raise CastError(f"{where}.voice: '{voice}' is a {g} voice and does not fit a '{build}' character")
+    if speaks and voice != tts_voice:
+        raise CastError(f"{where}: speaks with voice '{voice}' but the narration is generated with the project voice "
+                        f"'{tts_voice}' (one TTS voice per video in this version); a speaker must use '{tts_voice}', "
+                        "otherwise make the narrator or another actor speak that sentence")
+
+
 # ------------------------------------------------------------------------------------------------ validation
 def validate(proj, pdir, sentence_ids):
     """Validated character plan, or None when the project uses no characters. sentence_ids: all ids (sX_n)."""
@@ -156,9 +226,7 @@ def validate(proj, pdir, sentence_ids):
         slot_name = ch.get("slot", "bottom")
         if slot_name != "bottom":
             slot_geometry(fmt, slot_name)                       # raises with the reason
-        if sc.get("template") == "cta" and any((sc.get("on_screen") or {}).get(k) for k in ("note", "handle")):
-            raise CastError(f"{w}: template 'cta' with note/handle uses the bottom zone (y 1400-1630); "
-                            "characters cannot share it")
+        cta_bottom = sc.get("template") == "cta" and any((sc.get("on_screen") or {}).get(k) for k in ("note", "handle"))
         media = sc.get("media")
         if isinstance(media, dict) and media.get("frame") == "bottom":
             raise CastError(f"{w}: the camera media frame 'bottom' (y 1372-1640) uses the character slot")
@@ -209,8 +277,11 @@ def validate(proj, pdir, sentence_ids):
             if ac["do"] == "hop":
                 u["hop"] = max(u["hop"], ac.get("h", 40))
         per_scene.append({"scene": sc["id"], "present": present,
-                          "speakers": {f"{sc['id']}_{n}": per_sentence[n] for n in n_sent}, "actions": acts})
+                          "speakers": {f"{sc['id']}_{n}": per_sentence[n] for n in n_sent}, "actions": acts,
+                          "cta_bottom": cta_bottom})
 
+    tts_voice = _tts_voice(proj)
+    speaking = {who for p in per_scene if p for who in p["speakers"].values() if who != NARRATOR}
     actors = {}
     for idx, (aid, a) in enumerate(actors_in.items()):
         w = f"meta.cast.actors.{aid}"
@@ -231,10 +302,39 @@ def validate(proj, pdir, sentence_ids):
             place = placement(ad["spec"], x, framing, slot, uses[aid]["wave"], uses[aid]["point"], uses[aid]["hop"])
         except CastError as e:
             raise CastError(f"{w}: {e}")
+        check_voice(w, a.get("voice"), ad["spec"]["build"], aid in speaking, tts_voice)
         actors[aid] = {"character": a.get("character"), "stage": ad["stage"], "wardrobe": ad["wardrobe"],
-                       "detail": bool(a.get("detail")), "placement": place, "fingerprint": ad["fingerprint"]}
+                       "detail": bool(a.get("detail")), "placement": place, "fingerprint": ad["fingerprint"],
+                       "voice": a.get("voice"), "spec": ad["spec"]}
     used = {aid for p in per_scene if p for aid in p["present"]}
     unused = sorted(set(actors) - used)
     if unused:
         raise CastError(f"meta.cast.actors declares actor(s) that appear in no scene: {', '.join(unused)}")
-    return {"format": fmt, "slot": slot, "cast_dir": str(cdir), "cast_rel": d, "actors": actors, "scenes": per_scene}
+    # cta scenes with note/handle: text box beside the characters
+    for p in per_scene:
+        if not p or not p.pop("cta_bottom"):
+            continue
+        gest = {ac["actor"] for ac in p["actions"] if ac["do"] in ("point", "wave")}
+        spans = {aid: reach_px(actors[aid]["spec"], actors[aid]["placement"], slot, aid in gest) for aid in p["present"]}
+        p["zb"] = cta_layout(f"scene {p['scene']}", spans, fmt)
+    for a in actors.values():
+        del a["spec"]
+    # warnings: scenes that could show the cast but show nobody
+    warnings = []
+    for sc, p in zip(scenes, per_scene):
+        if p is not None:
+            continue
+        media = sc.get("media")
+        if isinstance(media, dict) and media.get("frame") == "bottom":
+            continue                                        # the slot is taken there: not eligible
+        warnings.append(f"scene {sc['id']} shows no character although it could (the cast disappears there); "
+                        "add 'characters' to it, or ignore this if it is intended")
+    tail = 0
+    for p in reversed(per_scene):
+        if p is not None:
+            break
+        tail += 1
+    if tail:
+        warnings.append(f"the last {tail} scene(s) show no character: the cast leaves before the video ends")
+    return {"format": fmt, "slot": slot, "cast_dir": str(cdir), "cast_rel": d, "actors": actors, "scenes": per_scene,
+            "tts_voice": tts_voice, "warnings": warnings}

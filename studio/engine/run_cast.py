@@ -50,7 +50,7 @@ def compose_with_cast(proj, theme, build, fonts_dir, narration_wav, pdir):
         timing = json.loads((Path(build) / "timing.json").read_text(encoding="utf-8"))
         data = CI.read_timeline_data(page)
         kl, doc, report = CB.build_keylist(plan, data, timing, pdir)
-        page = CJ.apply(page, kl, plan["slot"], report["deco_hidden"])
+        page = CJ.apply(page, kl, plan["slot"], report["deco_hidden"], report["text_boxes"])
     except CastError as e:
         sys.exit(f"ERROR (characters): {e}")
     (story / "index.html").write_text(page, encoding="utf-8")
@@ -73,7 +73,10 @@ def print_cast(plan):
     for p in plan["scenes"]:
         if p:
             spk = ", ".join(f"{k}:{v}" for k, v in p["speakers"].items())
-            print(f"  {p['scene']:>4}  on screen: {', '.join(p['present'])}  speakers: {spk}  actions: {len(p['actions'])}")
+            zb = f"  text box {p['zb']['side']} ({p['zb']['width']:.0f}px)" if "zb" in p else ""
+            print(f"  {p['scene']:>4}  on screen: {', '.join(p['present'])}  speakers: {spk}  actions: {len(p['actions'])}{zb}")
+    for wmsg in plan["warnings"]:
+        print(f"  WARNING: {wmsg}")
 
 
 def main():
@@ -105,6 +108,8 @@ def main():
         if report is not None:
             print(f"Characters: {len(report['actors'])} actor(s), {report['keys']} keys, speakers "
                   f"{sorted(set(report['speakers'].values()))}, KeyList {report['digest'][:16]}")
+            for wmsg in report["warnings"]:
+                print(f"  WARNING (characters): {wmsg}")
     else:
         R.COMMANDS[a.command](proj, theme, build)
 

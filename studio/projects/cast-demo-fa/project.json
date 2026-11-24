@@ -10,11 +10,13 @@
       "actors": {
         "host": {
           "character": "maryam",
-          "x": 0.3
+          "x": 0.3,
+          "voice": "Kore"
         },
         "guest": {
           "character": "reza",
-          "x": 0.74
+          "x": 0.74,
+          "voice": "Puck"
         }
       }
     }
@@ -116,9 +118,7 @@
             "expr": "surprised"
           }
         ],
-        "sentence_speakers": {
-          "1": "guest"
-        },
+        "speaker": "host",
         "actions": [
           {
             "actor": "host",
@@ -204,6 +204,19 @@
           "duration": 0.4
         },
         "target": "scene"
+      },
+      "characters": {
+        "actors": [
+          "host"
+        ],
+        "speaker": "host",
+        "actions": [
+          {
+            "actor": "host",
+            "do": "nod",
+            "at": 1.0
+          }
+        ]
       }
     },
     {
@@ -224,6 +237,15 @@
           "duration": 0.35
         },
         "target": "scene"
+      },
+      "characters": {
+        "actors": [
+          {
+            "actor": "host",
+            "expr": "happy"
+          }
+        ],
+        "speaker": "host"
       }
     }
   ]

@@ -96,9 +96,8 @@ def main():
                         leaks.append(f"{c['id']}/{s}/{w}.{f}={a['spec'][f]}")
     check(not leaks and combos == 5, f"no adapter-filled colour equals a Kim or generic rig default ({combos} combos)"
           + (f" LEAKS: {leaks}" if leaks else ""))
-    check(z["warnings"] == ["hairColor #1c1210 equals a Kim rig default, but it is the cast's own locked choice"]
-          and k["warnings"] == [],
-          "a cast that explicitly chose a Kim-equal colour (zahra hair #1c1210) is reported, never silent")
+    check(z["warnings"] == [] and k["warnings"] == [],
+          "the demo cast chooses no Kim-equal colour (no warnings for zahra / karim)")
 
     with tempfile.TemporaryDirectory() as td:
         d = temp_cast(td, "bare-min", [char("min", "#8d5a3c", "#3a2a20", "#2a4a6a",
@@ -109,13 +108,15 @@ def main():
         check(sorted(filled) == ["accent", "legs", "lip", "pants", "shoe", "shoeType", "sleeve", "under"]
               and not (set(filled.values()) & (kim | generic)),
               f"a minimal wardrobe (outfit+top only) is completed from neutral values, none a rig default: {filled}")
+        # Kim's exact skin, but another hair style and other hair / eye colours: allowed by the visual guard
         kd = temp_cast(td, "kim-like", [char("k1", "#d99a73", "#2a2a2a", "#336699",
-                                             {"a": {"build": "woman", "hair": "long_straight"}},
+                                             {"a": {"build": "woman", "hair": "bob"}},
                                              {"w": {"outfit": "dress", "top": "#aa8877"}})])
         km = adapt(load_checked(kd), "k1")
         check(km["spec"]["skin"] == "#d99a73" and any("skin #d99a73" in w for w in km["warnings"])
               and km["spec"]["lip"] != "#c4666b" and km["spec"]["accent"] != "#e4483f",
-              "even a Kim-skinned cast never receives Kim's lip or accent (lip derived, accent neutral)")
+              "even a Kim-skinned cast never receives Kim's lip or accent (lip derived, accent neutral); the "
+              "explicit Kim-equal skin is reported as a warning, never silent")
 
         bad = json.loads((DEMO / "cast.json").read_text(encoding="utf-8"))
         del bad["characters"][0]["identity"]["eye_color"]
@@ -158,8 +159,8 @@ def main():
           (adapt(cast, "zahra", stage="child")["spec"]["build"], adapt(cast, "zahra", stage="child")["spec"]["hair"])
           == ("child", "child_pony"), "stage maps to build + hair (adult: woman/long_straight, child: child/child_pony)")
     f = adapt(cast, "zahra", wardrobe="formal")["spec"]
-    check((zs["outfit"], zs["top"], zs["pants"], zs["sleeve"]) == ("tee2007", "#24242c", "#3b5a8a", "short")
-          and (f["outfit"], f["shoeType"], f["earrings"], f["top"]) == ("blazer", "flat", 1, "#3a4a6a")
+    check((zs["outfit"], zs["top"], zs["pants"], zs["sleeve"]) == ("track", "#2f6f8a", "#33363d", "long")
+          and (f["outfit"], f["shoeType"], f["earrings"], f["top"]) == ("blazer", "flat", 1, "#7a2f4a")
           and zs["earrings"] == 0 and k["spec"]["accent"] == "#a63a3a",
           "wardrobe maps (outfit, top, pants, sleeve, shoe_type->shoeType, accessories earrings->earrings, accent)")
     every = [adapt(cast, c["id"], stage=s, wardrobe=w, expr=e)
@@ -207,7 +208,7 @@ def main():
           f"changing a CheckedCast's data after the lock check is refused for that character ({msg[:90]})")
     d = load_checked(DEMO).data()
     d["characters"][0]["identity"]["skin"] = "#000000"
-    check(adapt(load_checked(DEMO), "zahra")["spec"]["skin"] == "#c98f6a", "data() returns a copy: editing it changes nothing")
+    check(adapt(load_checked(DEMO), "zahra")["spec"]["skin"] == ident["skin"], "data() returns a copy: editing it changes nothing")
 
     n = len(RESULTS)
     f = n - sum(RESULTS)

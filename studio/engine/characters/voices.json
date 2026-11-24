@@ -1,0 +1,21 @@
+{
+ "schema": "nfp.studio.cast.voices/1",
+ "note": "TTS voices an actor may declare (meta.cast.actors.<id>.voice) and the perceived voice of each, used to refuse a speaker whose voice does not fit the character before anything is rendered. Single-voice TTS: in this version every speaking actor must use the project's own TTS voice (project.json voice.voice); per-character voices are a later stage and need a multi-voice TTS. Add a voice here (with its perceived gender) before an actor can use it.",
+ "voices": {
+  "Kore": "female",
+  "Aoede": "female",
+  "Leda": "female",
+  "Zephyr": "female",
+  "Puck": "male",
+  "Charon": "male",
+  "Fenrir": "male",
+  "Orus": "male"
+ },
+ "build_voice": {
+  "woman": ["female"],
+  "man": ["male"],
+  "teen": ["female", "male"],
+  "child": ["female", "male"],
+  "baby": ["female", "male"]
+ }
+}

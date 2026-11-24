@@ -95,6 +95,49 @@ const dom = await cast.page.evaluate(async (EXP) => {
 check(dom.bad.length === 0, `visibility and mouth of every actor match the plan on ${EXP.frames.length} frames (${dom.n} actor-frames)${dom.bad.length ? " " + dom.bad.slice(0, 6) : ""}`);
 check(dom.outside.length === 0, `head, arms and body stay inside the slot whenever an actor is fully shown (bust: only the legs are cut by the slot's lower edge)${dom.outside.length ? " " + dom.outside.slice(0, 4) : ""}`);
 
+// presence: every actor of a scene is fully shown in the middle and near the end of that scene, and at the last frame
+const pres = await cast.page.evaluate((EXP) => {
+  const tl = window.__timelines.main, slot = document.getElementById("nfp-cast-slot-bottom").getBoundingClientRect(), bad = [], seen = [];
+  const shown = (id) => { const el = document.querySelector('[data-nfp-actor="' + id + '"]'), self = el.querySelector('[data-p="self"]');
+    const cs = getComputedStyle(self), r = el.querySelector('[data-p="root"]').getBoundingClientRect();
+    const w = Math.min(r.right, slot.right) - Math.max(r.left, slot.left), h = Math.min(r.bottom, slot.bottom) - Math.max(r.top, slot.top);
+    return cs.visibility === "visible" && parseFloat(cs.opacity) > 0.99 && w > 50 && h > 100; };
+  Object.entries(EXP.presence).forEach(([sid, ids]) => { const [s0, s1] = EXP.spans[sid];
+    [0.5, 0.9].forEach((q) => { const t = s0 + (Math.min(s1, EXP.duration) - s0) * q; tl.seek(t, false);
+      ids.forEach((id) => { if (shown(id)) seen.push(`${sid}:${id}`); else bad.push(`${id} not shown in ${sid} @${t.toFixed(2)}s`); }); }); });
+  const tLast = (EXP.last_frame - 1) / 30; tl.seek(tLast, false);
+  const lastIds = Object.keys(EXP.actors).filter((id) => EXP.actors[id].visible[EXP.actors[id].visible.length - 1]);
+  lastIds.forEach((id) => { if (!shown(id)) bad.push(`${id} not shown at the last frame`); });
+  return { bad, seen: [...new Set(seen)], lastIds, tLast }; }, EXP);
+const lastScene = Object.keys(EXP.spans).pop();
+check(pres.bad.length === 0 && (EXP.presence[lastScene] || []).length > 0 && pres.lastIds.length > 0,
+  `characters fully shown in every scene that lists them (${pres.seen.join(", ")}) and at the last frame ${pres.tLast.toFixed(2)}s (${pres.lastIds})${pres.bad.length ? " " + pres.bad.slice(0, 4) : ""}`);
+
+// cta scenes with characters: the bottom text sits beside the characters, never under them, fully readable
+for (const [sid, box] of Object.entries(EXP.text_boxes)) {
+  const r = await cast.page.evaluate(([sid, EXP]) => {
+    const tl = window.__timelines.main, [s0, s1] = EXP.spans[sid], slot = document.getElementById("nfp-cast-slot-bottom").getBoundingClientRect();
+    const sc = document.getElementById("scene-" + sid), zb = sc.querySelector(".zb"), items = [...zb.querySelectorAll(".c-note, .c-handle")];
+    const ids = EXP.presence[sid], out = { overlap: [], outside: [], clipped: [], opaque: 0, n: 0, minGap: 1e9, box: null };
+    for (let t = s0 + 0.2; t < Math.min(s1, EXP.duration) - 0.05; t += 0.2) {
+      tl.seek(t, false); out.n++;
+      const txt = items.map((el) => { const rg = document.createRange(); rg.selectNodeContents(el); return [...rg.getClientRects()]; }).flat();
+      const op = items.every((el) => parseFloat(getComputedStyle(el).opacity) > 0.99) && parseFloat(getComputedStyle(sc).opacity) > 0.99;
+      if (op) out.opaque++;
+      if (zb.scrollHeight > zb.clientHeight + 1 || items.some((el) => el.scrollWidth > el.clientWidth + 1)) out.clipped.push(t.toFixed(2));
+      ids.forEach((id) => { const a = document.querySelector('[data-nfp-actor="' + id + '"] [data-p="root"]').getBoundingClientRect();
+        const A = { l: Math.max(a.left, slot.left), r: Math.min(a.right, slot.right), t: Math.max(a.top, slot.top), b: Math.min(a.bottom, slot.bottom) };
+        txt.forEach((q) => { const ix = Math.min(A.r, q.right) - Math.max(A.l, q.left), iy = Math.min(A.b, q.bottom) - Math.max(A.t, q.top);
+          if (ix > 0 && iy > 0) out.overlap.push(`${id}@${t.toFixed(2)}`);
+          if (iy > 0) out.minGap = Math.min(out.minGap, Math.max(q.left - A.r, A.l - q.right)); }); });
+      txt.forEach((q) => { if (q.left < 0 || q.right > 1080 || q.top < 1372 || q.bottom > 1650) out.outside.push(`${t.toFixed(2)} [${q.left.toFixed(0)},${q.right.toFixed(0)},${q.top.toFixed(0)},${q.bottom.toFixed(0)}]`); });
+      if (op && !out.box) { const z = zb.getBoundingClientRect(); out.box = [Math.round(z.left), Math.round(z.right)]; }
+    }
+    return out; }, [sid, EXP]);
+  check(r.overlap.length === 0 && r.outside.length === 0 && r.clipped.length === 0 && r.opaque >= 5,
+    `${sid} (cta + characters): the note/handle text never overlaps a character and is not clipped on ${r.n} frames (fully shown on ${r.opaque}); text box ${JSON.stringify(r.box)} (planned left ${box.left}, side ${box.side}), smallest gap ${r.minGap.toFixed(0)}px${r.overlap.length ? " OVERLAP " + r.overlap.slice(0, 4) : ""}${r.outside.length ? " OUTSIDE " + r.outside.slice(0, 2) : ""}${r.clipped.length ? " CLIPPED " + r.clipped.slice(0, 3) : ""}`);
+}
+
 // lip sync: every timed word of a speaker sentence shows an open mouth on its own frame
 const lip = await cast.page.evaluate((words) => {
   const tl = window.__timelines.main, bad = [];

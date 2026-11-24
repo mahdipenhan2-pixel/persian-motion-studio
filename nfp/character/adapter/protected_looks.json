@@ -1,0 +1,27 @@
+{
+  "schema": "nfp.character.protected_looks/1",
+  "note": "Protection data only: the visual signature of identities that new characters must NOT reproduce. Nothing here is used to draw anyone. Values are the minimum needed to recognise a look-alike: palette (skin / hair / eyes), the silhouette that is unique to that identity (build + hair style, after resolving the rig's hair aliases) and outfits that are recognisably hers. Checked by adapter/visual_guard.py for every stage x wardrobe of every cast that the adapter loads.",
+  "rules": {
+    "palette_scale": {"skin": 70, "hair_color": 60, "eye_color": 50},
+    "lookalike_min_mean_closeness": 0.45,
+    "palette_copy_max_distance": 20,
+    "outfit_replica_max_distance": 30
+  },
+  "identities": [
+    {
+      "id": "kim",
+      "label": "the Kim Kardashian character of the docu projects (protected project)",
+      "palette": {
+        "skin": ["#d99a73"],
+        "hair_color": ["#16100f", "#1c1210"],
+        "eye_color": ["#4a2a1a", "#5a3320"]
+      },
+      "silhouettes": [["woman", "long_straight"], ["teen", "teen_long"]],
+      "outfits": [
+        {"name": "KIM07", "outfit": "tee2007", "top": "#24242c", "pants": "#3b5a8a", "shoe": "#2b2230"},
+        {"name": "KIM25", "outfit": "dress", "top": "#b89b86", "shoe": "#c9a58a"},
+        {"name": "KIMT", "outfit": "tee2007", "top": "#c9c3d6", "pants": "#46557f", "shoe": "#f2efe8"}
+      ]
+    }
+  ]
+}

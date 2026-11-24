@@ -4,7 +4,8 @@ engine) with characters. Additive only; called only for projects that use charac
 
 What is added, and where:
   </head>                 -> <style id="nfp-cast-css">  rig.css (C2) + cast.css + slot geometry + .deco hidden only in
-                                                        the scenes that show characters
+                                                        the scenes that show characters + the moved text box (.zb)
+                                                        of cta scenes with note/handle and characters
   <section id="stage"     -> <div id="nfp-cast"> with the bottom slot (overflow:hidden) and its <svg>, placed right
                              before the captions: above the scenes, below the captions
   </body>                 -> rig (C2 00_core.js + 10_chars.js), runtime (C3), cast.js with the KeyList
@@ -47,8 +48,10 @@ def _script(text, ident):
     return f'<script id="{ident}">\n{text}\n</script>\n'
 
 
-def apply(page, keylist, slot, deco_scenes):
-    """Return the page with the character layer added."""
+def apply(page, keylist, slot, deco_scenes, text_boxes=None):
+    """Return the page with the character layer added. text_boxes: {scene id: {left, right}} for cta scenes whose
+    bottom text moves beside the characters (schema.cta_layout)."""
+    text_boxes = text_boxes or {}
     if 'id="nfp-cast' in page or "data-nfp-actor" in page:
         raise CastError("this page already contains a character layer")
     _once(page, 'window.__timelines["main"] = tl;')
@@ -56,7 +59,7 @@ def apply(page, keylist, slot, deco_scenes):
     if keylist["duration"] > float(data["duration"]) + 1e-9:
         raise CastError(f"character timeline ({keylist['duration']}s) is longer than the page ({data['duration']}s)")
     ids = {s["id"] for s in data["scenes"]}
-    for sid in deco_scenes:
+    for sid in list(deco_scenes) + list(text_boxes):
         if sid not in ids:
             raise CastError(f"scene {sid} is not in the page")
 
@@ -65,6 +68,8 @@ def apply(page, keylist, slot, deco_scenes):
     css += (f"  #nfp-cast-slot-bottom {{ left: {slot['x']}px; top: {slot['y']}px; width: {slot['width']}px; "
             f"height: {slot['height']}px; }}\n")
     css += "".join(f"  #scene-{sid} .deco {{ visibility: hidden; }}\n" for sid in deco_scenes)
+    css += "".join(f"  #scene-{sid} .zb {{ left: {b['left']}px; right: {b['right']}px; }}\n"
+                   for sid, b in sorted(text_boxes.items()))
     i = _once(page, "</head>")
     page = page[:i] + f'<style id="nfp-cast-css">\n{css}</style>\n' + page[i:]
 

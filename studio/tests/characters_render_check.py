@@ -4,18 +4,22 @@ T3 + T4 for the Studio character layer (C4), run locally: no GitHub Actions, no 
 
   python3 studio/tests/characters_render_check.py --timing <real timing.json of motion-demo-fa> \
       --fonts <dir with vazirmatn woff2> --gsap <local gsap.min.js 3.12.5> --work <dir outside the repo> [--render]
+      [--narration <real narration.wav that belongs to --timing>]
 
 1. composes cast-demo-fa twice into <work>: 'plain' = the same project WITHOUT character fields through run_motion.py,
    'cast' = run_cast.py. The word timing is the REAL Whisper timing of the motion-demo-fa narration (same sentences);
-   narration.wav is a SYNTHETIC tone at those word times (as in camera_local_check.py): the real Gemini audio exists
-   only in the Actions cache and is not used here.
+   narration.wav is a SYNTHETIC tone at those word times (as in camera_local_check.py), unless --narration gives the
+   real narration.wav (e.g. the Gemini audio of a workflow run) that belongs to --timing: then that file is used
+   unchanged for every build (its SHA-256 is printed).
 2. render copies: the only change against the product page is the cdnjs GSAP line -> local copy. Two test variants of
    the cast page: 'ref' (cast.js emptied: no characters) and 'nocss' (rig.css removed).
 3. T3: studio/tests/characters_page_check.mjs (browser) + pixel checks on its screenshots:
    cast vs ref differ ONLY inside the character slot; cast vs plain are identical above y 1360 (top zone, captions).
 4. T4 (--render): HyperFrames lint + render (cast, ref, plain) -> MP4; the LOCKED Stage 2 verify on cast and plain;
    word highlight identical; caption band of the cast video = plain video; outside the slot cast video = ref video;
-   the speaker's mouth area moves while that actor speaks and stays still while the other actor speaks.
+   the speaker's mouth area moves while that actor speaks and much less while it is silent; an actor that never
+   speaks keeps its mouth still; the characters are visible in the slot in every scene with characters, including
+   the last scenes and the last second of the video.
 """
 import argparse
 import json
@@ -49,6 +53,9 @@ def check(ok, msg):
     print(("PASS " if ok else "FAIL ") + msg, flush=True)
 
 
+NARRATION = None          # real narration.wav (--narration) or None for the synthetic tone
+
+
 def compose(kind, project_path, work, timing, fonts):
     proj = P.load(str(project_path))
     theme = P.load_theme(proj["meta"]["theme"])
@@ -57,7 +64,10 @@ def compose(kind, project_path, work, timing, fonts):
         shutil.rmtree(b)
     b.mkdir(parents=True)
     (b / "timing.json").write_text(json.dumps(timing, ensure_ascii=False), encoding="utf-8")
-    synth_narration(timing, b / "narration.wav")
+    if NARRATION:
+        shutil.copyfile(NARRATION, b / "narration.wav")
+    else:
+        synth_narration(timing, b / "narration.wav")
     pdir = Path(project_path).parent
     if kind == "plain":
         RM.compose_with_camera(proj, theme, b, fonts, b / "narration.wav", pdir)
@@ -117,7 +127,15 @@ def main():
         ap.add_argument(k, required=True)
     ap.add_argument("--browser", default="/opt/pw-browsers/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell")
     ap.add_argument("--render", action="store_true")
+    ap.add_argument("--narration", help="real narration.wav belonging to --timing (default: synthetic tone)")
     a = ap.parse_args()
+    global NARRATION
+    if a.narration:
+        import hashlib
+        NARRATION = Path(a.narration).resolve()
+        print(f"INFO narration: REAL file {NARRATION.name} sha256 {hashlib.sha256(NARRATION.read_bytes()).hexdigest()}")
+    else:
+        print("INFO narration: synthetic tone at the word times (no real audio)")
     work = Path(a.work).resolve()
     if ROOT in work.parents or work == ROOT:
         sys.exit("--work must be outside the repository")
@@ -136,6 +154,13 @@ def main():
     _, theme, plain = compose("plain", src / "project.json", work, timing, fonts)
     _, _, cast = compose("cast", P.PROJECTS / DEMO / "project.json", work, timing, fonts)
     kl = json.loads((cast / "cast_keylist.json").read_text(encoding="utf-8"))
+    rep_ = json.loads((cast / "cast_report.json").read_text(encoding="utf-8"))
+    from camera import inject as CI
+    spans = CI.scene_spans(CI.read_timeline_data((cast / "story" / "index.html").read_text(encoding="utf-8")))
+    if NARRATION:
+        import hashlib
+        h = {hashlib.sha256((b / "narration.wav").read_bytes()).hexdigest() for b in (plain, cast)}
+        check(h == {hashlib.sha256(NARRATION.read_bytes()).hexdigest()}, "both builds use the given real narration.wav unchanged")
 
     # ---- render copies
     cdir, prod, new = render_copy(cast, a.gsap)
@@ -153,7 +178,11 @@ def main():
     # ---- expectations from the KeyList (Python sampler)
     frames = list(range(0, kl["frames"] + 1, 3))
     exp = {"n_actors": len(kl["actors"]), "frames": frames, "actors": {}, "words": [],
-           "rig_metrics": CS.ZONES["rig_metrics"], "shot_times": [round(0.4 + k * (kl["duration"] - 0.8) / 23, 2) for k in range(24)]}
+           "rig_metrics": CS.ZONES["rig_metrics"], "shot_times": [round(0.4 + k * (kl["duration"] - 0.8) / 23, 2) for k in range(24)],
+           "spans": spans, "duration": kl["duration"], "last_frame": kl["frames"],
+           "presence": {sid: sorted(a_ for a_, v in rep_["actors"].items() if any(sid in iv[2] for iv in v["intervals"]))
+                        for sid in spans},
+           "text_boxes": rep_["text_boxes"]}
     for act in kl["actors"]:
         exp["actors"][act["id"]] = {"visible": [], "mouth": []}
     for f in frames:
@@ -200,13 +229,13 @@ def main():
           "(rasterisation of the camera-scaled scene; the deco itself is below y 1440)")
 
     if a.render:
-        t4(a, theme, {"cast": (cast, cdir), "ref": (cast, rdir), "plain": (plain, pdir_)}, kl, timing)
+        t4(a, theme, {"cast": (cast, cdir), "ref": (cast, rdir), "plain": (plain, pdir_)}, kl, timing, spans, exp)
     fails = [m for ok, m in RESULTS if not ok]
     print(f"\n{len(RESULTS)} checks, " + ("ALL PASSED" if not fails else f"{len(fails)} FAILED"))
     sys.exit(1 if fails else 0)
 
 
-def t4(a, theme, builds, kl, timing):
+def t4(a, theme, builds, kl, timing, spans, exp):
     import numpy as np
     env = dict(os.environ, HYPERFRAMES_BROWSER_PATH=a.browser, HYPERFRAMES_NO_TELEMETRY="1", DO_NOT_TRACK="1")
     npx = ["npx", "--yes", f"hyperframes@{HF_VERSION}"]
@@ -266,7 +295,19 @@ def t4(a, theme, builds, kl, timing):
                                      f"region {worst}, /255)")
     inside = video_crop(mp4["cast"], (slot["width"], slot["height"], slot["x"], slot["y"]), 4)
     inside_ref = video_crop(mp4["ref"], (slot["width"], slot["height"], slot["x"], slot["y"]), 4)
-    check(max(float(np.abs(p - q).mean()) for p, q in zip(inside, inside_ref)) > 5.0, "the characters are visible in the slot of the video")
+    per_frame = [float(np.abs(p - q).mean()) for p, q in zip(inside, inside_ref)]
+    check(max(per_frame) > 5.0, "the characters are visible in the slot of the video")
+    pres = {}
+    for sid, (s0, s1) in spans.items():
+        if not exp["presence"].get(sid):
+            continue
+        idx = [i for i in range(len(per_frame)) if s0 + 0.4 <= (i + 0.5) / 4 <= min(s1, kl["duration"]) - 0.4]
+        pres[sid] = round(min(per_frame[i] for i in idx), 2) if idx else None
+    last = [per_frame[i] for i in range(len(per_frame)) if (i + 0.5) / 4 >= kl["duration"] - 1.0]
+    pres["last_1s"] = round(min(last), 2) if last else None
+    check(all(v is not None and v > 3.0 for v in pres.values()) and "s5" in pres and "s6" in pres,
+          f"characters visible in the MP4 in every scene that lists them, s5 / s6 and the last second included "
+          f"(minimum slot difference against the video without characters, /255: {pres})")
     # mouth motion in the video: speaking windows vs the same actor listening while the other actor speaks
     talks = {}
     for t in kl["lipsync"]["talks"]:
@@ -286,17 +327,22 @@ def t4(a, theme, builds, kl, timing):
                   if k["actor"] == act["id"] and k["df"] > 0 and k["part"] in ("head", "root", "self", "torso")
                   and k["prop"] in ("--x", "--y", "--r", "--s") and not k["src"].startswith("idle")]
         still = lambda t: not any(a_ <= t <= b_ for a_, b_ in moving)  # noqa: E731
-        own = [c for i, c in enumerate(ch_) if any(a_ + 0.1 <= tt(i) <= b_ - 0.1 for a_, b_ in talks.get(act["id"], []))
+        mine = talks.get(act["id"], [])
+        own = [c for i, c in enumerate(ch_) if any(a_ + 0.1 <= tt(i) <= b_ - 0.1 for a_, b_ in mine)
                and vis(tt(i)) and still(tt(i))]
-        others = [(a_, b_) for o, v in talks.items() if o != act["id"] for a_, b_ in v]
-        quiet = [c for i, c in enumerate(ch_) if any(a_ + 0.1 <= tt(i) <= b_ - 0.1 for a_, b_ in others)
+        # silent: visible, not inside (or right next to) one of its own sentences
+        quiet = [c for i, c in enumerate(ch_) if not any(a_ - 0.3 <= tt(i) <= b_ + 0.3 for a_, b_ in mine)
                  and vis(tt(i)) and still(tt(i))]
-        report[act["id"]] = {"speaking_mean": round(float(np.mean(own)), 2) if own else None,
-                             "listening_mean": round(float(np.mean(quiet)), 2) if quiet else None, "n": [len(own), len(quiet)],
+        report[act["id"]] = {"speaks": bool(mine), "speaking_mean": round(float(np.mean(own)), 2) if own else None,
+                             "silent_mean": round(float(np.mean(quiet)), 2) if quiet else None, "n": [len(own), len(quiet)],
                              "excluded_head_motion_windows": len(moving)}
-    ok = all(r["speaking_mean"] and r["listening_mean"] is not None and r["speaking_mean"] > 3 * r["listening_mean"] + 0.5
-             for r in report.values())
-    check(ok, f"lip sync in the MP4: the mouth area changes while that actor speaks, much less while the other speaks {report}")
+    speakers = [r for r in report.values() if r["speaks"]]
+    silent_ref = [r["silent_mean"] for r in report.values() if r["silent_mean"] is not None]
+    ok = bool(speakers) and bool(silent_ref) and all(
+        r["speaking_mean"] and r["speaking_mean"] > 3 * max(silent_ref) + 0.5 for r in speakers)
+    ok = ok and all(r["silent_mean"] is not None and r["n"][1] >= 10 for r in report.values() if not r["speaks"])
+    check(ok, f"lip sync in the MP4: a speaker's mouth area changes while it speaks, far more than any visible "
+              f"silent mouth (a never-speaking actor keeps its mouth still) {report}")
     (builds["cast"][0] / "t4_report.json").write_text(json.dumps({"verify_cast": verify["cast"].get("problems"),
                                                                   "verify_plain": verify["plain"].get("problems"), "band": bd,
                                                                   "outside": worst, "mouth": report}, indent=1), encoding="utf-8")

@@ -13,7 +13,13 @@ KeyList ──(C3d Runtime core, JS)──► SVG character on any page: seek / 
 - تنها ورودی مجاز `load_checked(<project>)` است که همان `load_and_check` در C1 را اجرا می‌کند و قفل هویت را بررسی می‌کند. `adapt()` دیکشنری خام را نمی‌پذیرد.
 - خروجی همیشه هر **۱۸ فیلد** `K.chars.actor(spec)` را دارد، پس Rig هیچ‌وقت به پیش‌فرض‌های خودش (که ۵ مورد آن هویت Kim است) نمی‌رسد.
 - فیلدهای اختیاری لباس که cast خالی گذاشته از `neutral_defaults.json` پر می‌شوند و `lip` از رنگ پوست خود شخصیت مشتق می‌شود. هیچ‌کدام از این مقادیر با پیش‌فرض‌های Rig برابر نیست و این موضوع تست شده است.
-- اگر cast **خودش صراحتاً** رنگی برابر با یکی از رنگ‌های Kim انتخاب کرده باشد (مثلاً موی `#1c1210` برای زهرا)، مجاز است اما در `warnings` گزارش می‌شود.
+- اگر cast **خودش صراحتاً** رنگی برابر با یکی از رنگ‌های Kim انتخاب کرده باشد (مثلاً پوست `#d99a73`)، مجاز است اما در `warnings` گزارش می‌شود.
+- **محافظ هویت بصری (`adapter/visual_guard.py` + `adapter/protected_looks.json`):** `load_checked` هر ترکیب stage × wardrobe همه شخصیت‌ها را بررسی می‌کند و cast شبیه به هویت محافظت‌شده را رد می‌کند، حتی اگر هیچ رنگی دقیقاً برابر نباشد:
+  - **R1، کپی لباس:** همان نوع لباس با رنگ top و (pants یا shoe) نزدیک به لباس‌های شاخص (KIM07، KIM25، KIMT)؛
+  - **R2، کپی پالت:** پوست، مو و چشم همگی در فاصله ۲۰ واحد RGB؛
+  - **R3، شبیه‌سازی کلی:** سیلوئت شاخص (`woman` + `long_straight`، یا `teen` + `teen_long` با aliasها) همراه با پالت نزدیک (میانگین نزدیکی ≥ ۰٫۴۵).
+  - مو تیره و چشم قهوه‌ای به‌تنهایی رد نمی‌شود. تغییر مدل مو یا دور کردن پالت همیشه کافی است.
+  - `protected_looks.json` فقط داده حفاظتی است و برای کشیدن هیچ شخصیتی استفاده نمی‌شود. تست‌ها در `tests/test_visual_guard.py` هستند (موارد مثبت و منفی).
 - هویت (پوست، رنگ مو، رنگ چشم)، `outfit` و `top` هرگز ساخته نمی‌شوند. اگر نباشند، خطای روشن داده می‌شود.
 - fingerprint روی DOM با `data-nfp-fp` می‌نشیند و شناسه DOM از `isolation.dom_id` در C1 گرفته می‌شود.
 
@@ -93,6 +99,7 @@ python3 nfp/character/animation/cli.py plan  nfp/character/examples/demo-anim/ac
 python3 nfp/character/animation/cli.py check keylist.json
 python3 nfp/character/animation/cli.py demo  nfp/character/examples/demo-anim/actions.json --html demo.html
 python3 nfp/character/tests/test_adapter.py
+python3 nfp/character/tests/test_visual_guard.py
 python3 nfp/character/tests/test_animation.py
 python3 nfp/character/tests/test_lipsync.py
 node    nfp/character/tests/anim_render_check.mjs [--gsap <local gsap.min.js>] [--shots <dir>]

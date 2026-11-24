@@ -50,7 +50,9 @@ def action_script(plan, data, timing):
     if missing:
         raise CastError(f"scenes with characters are not in the page timeline: {', '.join(sorted(missing))}")
     offsets = {s["id"]: float(s["offset"]) for s in timing["sentences"]}
-    actors, actions, report = [], [], {"duration": dur, "actors": {}, "speakers": {}, "deco_hidden": []}
+    actors, actions = [], []
+    report = {"duration": dur, "actors": {}, "speakers": {}, "deco_hidden": [], "text_boxes": {},
+              "warnings": list(plan.get("warnings", []))}
     for aid, a in plan["actors"].items():
         ivs = intervals(order, per_scene, aid, spans, dur)
         first_expr = per_scene[ivs[0][2][0]]["present"][aid]          # expression of the actor's FIRST scene only
@@ -83,6 +85,8 @@ def action_script(plan, data, timing):
         if not p:
             continue
         report["deco_hidden"].append(sid)
+        if "zb" in p:
+            report["text_boxes"][sid] = p["zb"]
         s0, s1 = spans[sid]
         for sent, who in p["speakers"].items():
             report["speakers"][sent] = who
