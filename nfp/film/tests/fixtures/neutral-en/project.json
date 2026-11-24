@@ -1,0 +1,11 @@
+{
+ "meta": {"title": "Neutral style test", "lang": "en", "format": "16:9", "width": 1920, "height": 1080, "fps": 30, "target_duration": 15},
+ "voice": {"voice": "Kore"},
+ "audio": {"lead_in_ms": 300, "gap_ms": 300, "tail_ms": 500},
+ "shots": "shots.js",
+ "chapters": [{"id": "c1", "sentences": [
+  {"id": "s1", "text": "The street wakes up slowly as the evening light turns gold."},
+  {"id": "s2", "text": "Inside, an old room keeps its memories behind a quiet door."},
+  {"id": "s3", "text": "On the stage, the lights switch on and the music begins."}
+ ]}]
+}

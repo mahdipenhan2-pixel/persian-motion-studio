@@ -1,0 +1,18 @@
+{
+ "schema": "nfp.cast/1",
+ "project": "film-cast-en",
+ "characters": [
+  {"id": "lina", "display_name": "Lina", "role": "guide", "style": "flat_cartoon_v2",
+   "identity": {"skin": "#c68a5e", "hair_color": "#7a3b22", "eye_color": "#2f6a5a"},
+   "stages": {"adult": {"build": "woman", "hair": "big80s"}},
+   "wardrobe": {"field": {"outfit": "blazer", "top": "#2f5a7a", "pants": "#33363d", "shoe": "#1e1e24", "accent": "#e0b84a", "sleeve": "long"}},
+   "defaults": {"stage": "adult", "wardrobe": "field", "expr": "neutral"},
+   "provenance": {"real_person": false, "depiction": "fictional"}},
+  {"id": "omid", "display_name": "Omid", "role": "narrator on screen", "style": "flat_cartoon_v2",
+   "identity": {"skin": "#8e5c3c", "hair_color": "#2c2622", "eye_color": "#3a2a1c", "marks": ["glasses"]},
+   "stages": {"adult": {"build": "man", "hair": "short_man"}},
+   "wardrobe": {"casual": {"outfit": "track", "top": "#5a7a3a", "pants": "#2c2c34", "shoe": "#e9e4da", "shoe_type": "sneaker", "sleeve": "long"}},
+   "defaults": {"stage": "adult", "wardrobe": "casual", "expr": "neutral"},
+   "provenance": {"real_person": false, "depiction": "fictional"}}
+ ]
+}

@@ -1,0 +1,112 @@
+{
+ "schema": "nfp.film.provenance/1",
+ "note": "Origin of every file of nfp/film that comes from the documentary engine of branch docu-16x9-test30. 'copied' files are byte-identical to the source (sha256 of both recorded) and must never be edited: a change goes into a new file. 'referenced' files are not copied: the identical file already in the repository is used. 'derived' files are new files based on a source file; their changes are listed. Not taken over: every project of docu/projects (Kim's story, characters, sources, sound cues), the docu-6min-data branch, the Kim workflows, the scene sets 21_scenes.js / 42_scenes_cine.js (Kim-specific texts and palettes; a cleaned version is a later stage).",
+ "source": {
+  "repository": "mahdipenhan2-pixel/persian-motion-studio",
+  "branch": "docu-16x9-test30",
+  "commit": "fa94f062b440bca4971d32b0aba45d10710d7a77"
+ },
+ "copied": [
+  {
+   "path": "kit/20_backgrounds.js",
+   "source": "docu/engine/kit/20_backgrounds.js",
+   "sha256": "004839ecf83074e395bb37095dddb0f5ff395b2ca09cfa5aec651f60393a5f96"
+  },
+  {
+   "path": "kit/40_fx.js",
+   "source": "docu/engine/kit/40_fx.js",
+   "sha256": "1d084feacb9f3c156c2e8224f49af58ea3179fe3b1aec5fde5f1ef3e1bd8f7c9"
+  },
+  {
+   "path": "kit/41_cine.js",
+   "source": "docu/engine/kit/41_cine.js",
+   "sha256": "58813f01e16b8e569d43d109a5f4dbc24cfa2c6fda6e3c317480e275a1347a90"
+  },
+  {
+   "path": "kit/50_director.js",
+   "source": "docu/engine/kit/50_director.js",
+   "sha256": "19879ff1e1c7dd8b5871cc62dbc48407577b9096aac0b18831e0045d55330198"
+  },
+  {
+   "path": "engine/untimed.py",
+   "source": "docu/engine/untimed.py",
+   "sha256": "e074569fc7e14e9f9f61e8f5bb39f5411842d2778db3e52abca103f7b5cfbec0"
+  },
+  {
+   "path": "engine/assemble.py",
+   "source": "docu/engine/assemble.py",
+   "sha256": "0a7d032201aa8773e33e64de0636da38d4cb2fdb52b09b6040ca86490c356867"
+  },
+  {
+   "path": "engine/photoslots.py",
+   "source": "docu/engine/photoslots.py",
+   "sha256": "791db98b328e907d700211f0ae363fef7f592f2f3a767b8c7f1ddf7fdefa1de3"
+  },
+  {
+   "path": "assets/noise.png",
+   "source": "docu/engine/assets/noise.png",
+   "sha256": "eedad9a7a1f0b6fe480b8bc90cc9c0eb374d681da0bbd17751da30cdfb8c425a"
+  },
+  {
+   "path": "engine/verify.py",
+   "source": "docu/engine/verify.py",
+   "sha256": "927ade9ea2ea1f59229b34335355aeb6030f0d6d70a4d3c2027d045b28ab607f"
+  }
+ ],
+ "referenced": [
+  {
+   "used_from": "nfp/character/renderers/flat_cartoon_v2/rig/00_core.js",
+   "source": "docu/engine/kit/00_core.js",
+   "sha256": "c891ced8324c7b0553da0d223a295d15d17a8125fb75b4f20fbabc44e782ed65",
+   "identical": true
+  },
+  {
+   "used_from": "nfp/character/renderers/flat_cartoon_v2/rig/10_chars.js",
+   "source": "docu/engine/kit/10_chars.js",
+   "sha256": "89ada1d0951bc4df10513c185cc40637090f022764b60b068a782ea13c49640f",
+   "identical": true
+  }
+ ],
+ "derived": [
+  {
+   "path": "engine/project.py",
+   "source": "docu/engine/project.py",
+   "changes": [
+    "meta.lang 'en' (default) or 'fa'; Whisper language follows it",
+    "projects are folders anywhere (no project store)",
+    "unknown top-level / sentence fields are refused",
+    "optional per-sentence 'speaker', 'cast' and 'characters' (data, planned by C3)"
+   ]
+  },
+  {
+   "path": "engine/run.py",
+   "source": "docu/engine/run.py",
+   "changes": [
+    "--build option",
+    "verify always expects 1920x1080 (no 720p path)",
+    "compose adds characters through cast_plan.py",
+    "fonts directory from NFP_FONTS or assets/fonts"
+   ]
+  },
+  {
+   "path": "engine/compose.py",
+   "source": "docu/engine/compose.py",
+   "changes": [
+    "rig 00_core/10_chars read from C2 (byte-identical files); no story-specific scene sets in the kit",
+    "fonts and text direction per language (en: Inter/Caveat LTR, fa: Vazirmatn+Inter RTL; SVG art text follows the language through CSS)",
+    "words.json (nfp.film.words/1): exact word timing as its own data file; story.srt is a side output",
+    "optional character fragment appended before </body>",
+    "no local GSAP shim switch (tests swap the CDN tag in a render copy)"
+   ]
+  },
+  {
+   "path": "engine/base.html",
+   "source": "docu/engine/base.html",
+   "changes": [
+    "lang/dir placeholders",
+    "body font and language CSS placeholders",
+    "<title> NFP Film"
+   ]
+  }
+ ]
+}

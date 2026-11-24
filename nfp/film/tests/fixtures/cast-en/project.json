@@ -1,0 +1,26 @@
+{
+ "meta": {"title": "Film cast test", "lang": "en", "format": "16:9", "width": 1920, "height": 1080, "fps": 30, "target_duration": 15},
+ "voice": {"voice": "Charon"},
+ "audio": {"lead_in_ms": 300, "gap_ms": 300, "tail_ms": 500},
+ "shots": "shots.js",
+ "cast": {"dir": "film-cast-en"},
+ "characters": [
+  {"shot": "street", "actor": "lina-street", "character": "lina", "from": 0.3, "to": ["s2", "w", 0],
+   "x": 520, "y": 960, "scale": 0.9, "depth": 0.9, "seed": 3,
+   "actions": [{"do": "walk", "at": ["s1", "w", 2], "dur": 1.6, "dx": 300}, {"do": "look", "at": ["s1", 0.8], "dir": "right"}]},
+  {"shot": "room", "actor": "lina-room", "character": "lina", "from": ["s2", "w", 0], "to": ["s3", "w", 0],
+   "x": 640, "y": 980, "scale": 0.95, "depth": 0.9, "expr": "happy",
+   "actions": [{"do": "nod", "at": ["s2", "e", 2]}, {"do": "look", "at": ["s2", "w", 1], "dir": "right"}]},
+  {"shot": "room", "actor": "omid-room", "character": "omid", "from": ["s2", "w", 0], "to": ["s3", "w", 0],
+   "x": 1280, "y": 980, "scale": 0.95, "depth": 0.7,
+   "actions": [{"do": "point", "at": ["s2", "w", 4], "side": "L"}]},
+  {"shot": "stage", "actor": "omid-stage", "character": "omid", "from": ["s3", "w", 0], "to": "end",
+   "x": 960, "y": 990, "scale": 1.0, "depth": 0.9, "expr": "happy",
+   "actions": [{"do": "wave", "at": ["s3", 0.5]}]}
+ ],
+ "chapters": [{"id": "c1", "sentences": [
+  {"id": "s1", "text": "The street wakes up slowly as the evening light turns gold."},
+  {"id": "s2", "text": "Inside, an old friend tells the story of this quiet house.", "speaker": "omid-room"},
+  {"id": "s3", "text": "On the stage, the lights switch on and the music begins.", "speaker": "omid-stage"}
+ ]}]
+}

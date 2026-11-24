@@ -1,0 +1,8 @@
+{
+  "schema": "nfp.cast.lock/1",
+  "project": "film-cast-en",
+  "characters": {
+    "lina": "0c8c6f4090b446ed980f8e4ea0e3a7d00c7c0ba50356cf54eab2bf110f518e1c",
+    "omid": "aae1ddc23f0e8bfb24c7630a710b82ec033a88f9da2f8079cb4a69f871294aa5"
+  }
+}
