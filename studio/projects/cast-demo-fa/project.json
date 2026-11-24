@@ -1,0 +1,230 @@
+{
+  "meta": {
+    "title": "افغانستان در یک نگاه",
+    "lang": "fa",
+    "format": "9:16",
+    "theme": "dark-green",
+    "handle": "",
+    "cast": {
+      "dir": "cast/cast-demo-fa",
+      "actors": {
+        "host": {
+          "character": "maryam",
+          "x": 0.3
+        },
+        "guest": {
+          "character": "reza",
+          "x": 0.74
+        }
+      }
+    }
+  },
+  "voice": {
+    "voice": "Kore",
+    "style": "calm, clear narration"
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "template": "title",
+      "narration": "افغانستان کشوری در قلب آسیا است.",
+      "on_screen": {
+        "title": "افغانستان",
+        "subtitle": "کشوری در قلب آسیا",
+        "icon": "info"
+      },
+      "camera": {
+        "move": "push-in",
+        "intensity": 0.7,
+        "target": "scene"
+      },
+      "characters": {
+        "actors": [
+          {
+            "actor": "host",
+            "expr": "happy"
+          }
+        ],
+        "speaker": "host",
+        "actions": [
+          {
+            "actor": "host",
+            "do": "wave",
+            "at": 0.4
+          }
+        ]
+      }
+    },
+    {
+      "id": "s2",
+      "template": "info",
+      "narration": "این کشور با شش کشور همسایه مرز مشترک دارد.",
+      "on_screen": {
+        "heading": "شش کشور همسایه",
+        "lines": [
+          "مرز خشکی مشترک",
+          "موقعیتی مهم در منطقه"
+        ],
+        "icon": "info"
+      },
+      "camera": {
+        "move": "ken-burns",
+        "target": "scene",
+        "intensity": 0.9,
+        "transition_in": {
+          "type": "slide",
+          "duration": 0.4
+        }
+      },
+      "characters": {
+        "actors": [
+          "host",
+          "guest"
+        ],
+        "speaker": "host",
+        "actions": [
+          {
+            "actor": "guest",
+            "do": "nod",
+            "at": 1.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "template": "title",
+      "narration": "پایتخت افغانستان کابل است و در میان کوه‌های هندوکش قرار دارد.",
+      "on_screen": {
+        "title": "کابل",
+        "subtitle": "در میان کوه‌های هندوکش"
+      },
+      "camera": {
+        "move": "ken-burns",
+        "intensity": 0.8,
+        "transition_in": {
+          "type": "wipe",
+          "duration": 0.45
+        },
+        "target": "scene"
+      },
+      "characters": {
+        "actors": [
+          "host",
+          {
+            "actor": "guest",
+            "expr": "surprised"
+          }
+        ],
+        "sentence_speakers": {
+          "1": "guest"
+        },
+        "actions": [
+          {
+            "actor": "host",
+            "do": "look",
+            "at": 0.6,
+            "dir": "right"
+          }
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "template": "steps",
+      "narration": "هرات در غرب، قندهار در جنوب و مزار شریف در شمال کشور قرار دارند.",
+      "on_screen": {
+        "heading": "شهرهای بزرگ",
+        "items": [
+          {
+            "icon": "info",
+            "text": "هرات · غرب"
+          },
+          {
+            "icon": "info",
+            "text": "قندهار · جنوب"
+          },
+          {
+            "icon": "info",
+            "text": "مزار شریف · شمال"
+          }
+        ]
+      },
+      "camera": {
+        "move": "pan-start",
+        "target": "scene",
+        "intensity": 0.8,
+        "transition_in": {
+          "type": "zoom-through",
+          "duration": 0.4
+        }
+      },
+      "characters": {
+        "actors": [
+          {
+            "actor": "host",
+            "expr": "neutral"
+          }
+        ],
+        "speaker": "host",
+        "actions": [
+          {
+            "actor": "host",
+            "do": "point",
+            "at": 0.8,
+            "side": "R",
+            "hold": 1.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "template": "compare",
+      "narration": "این کشور هیچ مرز دریایی ندارد و در خشکی محصور است.",
+      "on_screen": {
+        "a": {
+          "big": "دریا",
+          "small": "مرز دریایی ندارد",
+          "tone": "warn",
+          "icon": "drop"
+        },
+        "b": {
+          "big": "خشکی",
+          "small": "محصور در خشکی",
+          "tone": "ok",
+          "icon": "hand"
+        }
+      },
+      "camera": {
+        "move": "pan-start",
+        "intensity": 0.8,
+        "transition_in": {
+          "type": "slide",
+          "duration": 0.4
+        },
+        "target": "scene"
+      }
+    },
+    {
+      "id": "s6",
+      "template": "cta",
+      "narration": "کوهستان‌ها و تاریخ کهن به این سرزمین هویت ویژه‌ای داده‌اند.",
+      "on_screen": {
+        "heading": "هویتی کهن",
+        "note": "کوهستان‌ها و تاریخی چند هزار ساله",
+        "icon": "info"
+      },
+      "camera": {
+        "move": "pull-out",
+        "intensity": 0.7,
+        "ease": "power2.out",
+        "transition_in": {
+          "type": "zoom-through",
+          "duration": 0.35
+        },
+        "target": "scene"
+      }
+    }
+  ]
+}

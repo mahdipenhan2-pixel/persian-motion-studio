@@ -5,7 +5,8 @@ C3 شخصیتِ قفل‌شده C1 را به Rig مرحله C2 وصل می‌ک�
 ```
 cast.json + cast.lock.json ──(C3a Adapter)──► complete rig spec (18 fields) + fingerprint + DOM id
 action script (actions.json) + word timings ──(C3b Planner + C3c LipSync, Python)──► KeyList (JSON)
-KeyList ──(C3d Runtime, JS)──► SVG character on any page: seek / play / pause / optional GSAP timeline
+KeyList ──(C3d Runtime core, JS)──► SVG character on any page: seek / state / the page's GSAP timeline
+        └─(optional Player, JS)──► live preview: play / pause / resume / stop
 ```
 
 ## C3a — Adapter (`adapter/`)
@@ -35,13 +36,44 @@ KeyList ──(C3d Runtime, JS)──► SVG character on any page: seek / play 
 - دهان روی فریم `round(t0·fps)` باز می‌شود (حداکثر نیم فریم فاصله). در سکوت بیشتر از 0.15 ثانیه دهان بسته می‌شود و در مکث کوتاه‌تر نیمه‌باز (`small`) می‌ماند. پایان گفتار به دهانِ حالت چهره فعلی (بسته) برمی‌گردد.
 - نگاشت اولیه فارسی و انگلیسی روی همان ۱۲ دهان Rig انجام می‌شود. متن به ترتیب منطقی (گفتاری) خوانده می‌شود. راست‌به‌چپ بودن فقط به نمایش مربوط است. ZWNJ و علامت‌های bidi نادیده گرفته می‌شوند و ي/ك عربی به ی/ک تبدیل می‌شوند. این **phoneme recognition نیست**.
 
-## C3d — Runtime (`runtime/character_runtime.js`)
+## C3d — Runtime: هسته قطعی + Player جدا
+Runtime دو فایل جدا دارد:
+
+| فایل | نقش | ساعت دیواری و زمان‌بندی فریم |
+|---|---|---|
+| `runtime/character_runtime.js` | **هسته قطعی:** اعتبارسنجی، ساخت شخصیت، `seek`، `state`، `toTimeline`، `dispose` | **ندارد** (این را تست E15 بررسی می‌کند) |
+| `runtime/character_player.js` | **Player:** پخش زنده برای پیش‌نمایش در مرورگر (`play`، `pause`، `resume`، `stop`، `playing`) | دارد، به‌عمد |
+
+هسته‌ای که در صفحه‌های رندر (HyperFrames و Studio) جاسازی می‌شود، **فقط** `character_runtime.js` است. بنابراین رندر قطعی است و lint در HyperFrames خطایی نمی‌دهد. Player هرگز در صفحه رندر قرار نمی‌گیرد.
+
+**ترتیب بارگذاری** (همه محلی، بدون شبکه):
+```
+renderers/flat_cartoon_v2/rig.css, rig/00_core.js, rig/10_chars.js,
+runtime/character_runtime.js
+runtime/character_player.js        ← فقط برای پیش‌نمایش زنده، بعد از هسته
+```
+
+**رندر یا timeline صفحه (بدون Player):**
 ```js
 const rt = NFPCharacterRuntime.create({ svg, keylist });   // اعتبارسنجی + ساخت شخصیت
-rt.seek(t); rt.state(t); rt.play({from, to, rate, onFrame, onEnd}); rt.pause(); rt.resume(); rt.stop();
-rt.toTimeline(gsap);   // اختیاری؛ GSAP محلی را خود صفحه می‌دهد
+rt.seek(t); rt.state(t); rt.time();                        // قطعی: هر ترتیب seek، همان تصویر
+rt.toTimeline(gsap, window.__timelines.main);              // timeline صریح الزامی است
 ```
-- موتور درون‌یابی داخلی دارد، پس بدون GSAP هم کار می‌کند. `seek` بدون حالت است: با هر ترتیب seek، تصویر یکسان است. `play` فقط `rate` در بازه (0, 16] را می‌پذیرد.
+- `toTimeline(gsap, tl)` کلیدها را روی **همان** timeline داده‌شده می‌گذارد و هیچ‌وقت timeline تازه نمی‌سازد. اگر `tl` داده نشود یا timeline معتبر GSAP نباشد، با این خطای روشن متوقف می‌شود: `toTimeline: pass the GSAP timeline to extend (e.g. window.__timelines.main); the runtime never creates its own timeline`.
+- اگر timeline کوتاه‌تر از KeyList باشد، تا طول KeyList ادامه داده می‌شود. هم‌ارزی آن با `seek` تست شده است (E12).
+
+**پیش‌نمایش زنده (با Player):**
+```js
+const rt = NFPCharacterRuntime.create({ svg, keylist });
+NFPCharacterPlayer.attach(rt);          // play/pause/resume/stop/playing فقط به همین rt اضافه می‌شود
+rt.play({ from: 0, to: rt.duration, rate: 1, onFrame: (t) => {}, onEnd: (t) => {} });
+rt.pause(); rt.resume(); rt.stop();     // stop به from برمی‌گردد؛ rt.time() و rt.playing() وضعیت را می‌دهند
+```
+- `play`، `pause`، `resume`، `stop` و `playing` **فقط بعد از** `NFPCharacterPlayer.attach(rt)` وجود دارند. Runtime دیگری که Player به آن وصل نشده، هیچ‌کدام از این متدها را ندارد، و هیچ prototype یا شیء سراسری تغییر نمی‌کند.
+- اتصال دوباره به همان نمونه رد می‌شود. `play` فقط `rate` در بازه (0, 16] و `0 ≤ from < to ≤ duration` را می‌پذیرد.
+- بعد از اتصال، `rt.dispose()` اول پخش را متوقف می‌کند و بعد شخصیت را حذف می‌کند.
+- برای تست می‌شود ساعت را تزریق کرد: `NFPCharacterPlayer.attach(rt, { clock, requestAnimationFrame, cancelAnimationFrame })`.
+- صفحه دمو (`cli.py demo`) هر دو فایل را بار می‌کند و Player را به Runtime خودش وصل می‌کند.
 
 ### امنیت ورودی (KeyList داده نامطمئن فرض می‌شود)
 - هر ۱۸ فیلد spec از نظر **نوع و مقدار** بررسی می‌شود: رنگ `#rrggbb` با حروف کوچک، پرچم 0/1، و واژگان Rig. مقدار خالی، `null` یا نامعتبر رد می‌شود، پس Rig هیچ‌وقت به پیش‌فرض‌های Kim نمی‌رسد.

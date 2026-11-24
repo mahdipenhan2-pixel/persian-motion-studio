@@ -2,14 +2,19 @@
 
    Load order (all local, nothing from the network):
      renderers/flat_cartoon_v2/rig.css, rig/00_core.js, rig/10_chars.js, runtime/character_runtime.js
+     [+ runtime/character_player.js only for live playback in a browser preview]
+
+   This file is the DETERMINISTIC CORE: it never reads a wall clock and never schedules frames, so a renderer that
+   seeks a timeline (HyperFrames) gets the same picture for the same time. Live playback lives in
+   runtime/character_player.js and is attached per instance: NFPCharacterPlayer.attach(rt).
 
    const rt = NFPCharacterRuntime.create({ svg, keylist });   // validates the KeyList, builds the characters
    rt.seek(t)              apply the exact state at time t (seconds). Stateless: same t -> same picture, any order.
    rt.state(t)             the same values as data, without touching the DOM: {actor: {part: {prop: value}}}
-   rt.play({from, to, rate, onFrame, onEnd})   real-time playback (requestAnimationFrame), clamped to [from, to]
-   rt.pause() / rt.resume() / rt.stop()        stop() returns to `from`; time() and playing() report the state
-   rt.toTimeline(gsap, tl) optional: the same animation as tweens on a GSAP timeline (a local GSAP must be passed in;
-                           this file never loads one). Equivalent to seek() - checked by tests/anim_render_check.mjs.
+   rt.time()               the time of the last seek
+   rt.toTimeline(gsap, tl) the same animation as tweens on the GIVEN GSAP timeline `tl` (required: e.g. the page's
+                           window.__timelines.main). The runtime never creates or loads a timeline itself.
+                           Equivalent to seek() - checked by tests/anim_render_check.mjs.
    rt.dispose()            remove the characters again
    NFPCharacterRuntime.validate(keylist) -> [problems]   (the same rules as animation/keys.py validate_keylist)
 
@@ -330,56 +335,13 @@
       return t;
     }
 
-    // ---- real-time playback ----
-    const clock = opts.clock || (() => (g.performance ? g.performance.now() : Date.now()));
-    const raf = opts.requestAnimationFrame || (g.requestAnimationFrame ? g.requestAnimationFrame.bind(g) : (cb) => setTimeout(() => cb(clock()), 16));
-    const caf = opts.cancelAnimationFrame || (g.cancelAnimationFrame ? g.cancelAnimationFrame.bind(g) : clearTimeout);
-    let play = null, handle = null, disposed = false;
-    function tick() {
-      if (!play || play.paused) return;
-      const t = play.base + ((clock() - play.started) / 1000) * play.rate;
-      if (t >= play.to) {
-        seek(play.to); const end = play.onEnd; play.paused = true; play.ended = true; handle = null;
-        if (play.onFrame) play.onFrame(play.to);
-        if (end) end(play.to);
-        return;
-      }
-      seek(t);
-      if (play.onFrame) play.onFrame(t);
-      handle = raf(tick);
-    }
+    let disposed = false;
     const api = {
       fps, duration, keylist: kl, actors: built, channels: channels.length,
-      seek, state, time: () => now,
-      playing: () => !!(play && !play.paused),
-      play(o) {
-        o = o || {};
-        if (disposed) throw new Error("play: the runtime was disposed");
-        const from = o.from !== undefined ? o.from : 0, to = o.to !== undefined ? o.to : duration, rate = o.rate !== undefined ? o.rate : 1;
-        if (!finite(from) || !finite(to) || from < 0 || to > duration || !(to > from)) throw new Error("play: need 0 <= from < to <= " + duration);
-        if (!finite(rate) || rate <= 0 || rate > 16) throw new Error("play: rate must be a number in (0, 16] (playback only runs forward)");
-        if (handle) caf(handle);
-        play = { from, to, base: from, rate, started: clock(), paused: false, onFrame: o.onFrame, onEnd: o.onEnd };
-        seek(from);
-        handle = raf(tick);
-        return api;
-      },
-      pause() {
-        if (play && !play.paused) { if (handle) caf(handle); handle = null; tickFreeze(); }
-        return api;
-      },
-      resume() {
-        if (play && play.paused && !play.ended) { play.base = now; play.started = clock(); play.paused = false; handle = raf(tick); }
-        return api;
-      },
-      stop() {
-        if (handle) caf(handle); handle = null;
-        const from = play ? play.from : 0; play = null; if (!disposed) seek(from);
-        return api;
-      },
+      seek, state, time: () => now, disposed: () => disposed,
       toTimeline(gsap, tl) {
-        if (!gsap || typeof gsap.timeline !== "function") throw new Error("toTimeline: pass a local GSAP instance");
-        tl = tl || gsap.timeline({ paused: true });
+        if (!tl || typeof tl.set !== "function" || typeof tl.fromTo !== "function" || typeof tl.duration !== "function")
+          throw new Error("toTimeline: pass the GSAP timeline to extend (e.g. window.__timelines.main); the runtime never creates its own timeline");
         channels.forEach((c) => {
           c.keys.forEach((k) => {
             const at = k.f / fps, len = k.df / fps;            // exact frame times (k.t is rounded for JSON)
@@ -394,12 +356,8 @@
         if (tl.duration() < duration) tl.set({}, {}, duration);    // the timeline is exactly as long as the KeyList
         return tl;
       },
-      dispose() { api.stop(); disposed = true; Object.keys(built).forEach((id) => built[id].outer.remove()); },
+      dispose() { disposed = true; Object.keys(built).forEach((id) => built[id].outer.remove()); },
     };
-    function tickFreeze() {
-      const t = play.base + ((clock() - play.started) / 1000) * play.rate;
-      seek(Math.min(play.to, t)); play.paused = true;
-    }
     seek(0);
     return api;
   }

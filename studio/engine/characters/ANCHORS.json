@@ -1,0 +1,16 @@
+{
+  "note": "The character layer extends the page written by these UNCHANGED files (compose.py + base.html, then the camera engine) at fixed anchor points, and runs after the camera script. If any file changes, run_cast.py stops until the anchors are re-checked (python3 studio/tests/test_characters.py) and the hashes are updated here.",
+  "files": {
+    "studio/engine/base.html": "5dbe7e3b2045b9c53e1b12dfc99159bf318c3b0d140c6c10592794cf666586c2",
+    "studio/engine/compose.py": "a7ad47f040bf3248539df4966e8e41e1b60b4cdc4acfb638ea65c8bf44d595ab",
+    "studio/engine/camera/inject.py": "51ff8a1f5807a5daef22b3d0cf3f6ff54f29f03b367a32b1e7457f9cbd70eb0f",
+    "studio/engine/camera/camera.js": "19bb3fa30ee76974966b5d51b2e9f5cbfab28ff065670c63f5b9af65971a5fa9"
+  },
+  "anchors": [
+    "</head>",
+    "</body>",
+    "window.__timelines[\"main\"] = tl;",
+    "const DATA = ",
+    "<section id=\"stage\""
+  ]
+}

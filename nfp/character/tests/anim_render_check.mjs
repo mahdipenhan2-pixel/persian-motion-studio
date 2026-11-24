@@ -17,13 +17,16 @@
  * E7  seek(t) really applies those values to the DOM; exactly one mouth visible
  * E8  seek is stateless: same picture whatever the seek order, and in a fresh page
  * E9  lip sync in the DOM: at every mouth key the displayed mouth is the planned one
- * E10 play / pause / resume / stop with the real clock
+ * E10 play / pause / resume / stop with the real clock (runtime/character_player.js attached to that runtime)
  * E11 invalid KeyLists (overlap, broken continuity, unknown part, unsorted, missing spec field) are refused
- * E12 GSAP timeline == built-in seek (optional, local GSAP only)
+ * E12 GSAP timeline == built-in seek (optional, local GSAP only; the timeline is passed explicitly)
  * E13 9:16 (1080x1920) and 16:9 (1920x1080): the character stays inside the frame when on stage
  * E14 input security: empty / malformed spec values, Kim fallbacks, markup injection, forged fingerprint and digest,
        unsafe rig output (sanitiser), ids, duplicate placement, playback arguments, fps; SHA-256 / digest / fingerprint
        parity with Python
+ * E15 deterministic core vs player: the core file has no wall clock / frame scheduling / own timeline; without the
+       player a runtime has no playback methods; toTimeline without a timeline is a clear error; the player is attached
+       per instance only (no prototype or other runtime changed), refuses a second attach, and stops on dispose
  * F   the standalone demo page: the 10-step scenario, checked step by step on the real page
  */
 import { createRequire } from "node:module";
@@ -94,6 +97,7 @@ async function page(w, h, opts) {
   await p.addStyleTag({ content: read(path.join(RIG, "rig.css")) });
   for (const f of ["rig/00_core.js", "rig/10_chars.js"]) await p.addScriptTag({ content: read(path.join(RIG, f)) });
   await p.addScriptTag({ content: read(path.join(PKG, "runtime", "character_runtime.js")) });
+  if (opts.player !== false) await p.addScriptTag({ content: read(path.join(PKG, "runtime", "character_player.js")) });
   if (opts.gsap) await p.addScriptTag({ content: read(opts.gsap) });
   return { p, errors };
 }
@@ -213,6 +217,7 @@ check(lip.every(Boolean) && mouthKeys.length > 15, `lip sync in the DOM: all ${m
 const pl = await A.p.evaluate(async () => {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   let ended = null;
+  NFPCharacterPlayer.attach(RT);
   RT.play({ from: 2, to: 6 }); await wait(450);
   const t1 = RT.time(), playing1 = RT.playing();
   RT.pause(); const tp = RT.time(); await wait(400); const t2 = RT.time(), playing2 = RT.playing();
@@ -262,7 +267,7 @@ if (!GSAP || !fs.existsSync(GSAP)) {
     const k2 = JSON.parse(JSON.stringify(kl).split(kl.actors[0].dom_id).join(kl.actors[0].dom_id + "-g"));
     k2.digest = NFPCharacterRuntime.digestOf(k2);           // a second copy in the same page needs its own DOM id
     const rt2 = NFPCharacterRuntime.create({ svg: document.getElementById("s2"), keylist: k2 });
-    const tl = rt2.toTimeline(gsap);
+    const tl = rt2.toTimeline(gsap, gsap.timeline({ paused: true }));    // an explicit, real GSAP timeline
     let maxd = 0; const bad = [];
     frames.forEach((f) => {
       const t = f / ref.fps, st = ref.state(t); tl.seek(t, false);
@@ -375,6 +380,7 @@ const sec = await S.p.evaluate(async ({ kl, pyh, lock }) => {
   // duplicate placement, playback arguments
   svg.innerHTML = "";
   const a = R.create({ svg, keylist: kl });
+  NFPCharacterPlayer.attach(a);
   let dup; try { R.create({ svg: document.getElementById("s2"), keylist: kl }); dup = "ACCEPTED"; } catch (e) { dup = String(e).includes("already exists") ? "ok" : String(e); }
   out.duplicate = dup; out.duplicate_count = document.querySelectorAll("#" + kl.actors[0].dom_id).length;
   out.play = ["-1", "0", "NaN", "100", "from>to"].map((c) => { try {
@@ -393,6 +399,49 @@ check(allOk(sec.identity), `forged fingerprint, swapped identity colour, missing
 check(sec.limit_resigned_accepted === true, "documented limit confirmed: a fully re-signed KeyList (new colours + recomputed fingerprint + digest) is accepted - the lock is enforced by the Python adapter, not the runtime", "INFO");
 check(sec.duplicate === "ok" && sec.duplicate_count === 1 && sec.play.every((x) => x === "ok") && sec.after_dispose === 0,
   `same character placed twice is refused, invalid playback arguments refused (${sec.play.join(",")}), dispose leaves nothing`);
+
+// ------------------------------------------------------------------------------------------ E15 core vs player
+const CORE_SRC = read(path.join(PKG, "runtime", "character_runtime.js"));
+const CLOCK_TOKENS = ["performance.now", "Date.now", "requestAnimationFrame", "cancelAnimationFrame", "setTimeout", "gsap.timeline("];
+const inCore = CLOCK_TOKENS.filter((x) => CORE_SRC.includes(x));
+check(inCore.length === 0, `the deterministic core (character_runtime.js) contains no ${CLOCK_TOKENS.join(", ")}${inCore.length ? " FOUND: " + inCore : ""}`);
+const C0 = await page(1920, 1080, { player: false });
+const core = await C0.p.evaluate((kl) => {
+  const rt = NFPCharacterRuntime.create({ svg: document.getElementById("s"), keylist: kl });
+  const methods = ["play", "pause", "resume", "stop", "playing"].filter((m) => m in rt);
+  rt.seek(3.2); const t = rt.time(), st = rt.state(3.2);
+  const errs = [undefined, null, {}, { set() {}, fromTo() {} }].map((tl) => { try { rt.toTimeline(undefined, tl); return "accepted"; } catch (e) { return String(e); } });
+  const fake = { calls: 0, set() { this.calls++; }, fromTo() { this.calls++; }, duration() { return 18; } };
+  rt.toTimeline(undefined, fake);
+  return { player: typeof window.NFPCharacterPlayer, methods, t, hasState: !!st.zahra, errs, fakeCalls: fake.calls };
+}, GOLDEN);
+check(core.player === "undefined" && core.methods.length === 0 && core.t === 3.2 && core.hasState && C0.errors.length === 0,
+  `without the player a runtime has no playback methods (${core.methods.join(",") || "none"}) and still seeks / reports state`);
+check(core.errs.every((e) => e.includes("pass the GSAP timeline to extend")) && core.fakeCalls === GOLDEN.keys.length + GOLDEN.keys.filter((k) => k.part === "mouth" && k.from !== k.val).length,
+  `toTimeline without a timeline (undefined, null, {}, an object without duration) gives a clear error; with a timeline it schedules every key (${core.fakeCalls} calls)`);
+const PL = await page(1920, 1080);
+const iso = await PL.p.evaluate(async (kl) => {
+  const R = NFPCharacterRuntime, k2 = JSON.parse(JSON.stringify(kl));
+  k2.actors[0].dom_id = k2.actors[0].dom_id + "-b"; k2.digest = R.digestOf(k2);
+  const a = R.create({ svg: document.getElementById("s"), keylist: kl }), b = R.create({ svg: document.getElementById("s2"), keylist: k2 });
+  NFPCharacterPlayer.attach(a);
+  const out = { aHas: ["play", "pause", "resume", "stop", "playing"].every((m) => typeof a[m] === "function"),
+    bHas: ["play", "pause", "resume", "stop", "playing"].filter((m) => m in b), protoClean: !("play" in Object.prototype) && Object.getPrototypeOf(a) === Object.prototype,
+    freshHas: null, second: null };
+  try { NFPCharacterPlayer.attach(a); out.second = "accepted"; } catch (e) { out.second = String(e); }
+  try { NFPCharacterPlayer.attach({}); out.bad = "accepted"; } catch (e) { out.bad = String(e); }
+  a.play({ from: 1, to: 9 }); await new Promise((r) => setTimeout(r, 150));
+  const wasPlaying = a.playing(); a.dispose();
+  out.afterDispose = { playing: a.playing(), actors: document.getElementById(kl.actors[0].dom_id) ? 1 : 0, wasPlaying,
+    otherStillThere: !!document.getElementById(k2.actors[0].dom_id) };
+  b.dispose();
+  const c = R.create({ svg: document.getElementById("s"), keylist: kl }); out.freshHas = ["play", "stop"].filter((m) => m in c); c.dispose();
+  return out;
+}, GOLDEN);
+check(iso.aHas && iso.bHas.length === 0 && iso.freshHas.length === 0 && iso.protoClean,
+  "the player adds play/pause/resume/stop/playing only to the runtime it is attached to (another runtime and a new one get none; no prototype changed)");
+check(iso.second.includes("already attached") && iso.bad.includes("pass a runtime") && iso.afterDispose.wasPlaying && !iso.afterDispose.playing && iso.afterDispose.actors === 0 && iso.afterDispose.otherStillThere && PL.errors.length === 0,
+  "the player refuses a second attach and non-runtimes; dispose stops a running playback and removes the character (as before)");
 
 // ------------------------------------------------------------------------------------------ F demo page
 const D = await page(1140, 760, { file: "file://" + DEMO_HTML });

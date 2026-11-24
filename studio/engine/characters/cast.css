@@ -1,0 +1,6 @@
+  /* NFP Studio character layer (C4). Sits between the scenes and the captions. Every slot is an overflow:hidden box
+     taken from characters/zones.json, so no character pixel can reach the caption band (y 560-1360), the progress
+     bar or the handle line. Slot geometry is written by inject.py (#nfp-cast-slot-bottom rule below). */
+  #nfp-cast { position: absolute; inset: 0; pointer-events: none; }
+  #nfp-cast .nfp-cast-slot { position: absolute; overflow: hidden; }
+  #nfp-cast .nfp-cast-slot > svg { position: absolute; left: 0; top: 0; display: block; overflow: hidden; }

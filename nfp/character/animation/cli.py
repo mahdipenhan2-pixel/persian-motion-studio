@@ -29,7 +29,8 @@ RIG = PKG / "renderers" / "flat_cartoon_v2"
 def demo_html(kl, title="NFP C3 demo"):
     css = (RIG / "rig.css").read_text(encoding="utf-8")
     js = [(RIG / "rig" / "00_core.js").read_text(encoding="utf-8"), (RIG / "rig" / "10_chars.js").read_text(encoding="utf-8"),
-          (PKG / "runtime" / "character_runtime.js").read_text(encoding="utf-8")]
+          (PKG / "runtime" / "character_runtime.js").read_text(encoding="utf-8"),
+          (PKG / "runtime" / "character_player.js").read_text(encoding="utf-8")]     # live preview controls
     data = json.dumps(kl, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")
     w, h = kl["stage"]["width"], kl["stage"]["height"]
     scripts = "\n".join(f"<script>\n{s}\n</script>" for s in js)
@@ -57,6 +58,7 @@ button{{background:#3b4a63;color:#fff;border:0;border-radius:6px;padding:6px 12p
 (function () {{
   const kl = JSON.parse(document.getElementById("nfp-keylist").textContent);
   const rt = NFPCharacterRuntime.create({{ svg: document.getElementById("stage"), keylist: kl }});
+  NFPCharacterPlayer.attach(rt);                     // play / pause / resume / stop for this preview only
   window.NFP_RT = rt;
   const seekEl = document.getElementById("seek"), tEl = document.getElementById("t");
   const show = (t) => {{ tEl.textContent = t.toFixed(2) + " / " + rt.duration.toFixed(2) + " s"; seekEl.value = Math.round(t * rt.fps); }};

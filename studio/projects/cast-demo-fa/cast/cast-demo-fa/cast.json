@@ -1,0 +1,80 @@
+{
+  "schema": "nfp.cast/1",
+  "project": "cast-demo-fa",
+  "characters": [
+    {
+      "id": "maryam",
+      "display_name": "مریم",
+      "role": "مجری",
+      "style": "flat_cartoon_v2",
+      "identity": {
+        "skin": "#b8805c",
+        "hair_color": "#2a1a14",
+        "eye_color": "#3a2a1c"
+      },
+      "stages": {
+        "adult": {
+          "build": "woman",
+          "hair": "long_straight"
+        }
+      },
+      "wardrobe": {
+        "studio": {
+          "outfit": "blazer",
+          "top": "#2f4a5c",
+          "pants": "#1e2a36",
+          "shoe": "#1a1a1a",
+          "accent": "#c9a65a",
+          "sleeve": "long"
+        }
+      },
+      "defaults": {
+        "stage": "adult",
+        "wardrobe": "studio",
+        "expr": "neutral"
+      },
+      "provenance": {
+        "real_person": false,
+        "depiction": "fictional"
+      }
+    },
+    {
+      "id": "reza",
+      "display_name": "رضا",
+      "role": "مهمان",
+      "style": "flat_cartoon_v2",
+      "identity": {
+        "skin": "#a8744e",
+        "hair_color": "#3a3a3a",
+        "eye_color": "#2a2018",
+        "marks": [
+          "glasses"
+        ]
+      },
+      "stages": {
+        "adult": {
+          "build": "man",
+          "hair": "short_man"
+        }
+      },
+      "wardrobe": {
+        "casual": {
+          "outfit": "tee2007",
+          "top": "#5a6e3a",
+          "pants": "#2c2c34",
+          "shoe": "#22201e",
+          "sleeve": "short"
+        }
+      },
+      "defaults": {
+        "stage": "adult",
+        "wardrobe": "casual",
+        "expr": "neutral"
+      },
+      "provenance": {
+        "real_person": false,
+        "depiction": "fictional"
+      }
+    }
+  ]
+}

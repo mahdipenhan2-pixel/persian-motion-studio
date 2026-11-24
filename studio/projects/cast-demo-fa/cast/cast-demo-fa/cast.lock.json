@@ -1,0 +1,8 @@
+{
+  "schema": "nfp.cast.lock/1",
+  "project": "cast-demo-fa",
+  "characters": {
+    "maryam": "bca49e26caae85e57f74a6503486e286373f91edf6f9886cfd467d9e9bb2307f",
+    "reza": "3e3764e2ade9ead1da914ed416e329263a89d97b2ebf197526b05ee86e172c47"
+  }
+}

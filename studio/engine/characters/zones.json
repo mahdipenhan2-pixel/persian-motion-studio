@@ -1,0 +1,343 @@
+{
+ "schema": "nfp.studio.cast.zones/1",
+ "note": "Safe areas for characters in NFP Studio pages, measured from the real layout (base.html + compose.py + camera FRAMES). The bottom slot is the only character area in C4: every template fills the top zone (cta included, its heading is mandatory), the caption band y 560-1360 is measured by the locked Stage 2 verify, the progress bar is y 64-72 and the handle starts at y 1660. A slot is an overflow:hidden box, so no character pixel can ever leave it.",
+ "formats": {
+  "9:16": {
+   "page": {
+    "width": 1080,
+    "height": 1920
+   },
+   "caption_band": [
+    560,
+    1360
+   ],
+   "reserved": {
+    "progress_bar": [
+     64,
+     72
+    ],
+    "handle_from": 1660
+   },
+   "slots": {
+    "bottom": {
+     "x": 70,
+     "y": 1372,
+     "width": 940,
+     "height": 278
+    },
+    "top": null
+   },
+   "slot_notes": {
+    "top": "reserved: no template leaves the top zone free (title/compare/info/steps/cta all render their main content there)"
+   }
+  },
+  "16:9": null
+ },
+ "conflicts": {
+  "bottom": {
+   "templates_with_bottom_content": {
+    "cta": [
+     "note",
+     "handle"
+    ]
+   },
+   "camera_media_frames": [
+    "bottom"
+   ],
+   "hidden_in_character_scenes": [
+    ".deco"
+   ]
+  }
+ },
+ "framing": {
+  "default": "bust",
+  "min_face_px": 56,
+  "margin_px": 6,
+  "bust_max_scale": 1.0,
+  "full_max_scale": 1.0
+ },
+ "rig_metrics": {
+  "note": "rig units (feet at y=0, up is negative). builds: from K.chars.BUILDS; extent: getBBox of the root part at rest for each build/hair (shadow excluded); face height = (176 + ch) * headS. Checked against the real rig by studio/tests/characters_page_check.mjs. gestures: highest point of a waving arm (presets.wave angles, either side) and lateral reach of a pointing arm (presets.point), measured the same way.",
+  "builds": {
+   "baby": {
+    "legH": 30,
+    "torsoH": 54,
+    "neck": 8,
+    "headS": 0.66,
+    "ch": -6,
+    "armU": 28,
+    "armF": 24,
+    "shX": 40
+   },
+   "child": {
+    "legH": 92,
+    "torsoH": 96,
+    "neck": 12,
+    "headS": 0.94,
+    "ch": -4,
+    "armU": 52,
+    "armF": 46,
+    "shX": 52
+   },
+   "teen": {
+    "legH": 150,
+    "torsoH": 122,
+    "neck": 15,
+    "headS": 0.78,
+    "ch": 0,
+    "armU": 68,
+    "armF": 62,
+    "shX": 54
+   },
+   "woman": {
+    "legH": 196,
+    "torsoH": 138,
+    "neck": 19,
+    "headS": 0.6,
+    "ch": 8,
+    "armU": 80,
+    "armF": 74,
+    "shX": 56
+   },
+   "man": {
+    "legH": 170,
+    "torsoH": 150,
+    "neck": 22,
+    "headS": 0.66,
+    "ch": -4,
+    "armU": 90,
+    "armF": 82,
+    "shX": 68
+   }
+  },
+  "extent": {
+   "baby/none": {
+    "top": -201,
+    "left": -71,
+    "right": 71
+   },
+   "baby/baby_tuft": {
+    "top": -220,
+    "left": -71,
+    "right": 71
+   },
+   "baby/child_pony": {
+    "top": -216,
+    "left": -71,
+    "right": 122
+   },
+   "baby/teen_long": {
+    "top": -213,
+    "left": -71,
+    "right": 71
+   },
+   "baby/long_straight": {
+    "top": -214,
+    "left": -71,
+    "right": 71
+   },
+   "baby/big80s": {
+    "top": -244,
+    "left": -92,
+    "right": 94
+   },
+   "baby/short_man": {
+    "top": -209,
+    "left": -71,
+    "right": 71
+   },
+   "baby/slick": {
+    "top": -210,
+    "left": -71,
+    "right": 71
+   },
+   "child/none": {
+    "top": -358,
+    "left": -97,
+    "right": 97
+   },
+   "child/baby_tuft": {
+    "top": -385,
+    "left": -97,
+    "right": 97
+   },
+   "child/child_pony": {
+    "top": -380,
+    "left": -97,
+    "right": 173
+   },
+   "child/teen_long": {
+    "top": -375,
+    "left": -97,
+    "right": 97
+   },
+   "child/long_straight": {
+    "top": -377,
+    "left": -97,
+    "right": 97
+   },
+   "child/big80s": {
+    "top": -420,
+    "left": -130,
+    "right": 134
+   },
+   "child/short_man": {
+    "top": -369,
+    "left": -97,
+    "right": 97
+   },
+   "child/slick": {
+    "top": -372,
+    "left": -97,
+    "right": 97
+   },
+   "teen/none": {
+    "top": -417,
+    "left": -76,
+    "right": 76
+   },
+   "teen/baby_tuft": {
+    "top": -439,
+    "left": -76,
+    "right": 76
+   },
+   "teen/child_pony": {
+    "top": -435,
+    "left": -76,
+    "right": 144
+   },
+   "teen/teen_long": {
+    "top": -431,
+    "left": -76,
+    "right": 76
+   },
+   "teen/long_straight": {
+    "top": -432,
+    "left": -76,
+    "right": 76
+   },
+   "teen/big80s": {
+    "top": -468,
+    "left": -108,
+    "right": 111
+   },
+   "teen/short_man": {
+    "top": -426,
+    "left": -76,
+    "right": 76
+   },
+   "teen/slick": {
+    "top": -428,
+    "left": -76,
+    "right": 76
+   },
+   "woman/none": {
+    "top": -451,
+    "left": -71,
+    "right": 73
+   },
+   "woman/baby_tuft": {
+    "top": -469,
+    "left": -71,
+    "right": 73
+   },
+   "woman/child_pony": {
+    "top": -465,
+    "left": -71,
+    "right": 111
+   },
+   "woman/teen_long": {
+    "top": -462,
+    "left": -71,
+    "right": 73
+   },
+   "woman/long_straight": {
+    "top": -463,
+    "left": -71,
+    "right": 73
+   },
+   "woman/big80s": {
+    "top": -491,
+    "left": -83,
+    "right": 86
+   },
+   "woman/short_man": {
+    "top": -458,
+    "left": -71,
+    "right": 73
+   },
+   "woman/slick": {
+    "top": -460,
+    "left": -71,
+    "right": 73
+   },
+   "man/none": {
+    "top": -451,
+    "left": -86,
+    "right": 86
+   },
+   "man/baby_tuft": {
+    "top": -470,
+    "left": -86,
+    "right": 86
+   },
+   "man/child_pony": {
+    "top": -466,
+    "left": -86,
+    "right": 122
+   },
+   "man/teen_long": {
+    "top": -463,
+    "left": -86,
+    "right": 86
+   },
+   "man/long_straight": {
+    "top": -464,
+    "left": -86,
+    "right": 86
+   },
+   "man/big80s": {
+    "top": -494,
+    "left": -92,
+    "right": 94
+   },
+   "man/short_man": {
+    "top": -459,
+    "left": -86,
+    "right": 86
+   },
+   "man/slick": {
+    "top": -460,
+    "left": -86,
+    "right": 86
+   }
+  },
+  "gestures": {
+   "baby": {
+    "wave_top": -133,
+    "point_left": -113,
+    "point_right": 113
+   },
+   "child": {
+    "wave_top": -289,
+    "point_left": -178,
+    "point_right": 178
+   },
+   "teen": {
+    "wave_top": -402,
+    "point_left": -212,
+    "point_right": 212
+   },
+   "woman": {
+    "wave_top": -487,
+    "point_left": -237,
+    "point_right": 237
+   },
+   "man": {
+    "wave_top": -495,
+    "point_left": -271,
+    "point_right": 271
+   }
+  }
+ }
+}
