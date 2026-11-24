@@ -76,7 +76,8 @@
     "projects are folders anywhere (no project store)",
     "unknown top-level / sentence fields are refused",
     "optional per-sentence 'speaker', 'cast' and 'characters' (data, planned by C3)",
-    "V4: optional sentence pause_before_ms / pause_after_ms (Voice Engine projects only)"
+    "V4: optional sentence pause_before_ms / pause_after_ms (Voice Engine projects only)",
+    "S1: optional top-level 'subtitles' (settings checked by engine/subtitles.py, imported only when present)"
    ]
   },
   {
@@ -87,7 +88,9 @@
     "verify always expects 1920x1080 (no 720p path)",
     "compose adds characters through cast_plan.py",
     "fonts directory from NFP_FONTS or assets/fonts",
-    "V4: `voice` command (Voice Engine, only for projects with voice.engine); `tts` refused for such projects"
+    "V4: `voice` command (Voice Engine, only for projects with voice.engine); `tts` refused for such projects",
+    "S1: `subs` command (subtitle cues + QC -> subtitles.json; data only, the video is unchanged)",
+    "S2: `subs` also writes SRT / VTT / ASS from subtitles.json (engine/subtitle_export.py) into <build>/subtitles/"
    ]
   },
   {
@@ -98,7 +101,8 @@
     "fonts and text direction per language (en: Inter/Caveat LTR, fa: Vazirmatn+Inter RTL; SVG art text follows the language through CSS)",
     "words.json (nfp.film.words/1): exact word timing as its own data file; story.srt is a side output",
     "optional character fragment appended before </body>",
-    "no local GSAP shim switch (tests swap the CDN tag in a render copy)"
+    "no local GSAP shim switch (tests swap the CDN tag in a render copy)",
+    "S3: projects with a 'subtitles' block draw the cues of subtitles.json (engine/subtitle_layer.py swaps the subtitle CSS / script of base.html between fixed markers); without the block the page is byte-identical"
    ]
   },
   {

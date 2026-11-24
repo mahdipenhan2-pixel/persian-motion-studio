@@ -16,7 +16,7 @@ LANGS = {"en": {"dir": "ltr"}, "fa": {"dir": "rtl"}}
 MAX_SENT = 40              # core limit per run
 MAX_CHARS = 160            # core limit per sentence
 MAX_CHAPTER_SECONDS = 165  # core limit is 180 s; keep a margin for gaps/tail
-TOP_KEYS = {"meta", "voice", "audio", "shots", "chapters", "sources", "cast", "characters"}
+TOP_KEYS = {"meta", "voice", "audio", "shots", "chapters", "sources", "cast", "characters", "subtitles"}
 SENT_KEYS = {"id", "text", "speak", "speaker", "pause_before_ms", "pause_after_ms"}
 
 
@@ -78,6 +78,12 @@ def validate(p):
                     raise ProjectError(f"sentence {s['id']}: {k} must be an integer 0..5000")
             if ("pause_before_ms" in s or "pause_after_ms" in s) and "engine" not in (p.get("voice") or {}):
                 raise ProjectError(f"sentence {s['id']}: pauses need the Voice Engine (voice.engine); the core's tts has no pauses")
+    if "subtitles" in p:                # S1: checked by the subtitle module, imported only for projects that have the block
+        import subtitles
+        try:
+            subtitles.settings(p)
+        except subtitles.SubtitleError as e:
+            raise ProjectError(str(e))
     p.setdefault("voice", {})
     return p
 

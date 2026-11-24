@@ -3,7 +3,10 @@
 
   python3 nfp/film/engine/run.py <command> --project <dir or project.json> [--chapter <id>] [--build <dir>]
 
-Commands: plan, check, tts, voice, fit, prepare, whisper, align, compose, verify
+Commands: plan, check, tts, voice, fit, prepare, whisper, align, subs, compose, verify
+  subs   (S1) subtitle cues + readability QC from timing.json -> <build>/subtitles.json (data only: what is drawn on
+         the video, words.json, timing.json and lip sync are not changed); (S2) then SRT / VTT / ASS made from that
+         file -> <build>/subtitles/subtitles.<lang>.{srt,vtt,ass} (the old <build>/story.srt is a separate file)
   voice  (V4, only for projects with voice.engine) makes the sentence audio with the Voice Engine (nfp/voice) instead of
          the core's single-voice tts; such projects refuse `tts`. Legacy projects never load the Voice Engine.
 The locked Stage 2 core does audio, Whisper and alignment (imported unchanged); compose / verify here are 16:9.
@@ -83,6 +86,30 @@ def cmd_voice(proj, ch, build):
           + (f", QC {m['qc']['summary']}" if "qc" in m else "") + f" -> {build / 'audio'}")
 
 
+def cmd_subs(proj, ch, build):
+    import subtitles as SB
+    if not (build / "timing.json").exists():
+        sys.exit(f"ERROR: {build / 'timing.json'} is missing - run `align` first")
+    try:
+        doc = SB.build(proj, ch, core.load_json(build / "timing.json"))
+    except SB.SubtitleError as e:
+        sys.exit(f"ERROR: {e}")
+    path = SB.write(build, doc)
+    q = doc["qc"]
+    print(f"Subtitles ({doc['mode']}, {doc['lang']}): {q['cues']} cue(s), QC {q['status']} - {q['errors']} error(s), "
+          f"{q['warnings']} warning(s), {q['infos']} info -> {path}")
+    import subtitle_export as SX
+    if q["status"] == "FAIL":
+        SX.remove(build / "subtitles")          # no stale SRT / VTT / ASS next to a subtitles.json that failed QC
+        sys.exit("ERROR: subtitle QC failed (no SRT / VTT / ASS written): " + "; ".join(
+            f"cue {x.get('cue', '-')}: {x['message']}" for x in q["issues"] if x["level"] == "error"))
+    try:
+        files = SX.export(path, build / "subtitles")
+    except SX.ExportError as e:
+        sys.exit(f"ERROR: {e}")
+    print("Subtitle files: " + ", ".join(str(f) for f in files.values()))
+
+
 def cmd_whisper(proj, ch, build):
     import stage2_whisper as w
     w.BUILD, w.CONFIG = build, build / "config.json"
@@ -113,7 +140,7 @@ def cmd_verify(proj, ch, build):
 
 COMMANDS = {"plan": cmd_plan, "check": lambda p, c, b: core.cmd_check(None), "tts": cmd_tts, "voice": cmd_voice,
             "fit": cmd_fit, "prepare": lambda p, c, b: core.cmd_prepare(None), "whisper": cmd_whisper,
-            "align": lambda p, c, b: core.cmd_align(None), "compose": cmd_compose, "verify": cmd_verify}
+            "align": lambda p, c, b: core.cmd_align(None), "subs": cmd_subs, "compose": cmd_compose, "verify": cmd_verify}
 
 
 def main():

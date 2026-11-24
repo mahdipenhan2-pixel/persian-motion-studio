@@ -80,6 +80,10 @@ def compose(project, chapter, timing, build, fonts_dir, narration_wav, cast_frag
     if timing["summary"]["status"] == "FAIL":
         raise SystemExit("timing status is FAIL; refusing to build a video from unreliable timestamps.")
     lang = project["meta"]["lang"]
+    sub_doc = None
+    if "subtitles" in project:          # S3: drawn from <build>/subtitles.json; without the block nothing below changes
+        import subtitle_layer as SL
+        sub_doc = SL.load_checked(project, chapter, timing, build)
     timing = estimate_untimed(timing)   # words Whisper could not match (numbers) get estimated slots, flagged est=True
     build = Path(build)
     out = build / "story"
@@ -122,6 +126,9 @@ def compose(project, chapter, timing, build, fonts_dir, narration_wav, cast_frag
     shots = (Path(project["_dir"]) / project["shots"]).read_text(encoding="utf-8")
     data = {"duration": target, "fade": 0.18, "sentences": sents}
     page = (ENGINE / "base.html").read_text(encoding="utf-8")
+    if sub_doc is not None:
+        page = SL.patch_template(page, sub_doc)
+        spans_html = [SL.cues_html(sub_doc)]
     F = FONTS[lang]
     rep = {"__LANG__": lang, "__DIR__": "rtl" if lang == "fa" else "ltr", "__BODY_FONT__": F["body"], "__LANG_CSS__": F["css"],
            "__FONT_FACES__": font_faces(out / "assets" / "fonts", lang), "__DURATION__": f"{target:.3f}", "__GSAP__": CDN_GSAP,
