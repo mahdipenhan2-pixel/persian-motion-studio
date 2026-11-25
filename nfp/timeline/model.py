@@ -8,7 +8,7 @@
               "asset": "harbour-1952", "in": 0, "ref": "...", "note": "..."}]}
 
   track kinds  narration, visual, overlay, subtitles, characters, audio
-  clip kinds   visual / overlay: image, video, map, motion, animation, svg-shot;  narration: narration;
+  clip kinds   visual / overlay: image, video, map, motion, animation, svg-shot, graphic;  narration: narration;
                subtitles: subtitles;  characters: character;  audio: audio
   overlap      default: not allowed on narration / visual / subtitles, allowed on overlay / characters / audio
   coverage     only when a track sets "coverage": true is every frame 0..duration required to be covered; otherwise
@@ -31,14 +31,14 @@ from . import videofile as VF
 SCHEMA = "nfp.timeline/1"
 FPS = AN.FPS
 TRACK_KINDS = ("narration", "visual", "overlay", "subtitles", "characters", "audio")
-PICTURE_KINDS = ("image", "video", "map", "motion", "animation", "svg-shot")
+PICTURE_KINDS = ("image", "video", "map", "motion", "animation", "svg-shot", "graphic")
 CLIP_KINDS = {"visual": PICTURE_KINDS, "overlay": PICTURE_KINDS, "narration": ("narration",), "subtitles": ("subtitles",),
               "characters": ("character",), "audio": ("audio",)}
 OVERLAP_DEFAULT = {"narration": False, "visual": False, "subtitles": False, "overlay": True, "characters": True, "audio": True}
 ASSET_KINDS = {"image": ("image",), "video": ("video",), "map": ("map", "image"), "motion": ("motion", "video"),
                "animation": ("animation", "video"), "audio": ("audio",)}
 ASSET_REQUIRED = ("image", "video", "audio")
-NO_ASSET = ("svg-shot", "narration", "subtitles", "character")
+NO_ASSET = ("svg-shot", "narration", "subtitles", "character", "graphic")
 HAS_IN = ("video", "audio")
 CLIP_FIELDS = {"id", "track", "kind", "start", "end", "anchors", "asset", "in", "out", "ref", "note", "camera"}
 TRACK_FIELDS = {"id", "kind", "coverage", "overlap"}
@@ -213,8 +213,8 @@ def validate(doc, assets_doc=None, assets_base=None, context=None, check_files=T
                         clip=cid)
         elif kind in ASSET_REQUIRED:
             add("error", "asset_required", f"a {kind} clip needs an asset", clip=cid)
-        if kind in ("svg-shot", "character") and not (isinstance(c.get("ref"), str) and c["ref"]):
-            add("error", "ref_required", f"a {kind} clip needs ref ({'the shot id' if kind == 'svg-shot' else 'the actor key'})", clip=cid)
+        if kind in ("svg-shot", "character", "graphic") and not (isinstance(c.get("ref"), str) and c["ref"]):
+            add("error", "ref_required", f"a {kind} clip needs ref ({ {'svg-shot': 'the shot id', 'character': 'the actor key', 'graphic': 'its graphic document, nfp.graphics/1'}[kind] })", clip=cid)
         # in-point
         if "in" in c:
             if kind not in HAS_IN:

@@ -1,5 +1,5 @@
-"""NFP Film - Timeline bridge (T2 + T4 + Map Motion M2g): still images (Ken Burns), video clips and map clips of
-nfp/timeline on the Film page.
+"""NFP Film - Timeline bridge (T2 + T4 + Map Motion M2g + Graphics G5): still images (Ken Burns), video clips, map clips
+and graphic clips of nfp/timeline on the Film page.
 The ONLY Film file that imports nfp/timeline, and only for projects that ask for it:
 
   project.json  "timeline": {"file": "timeline.json", "assets": "assets.json"}     (both inside the project folder)
@@ -104,9 +104,12 @@ def build(project, words_doc, story_dir):
             print(f"timeline warning: {x.get('clip') or x.get('asset') or '-'}: {x['message']}", file=sys.stderr)
     kinds = {t["id"]: t["kind"] for t in doc["tracks"]}
     assets = {a["id"]: a for a in (adoc or {}).get("assets", [])}
-    todo, videos, maps = [], [], []
+    todo, videos, maps, gfx_full, gfx_over = [], [], [], [], []
     for c in doc["clips"]:
         tk = kinds[c["track"]]
+        if tk in ("visual", "overlay") and c["kind"] == "graphic":      # G5: nfp/graphics; the track gives the display
+            (gfx_full if tk == "visual" else gfx_over).append(c)
+            continue
         if tk in ("visual", "overlay") and c["kind"] == "map":          # M2g: nfp/mapmotion, full frame only
             if tk != "visual":
                 raise SystemExit(f"ERROR (timeline): clip {c['id']}: map clips on an overlay track are not drawn yet (full-frame only)")
@@ -128,7 +131,12 @@ def build(project, words_doc, story_dir):
             if m["start"] < o["end"] and o["start"] < m["end"]:
                 raise SystemExit(f"ERROR (timeline): {o['kind']} clip {o['id']} and map clip {m['id']} overlap (frames "
                                  f"{max(m['start'], o['start'])}..{min(m['end'], o['end']) - 1}): one full-frame picture at a time")
-    if not todo and not videos and not maps:
+    for k, g in enumerate(gfx_full):                                    # a full-frame graphic is a picture too
+        for o in videos + todo + maps + gfx_full[k + 1:]:
+            if g["start"] < o["end"] and o["start"] < g["end"]:
+                raise SystemExit(f"ERROR (timeline): {o['kind']} clip {o['id']} and full-frame graphic clip {g['id']} overlap (frames "
+                                 f"{max(g['start'], o['start'])}..{min(g['end'], o['end']) - 1}): one full-frame picture at a time")
+    if not todo and not videos and not maps and not gfx_full and not gfx_over:
         return "", ""
     js, html = "", ""
     if todo or videos:
@@ -140,7 +148,52 @@ def build(project, words_doc, story_dir):
             js += js2
     if maps:
         js += _maps(maps, project, words_doc, story_dir, TL, doc.get("mode", "draft"))
+    if gfx_full or gfx_over:
+        js += _graphics(gfx_full, gfx_over, project, story_dir, doc.get("mode", "draft"))
     return js, html
+
+
+def _graphics(full, over, project, story_dir, mode="draft"):
+    """G5: graphic clips (nfp/graphics). Each clip's ref is a graphic document (nfp.graphics/1) inside the project; its
+    track gives the display (visual: full frame - a Director shot; overlay: the graphics layer between #world and #post).
+    Text is measured HERE (graphics.tools.measure: the local Chromium with the film's own font copies in
+    story/assets/fonts; nothing is downloaded), as for map labels. Errors stop compose; warnings are printed; the QC of
+    every graphic clip is written to <build>/graphics_qc.json."""
+    from graphics import filmclip as GF                    # nfp/graphics (imported only here, only for graphic clips)
+    from graphics.tools import measure as GM
+    from mapmotion.tools.measure import FACES
+    fonts = Path(story_dir) / "assets" / "fonts"
+    done, report = {}, []
+    for c in sorted(full + over, key=lambda c: (c["start"], c["id"])):
+        tk = "visual" if c in full else "overlay"
+        if not (isinstance(c.get("ref"), str) and c["ref"]):
+            raise SystemExit(f"ERROR (graphic): clip {c['id']}: a graphic clip needs ref (its graphic document, nfp.graphics/1)")
+        if c.get("asset") is not None:
+            raise SystemExit(f"ERROR (graphic): clip {c['id']}: a graphic clip takes its data from ref, not from an asset")
+        try:
+            spec, warns = GF.prepare(GF.load(c["ref"], project["_dir"]), c, tk, mode)
+            missing = [f for _, _, f in FACES if not (fonts / f).is_file()]
+            if missing:
+                raise ValueError(f"graphics need the film's local fonts: {', '.join(missing)} not in assets/fonts")
+            metrics = GM.measure_graphic(spec, fonts)
+            lay, warns2 = GF.finish(spec, metrics)
+        except (ValueError, RuntimeError, FileNotFoundError) as e:
+            raise SystemExit(f"ERROR (graphic): clip {c['id']}: {e}")
+        for x in warns + warns2:
+            print(f"graphic warning: {c['id']}: {x.get('element') or '-'}: {x['code']}: {x['message']}", file=sys.stderr)
+        done[c["id"]] = (c, spec, lay)
+        report.append({"clip": c["id"], "ref": c["ref"], "frames": [c["start"], c["end"]], "display": spec["display"],
+                       "kind": spec["kind"], "mode": spec["mode"], "draft_badge": spec["draft_badge"], "rect": lay["rect"],
+                       "issues": warns + warns2, "text_measured_with": metrics.get("browser")})
+    overlays = [done[c["id"]] for c in sorted(over, key=lambda c: (c["start"], c["id"]))]
+    for a, b, f0, f1 in GF.clashes(overlays):
+        raise SystemExit(f"ERROR (graphic): overlay clips {a} and {b} cover each other on frames {f0}..{f1}: overlays shown together must not overlap")
+    css = GF.font_css_rel(FACES)
+    js = "".join(GF.fullframe_js(*done[c["id"]], font_css=css) for c in sorted(full, key=lambda c: (c["start"], c["id"])))
+    js += GF.overlay_js(overlays, font_css=css)
+    (Path(story_dir).parent / "graphics_qc.json").write_text(
+        json.dumps({"schema": "nfp.graphics.filmqc/1", "clips": report}, ensure_ascii=False, indent=1), encoding="utf-8")
+    return js
 
 
 def _maps(maps, project, words_doc, story_dir, TL, mode="draft"):
