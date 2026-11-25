@@ -124,6 +124,11 @@ def compose(project, chapter, timing, build, fonts_dir, narration_wav, cast_frag
     if kit_extra:                       # character bridge (+ its data): must exist before the shots run
         kit += "\n" + kit_extra
     shots = (Path(project["_dir"]) / project["shots"]).read_text(encoding="utf-8")
+    tl_html = ""
+    if "timeline" in project:           # T2 / T4: still images and videos of nfp/timeline; without the block nothing changes
+        import timeline_bridge as TB
+        tl_js, tl_html = TB.build(project, words_data(project, timing, target), out)
+        shots += tl_js
     data = {"duration": target, "fade": 0.18, "sentences": sents}
     page = (ENGINE / "base.html").read_text(encoding="utf-8")
     if sub_doc is not None:
@@ -140,6 +145,10 @@ def compose(project, chapter, timing, build, fonts_dir, narration_wav, cast_frag
         page = page.replace(k, rep[k])
     for k in ("__KIT__", "__SHOTS__", "__TIMELINE_JSON__"):   # code/data last: they may contain other placeholders' text
         page = page.replace(k, rep[k])
+    if tl_html:                         # T4: video clips straight under the page root, under the SVG layer
+        if page.count('  <section id="art"') != 1:
+            raise SystemExit("page must contain exactly one art section")
+        page = page.replace('  <section id="art"', tl_html + '  <section id="art"', 1)
     if cast_fragment:
         if page.count("</body>") != 1:
             raise SystemExit("page must contain exactly one </body>")

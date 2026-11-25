@@ -16,7 +16,7 @@ LANGS = {"en": {"dir": "ltr"}, "fa": {"dir": "rtl"}}
 MAX_SENT = 40              # core limit per run
 MAX_CHARS = 160            # core limit per sentence
 MAX_CHAPTER_SECONDS = 165  # core limit is 180 s; keep a margin for gaps/tail
-TOP_KEYS = {"meta", "voice", "audio", "shots", "chapters", "sources", "cast", "characters", "subtitles"}
+TOP_KEYS = {"meta", "voice", "audio", "shots", "chapters", "sources", "cast", "characters", "subtitles", "timeline"}
 SENT_KEYS = {"id", "text", "speak", "speaker", "pause_before_ms", "pause_after_ms"}
 
 
@@ -84,6 +84,9 @@ def validate(p):
             subtitles.settings(p)
         except subtitles.SubtitleError as e:
             raise ProjectError(str(e))
+    tl = p.get("timeline")              # T2: checked fully by engine/timeline_bridge.py (nfp/timeline) at compose
+    if tl is not None and (not isinstance(tl, dict) or set(tl) - {"file", "assets"} or not isinstance(tl.get("file"), str)):
+        raise ProjectError('timeline must be {"file": "timeline.json", "assets": "assets.json"}')
     p.setdefault("voice", {})
     return p
 

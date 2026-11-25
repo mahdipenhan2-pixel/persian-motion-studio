@@ -77,7 +77,8 @@
     "unknown top-level / sentence fields are refused",
     "optional per-sentence 'speaker', 'cast' and 'characters' (data, planned by C3)",
     "V4: optional sentence pause_before_ms / pause_after_ms (Voice Engine projects only)",
-    "S1: optional top-level 'subtitles' (settings checked by engine/subtitles.py, imported only when present)"
+    "S1: optional top-level 'subtitles' (settings checked by engine/subtitles.py, imported only when present)",
+    "T2: optional top-level 'timeline' {file, assets} (nfp/timeline, checked at compose by engine/timeline_bridge.py)"
    ]
   },
   {
@@ -102,7 +103,9 @@
     "words.json (nfp.film.words/1): exact word timing as its own data file; story.srt is a side output",
     "optional character fragment appended before </body>",
     "no local GSAP shim switch (tests swap the CDN tag in a render copy)",
-    "S3: projects with a 'subtitles' block draw the cues of subtitles.json (engine/subtitle_layer.py swaps the subtitle CSS / script of base.html between fixed markers); without the block the page is byte-identical"
+    "S3: projects with a 'subtitles' block draw the cues of subtitles.json (engine/subtitle_layer.py swaps the subtitle CSS / script of base.html between fixed markers); without the block the page is byte-identical",
+    "T2: projects with a 'timeline' block get their still-image clips (Ken Burns) appended to the shots by engine/timeline_bridge.py through the public Director API; without the block the page is byte-identical",
+    "T4: timeline video clips (H.264 CFR 25/30 fps, muted, checked with ffprobe) as <video> under the page root before the art section; the bridge hides the Director world while one shows so the post layers lie over it; without video clips nothing is inserted"
    ]
   },
   {
