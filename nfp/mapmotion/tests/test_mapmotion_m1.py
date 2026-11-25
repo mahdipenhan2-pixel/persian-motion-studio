@@ -305,7 +305,7 @@ def main():
     check(not re.search(r"20\d\d-\d\d-\d\d", j1) and "today" not in json.loads(j1), "the plan holds no date / clock value")
     src = "".join(p.read_text(encoding="utf-8") for p in (NFP / "mapmotion").glob("*.py"))
     mods = sorted(set(re.findall(r"^\s*(?:from|import) ([\w.]+)", src, re.M)))
-    check(set(mods) <= {"datetime", "math", "re", "location", "timeline", ".", ".model", ".projection", ".route"},
+    check(set(mods) <= {"datetime", "heapq", "json", "math", "pathlib", "re", "unicodedata", "xml.sax.saxutils", "location", "timeline", ".", ".adaptive", ".animate", ".camera", ".clip", ".geodata", ".geometry", ".icons", ".labels", ".model", ".projection", ".render", ".route", ".scene", ".seam", ".svg"},
           f"nfp/mapmotion imports only the standard library, Location and Timeline (read-only) {mods}")
     check(not re.search(r"urllib|requests|socket|subprocess|http\.client|open\(|write_text", src),
           "no network, process or file-writing code in nfp/mapmotion")

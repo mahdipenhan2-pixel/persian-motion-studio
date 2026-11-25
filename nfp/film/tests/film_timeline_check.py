@@ -273,9 +273,9 @@ def main():
         d = make_project(work, f"err-{name}", clips, assets_edit=edit)
         msg = try_compose(d, work / "builds" / f"err-{name}", a.fonts)
         check(want in msg and "ERROR (timeline)" in msg, f"{name}: {msg[:130]}")
-    d = make_project(work, "err-video", [], extra_clips=[{"id": "v", "track": "pictures", "kind": "map", "start": 0, "end": 30}])
+    d = make_project(work, "err-video", [], extra_clips=[{"id": "v", "track": "pictures", "kind": "motion", "start": 0, "end": 30}])
     msg = try_compose(d, work / "builds/err-video", a.fonts)
-    check("not drawn yet" in msg, f"a clip kind of a later stage (map / video): {msg[:110]}")
+    check("not drawn yet" in msg, f"a clip kind of a later stage (motion; map clips are drawn since Map Motion M2g): {msg[:110]}")
     d = make_project(work, "draft-ok", CLIPS[:1], mode="draft", assets_edit=lambda reg, d: reg["assets"][0].update(license_verified=False))
     check(try_compose(d, work / "builds/draft-ok", a.fonts) == "composed", "a draft timeline may preview a draft asset (reported as a warning)")
 

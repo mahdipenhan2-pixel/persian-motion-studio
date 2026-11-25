@@ -37,6 +37,7 @@ import timeline as TL                     # nfp/timeline public anchor contract 
 
 from . import projection as PJ
 from . import route as RT
+from . import seam as SM
 
 SCHEMA = "nfp.mapmotion/1"
 PLAN_SCHEMA = "nfp.mapmotion.plan/1"
@@ -368,7 +369,8 @@ def build(doc, locations_doc, context=None, today=None):
             n = len(g["points"])
             seg = xy[k0:k0 + n]
             mx, _ = proj.project(*pts[i + 1])               # where the stop's own marker is drawn
-            if abs(seg[-1][0] - mx) > 0.5:
+            alt = SM.marker_xs(proj, *pts[i + 1])           # a stop on the seam is drawn on both edges (M2a)
+            if min(abs(seg[-1][0] - x) for x in alt) > 0.5:
                 turns = (seg[-1][0] - mx) / (360 * proj.kx)
                 add("warning", "route_wraps", f"leg {stops[i]!r} -> {stops[i + 1]!r} reaches x {seg[-1][0]:.1f} but the marker "
                                               f"of {stops[i + 1]!r} is at x {mx:.1f}: the route end and the stop marker differ "

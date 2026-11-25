@@ -1,4 +1,5 @@
-"""NFP Film - Timeline bridge (T2 + T4): still images (Ken Burns) and video clips of nfp/timeline on the Film page.
+"""NFP Film - Timeline bridge (T2 + T4 + Map Motion M2g): still images (Ken Burns), video clips and map clips of
+nfp/timeline on the Film page.
 The ONLY Film file that imports nfp/timeline, and only for projects that ask for it:
 
   project.json  "timeline": {"file": "timeline.json", "assets": "assets.json"}     (both inside the project folder)
@@ -12,7 +13,8 @@ Before anything is drawn the timeline is checked by nfp/timeline (schema, frames
 timing, assets: file + sha256 + PNG / JPEG size, licence; camera: cover fit, no empty space, enlargement). Errors stop
 compose; a draft (unverified) asset is allowed only in a draft timeline and is reported. The image files are copied
 into story/assets/timeline/. Clip kinds that later stages draw (video, map, motion, animation, overlay images) are
-refused with a clear message; svg-shot / narration / subtitles / character clips are data about the other engines and
+refused with a clear message (map clips are drawn since M2g: see _maps); svg-shot / narration / subtitles / character
+clips are data about the other engines and
 draw nothing here. A timeline with no image clip adds nothing: the page is the page without the block.
 
 T4 video clips (visual track, full frame): only what T3 proved frame-exact in a real HyperFrames 0.9.83 render is
@@ -33,7 +35,7 @@ from pathlib import Path
 ENGINE = Path(__file__).resolve().parent
 NFP = ENGINE.parent.parent
 KEYS = {"file", "assets"}
-LATER = ("map", "motion", "animation")
+LATER = ("motion", "animation")
 
 
 def _tl():
@@ -102,9 +104,14 @@ def build(project, words_doc, story_dir):
             print(f"timeline warning: {x.get('clip') or x.get('asset') or '-'}: {x['message']}", file=sys.stderr)
     kinds = {t["id"]: t["kind"] for t in doc["tracks"]}
     assets = {a["id"]: a for a in (adoc or {}).get("assets", [])}
-    todo, videos = [], []
+    todo, videos, maps = [], [], []
     for c in doc["clips"]:
         tk = kinds[c["track"]]
+        if tk in ("visual", "overlay") and c["kind"] == "map":          # M2g: nfp/mapmotion, full frame only
+            if tk != "visual":
+                raise SystemExit(f"ERROR (timeline): clip {c['id']}: map clips on an overlay track are not drawn yet (full-frame only)")
+            maps.append(c)
+            continue
         if tk in ("visual", "overlay") and c["kind"] in LATER:
             raise SystemExit(f"ERROR (timeline): clip {c['id']}: {c['kind']} clips are not drawn yet (T4 draws still images and videos)")
         if c["kind"] in ("image", "video"):
@@ -116,15 +123,66 @@ def build(project, words_doc, story_dir):
             if c["start"] < v["end"] and v["start"] < c["end"]:
                 raise SystemExit(f"ERROR (timeline): video clip {v['id']} and image clip {c['id']} overlap (frames "
                                  f"{max(c['start'], v['start'])}..{min(c['end'], v['end']) - 1}): one full-frame picture at a time")
-    if not todo and not videos:
+    for k, m in enumerate(maps):                                       # one full-frame picture at a time
+        for o in videos + todo + maps[k + 1:]:
+            if m["start"] < o["end"] and o["start"] < m["end"]:
+                raise SystemExit(f"ERROR (timeline): {o['kind']} clip {o['id']} and map clip {m['id']} overlap (frames "
+                                 f"{max(m['start'], o['start'])}..{min(m['end'], o['end']) - 1}): one full-frame picture at a time")
+    if not todo and not videos and not maps:
         return "", ""
-    dst = Path(story_dir) / "assets" / "timeline"
-    dst.mkdir(parents=True, exist_ok=True)
-    js, html = (_images(todo, assets, cfg, dst, KB, IF) if todo else ""), ""
-    if videos:
-        js2, html = _videos(videos, assets, cfg, dst, KB, VF)
-        js += js2
+    js, html = "", ""
+    if todo or videos:
+        dst = Path(story_dir) / "assets" / "timeline"
+        dst.mkdir(parents=True, exist_ok=True)
+        js, html = (_images(todo, assets, cfg, dst, KB, IF) if todo else ""), ""
+        if videos:
+            js2, html = _videos(videos, assets, cfg, dst, KB, VF)
+            js += js2
+    if maps:
+        js += _maps(maps, project, words_doc, story_dir, TL, doc.get("mode", "draft"))
     return js, html
+
+
+def _maps(maps, project, words_doc, story_dir, TL, mode="draft"):
+    """M2g: map clips (nfp/mapmotion) - each one Director shot for its frames (mapmotion.filmclip). The clip's ref is a
+    map clip bundle (nfp.mapmotion.clip/1) inside the project. Label text is measured HERE (mapmotion.tools.measure: the
+    local Chromium with the film's own font copies in story/assets/fonts; nothing is downloaded) - like ffprobe above,
+    the bridge runs the outside programs, Map Motion's engine does not. Errors stop compose; warnings are printed like
+    the timeline's own; the QC of every map clip is written to <build>/mapmotion_qc.json (next to verify.json).
+    A final timeline takes only a final map and scene (their own final checks: verified locations and licences)."""
+    from mapmotion import filmclip as FC                  # nfp/mapmotion (imported only here, only for map clips)
+    from mapmotion.tools import measure as MS
+    fonts = Path(story_dir) / "assets" / "fonts"
+    ctx = TL.Context.from_words(words_doc)
+    js, report = "", []
+    for c in sorted(maps, key=lambda c: (c["start"], c["id"])):
+        if not (isinstance(c.get("ref"), str) and c["ref"]):
+            raise SystemExit(f"ERROR (map): clip {c['id']}: a map clip needs ref (its map clip bundle, nfp.mapmotion.clip/1)")
+        if c.get("asset") is not None:
+            raise SystemExit(f"ERROR (map): clip {c['id']}: a map clip takes its data from ref, not from an asset")
+        try:
+            docs = FC.load(c["ref"], project["_dir"])
+            if mode == "final" and any(not isinstance(docs[k], dict) or docs[k].get("mode") != "final" for k in ("map", "scene")):
+                raise ValueError("a final timeline needs the map and its scene in final mode (verified locations and licences)")
+            prep = FC.prepare(docs, ctx, c)
+            metrics = None
+            if prep["texts"]:
+                missing = [f for _, _, f in MS.FACES if not (fonts / f).is_file()]
+                if missing:
+                    raise ValueError(f"the map's labels need the film's local fonts: {', '.join(missing)} not in assets/fonts")
+                metrics = MS.measure(prep["texts"], prep["size"], prep["weight"], fonts)
+            sp = FC.finish(docs, prep, metrics)
+        except (ValueError, RuntimeError, FileNotFoundError) as e:
+            raise SystemExit(f"ERROR (map): clip {c['id']}: {e}")
+        warns = [x for x in sp["qc"]["issues"] if x["level"] == "warning"]
+        for x in warns:
+            print(f"map warning: {c['id']}: {x.get('element') or '-'}: {x['code']}: {x['message']}", file=sys.stderr)
+        js += FC.shot_js(sp, prep["plan"], c["id"], FC.font_face_css_rel(MS.FACES) if prep["texts"] else "")
+        report.append({"clip": c["id"], "ref": c["ref"], "frames": [c["start"], c["end"]], "status": sp["qc"]["status"],
+                       "issues": sp["qc"]["issues"], "labels_measured_with": (metrics or {}).get("browser")})
+    (Path(story_dir).parent / "mapmotion_qc.json").write_text(
+        json.dumps({"schema": "nfp.mapmotion.filmqc/1", "clips": report}, ensure_ascii=False, indent=1), encoding="utf-8")
+    return js
 
 
 def _videos(videos, assets, cfg, dst, KB, VF):
