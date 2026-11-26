@@ -49,7 +49,12 @@ class CastError(SystemExit):
 
 
 def snap(t):
-    return round(t * FPS) / FPS
+    """The Director's snap (kit/50_director.js: Math.round(t * FPS) / FPS): a half frame goes UP, as in JavaScript -
+    Python's round() would go to the even frame (9.35 s = frame 280.5 -> 280, the page 281) and the page would refuse
+    the planned shot window."""
+    x = t * FPS
+    f = math.floor(x)
+    return (f + 1 if x - f >= 0.5 else f) / FPS
 
 
 def page_sentences(timing):
