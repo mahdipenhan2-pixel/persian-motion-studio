@@ -19,6 +19,9 @@
                last frame is an error (no freeze); see videofile.py
   camera       (T2, image clips) Ken Burns move over the clip: see kenburns.py (none = still); checked against the
                image's real pixel size: no stretching, no empty space, limited enlargement, calm speed
+  gain_db      (audio clips, optional) level of the clip in the mix, -60..+6 dB; default -24 dB (music / effects stay
+               well under the narration)
+  fade_in / fade_out  (audio clips, optional) whole frames, >= 0, together at most the clip's length
 Times: start < end, 0 <= start, end <= duration (end is exclusive: a clip [9, 140) shows frames 9..139).
 """
 import math
@@ -40,7 +43,9 @@ ASSET_KINDS = {"image": ("image",), "video": ("video",), "map": ("map", "image")
 ASSET_REQUIRED = ("image", "video", "audio")
 NO_ASSET = ("svg-shot", "narration", "subtitles", "character", "graphic")
 HAS_IN = ("video", "audio")
-CLIP_FIELDS = {"id", "track", "kind", "start", "end", "anchors", "asset", "in", "out", "ref", "note", "camera"}
+CLIP_FIELDS = {"id", "track", "kind", "start", "end", "anchors", "asset", "in", "out", "ref", "note", "camera", "gain_db", "fade_in", "fade_out"}
+AUDIO_GAIN = (-60.0, 6.0)
+AUDIO_GAIN_DEFAULT = -24.0
 TRACK_FIELDS = {"id", "kind", "coverage", "overlap"}
 TOP_FIELDS = {"schema", "fps", "duration", "mode", "tracks", "clips"}
 
@@ -223,6 +228,18 @@ def validate(doc, assets_doc=None, assets_base=None, context=None, check_files=T
                 add("error", "bad_time", "in must be a whole frame number >= 0", clip=cid)
         if "out" in c and kind != "video":
             add("error", "out_not_allowed", "'out' is only for video clips", clip=cid)
+        for k in ("gain_db", "fade_in", "fade_out"):    # audio clips: level and fades in the mix (optional)
+            if k in c and kind != "audio":
+                add("error", "audio_field", f"'{k}' is only for audio clips", clip=cid)
+        if kind == "audio":
+            g = c.get("gain_db", AUDIO_GAIN_DEFAULT)
+            if isinstance(g, bool) or not isinstance(g, (int, float)) or not AUDIO_GAIN[0] <= g <= AUDIO_GAIN[1]:
+                add("error", "bad_gain", f"gain_db must be a number {AUDIO_GAIN[0]:g}..{AUDIO_GAIN[1]:g} dB", clip=cid)
+            fi, fo = c.get("fade_in", 0), c.get("fade_out", 0)
+            if not _int(fi) or not _int(fo) or fi < 0 or fo < 0:
+                add("error", "bad_fade", "fade_in / fade_out must be whole frame numbers >= 0", clip=cid)
+            elif fi + fo > a1 - a0:
+                add("error", "bad_fade", f"fade_in {fi} + fade_out {fo} frames are longer than the clip ({a1 - a0} frames)", clip=cid)
         if kind == "video" and aid in video:          # T4: exact source frames from the probed file
             fx = video[aid]
             first = c.get("in", 0)

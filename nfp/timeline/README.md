@@ -96,3 +96,16 @@ python3 nfp/film/tests/film_timeline_check.py --gsap <gsap.min.js> --fonts <dir>
 T4_PRE_TAR=<pre-T4 archive> python3 nfp/film/tests/film_video_check.py --gsap <gsap.min.js> --fonts <dir> --work <dir>
 ```
 `T4_PRE_TAR` نسخهٔ فایل‌ها پیش از T4 است و برای مقایسهٔ بایت‌به‌بایت صفحهٔ Timeline فقط‌تصویری (T2) به کار می‌رود.
+
+## T5: موسیقی و افکت صوتی
+- **فیلدهای اختیاری کلیپ `audio`** در ترک `audio`:
+  - `gain_db`: از ‎−60 تا ‎+6 dB؛ پیش‌فرض ‎−24 dB.
+  - `fade_in` و `fade_out`: فریم کامل، ≥ 0، و جمع آن‌ها حداکثر به طول کلیپ.
+
+  این فیلدها روی کلیپ‌های دیگر رد می‌شوند. Timelineهای قبلی عیناً مثل قبل بررسی می‌شوند.
+- **میکس** در `nfp/film/engine/timeline_bridge.py` (`_audio`) به‌صورت آفلاین با FFmpeg انجام می‌شود و نتیجه در `story/narration.wav` (صدای صفحه) زیر روایت قرار می‌گیرد:
+  - روایت با بهرهٔ واحد اضافه می‌شود و نمونه‌هایش تغییر نمی‌کنند.
+  - اگر جمع از ‎−1 dBFS بالاتر برود، از یک Limiter با جبران تأخیر رد می‌شود.
+  - گزارش میکس در `<build>/audio_mix.json` نوشته می‌شود.
+  - اگر کلیپ صوتی نباشد، `narration.wav` و صفحه بایت‌به‌بایت مثل قبل می‌مانند.
+- **تست‌ها:** `nfp/timeline/tests/test_timeline_t5.py` و `nfp/film/tests/film_audio_mix_check.py`. دومی سطح‌ها و Fadeها را اندازه می‌گیرد، غالب ماندن روایت را بررسی می‌کند و رندر واقعی هم دارد.

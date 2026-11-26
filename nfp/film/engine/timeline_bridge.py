@@ -25,6 +25,9 @@ D.key, so the page's own post layers - grain, vignette, scan lines, VHS cuts - l
 shot. The video is always muted (its own sound never reaches the film), drawn 'cover' (aspect kept, no stretch), and
 reads source frames in .. out - 1 of its file (frame mapping of HyperFrames, see nfp/timeline/videofile.py); a clip that
 would run past the last frame is refused (no frozen last frame).
+Audio clips (an "audio" track: music, sound effects) are mixed offline with ffmpeg under the narration into
+story/narration.wav, the page's only audio (see _audio): gain_db (default -24 dB), fade_in / fade_out, a -1 dBFS limiter,
+<build>/audio_mix.json. A timeline without audio clips leaves narration.wav byte-identical.
 """
 import json
 import shutil
@@ -104,9 +107,12 @@ def build(project, words_doc, story_dir):
             print(f"timeline warning: {x.get('clip') or x.get('asset') or '-'}: {x['message']}", file=sys.stderr)
     kinds = {t["id"]: t["kind"] for t in doc["tracks"]}
     assets = {a["id"]: a for a in (adoc or {}).get("assets", [])}
-    todo, videos, maps, gfx_full, gfx_over = [], [], [], [], []
+    todo, videos, maps, gfx_full, gfx_over, audios = [], [], [], [], [], []
     for c in doc["clips"]:
         tk = kinds[c["track"]]
+        if tk == "audio" and c["kind"] == "audio":                      # music / sound effects: mixed under the narration
+            audios.append(c)
+            continue
         if tk in ("visual", "overlay") and c["kind"] == "graphic":      # G5: nfp/graphics; the track gives the display
             (gfx_full if tk == "visual" else gfx_over).append(c)
             continue
@@ -136,6 +142,8 @@ def build(project, words_doc, story_dir):
             if g["start"] < o["end"] and o["start"] < g["end"]:
                 raise SystemExit(f"ERROR (timeline): {o['kind']} clip {o['id']} and full-frame graphic clip {g['id']} overlap (frames "
                                  f"{max(g['start'], o['start'])}..{min(g['end'], o['end']) - 1}): one full-frame picture at a time")
+    if audios:
+        _audio(audios, assets, cfg, story_dir, words_doc)
     if not todo and not videos and not maps and not gfx_full and not gfx_over:
         return "", ""
     js, html = "", ""
@@ -151,6 +159,80 @@ def build(project, words_doc, story_dir):
     if gfx_full or gfx_over:
         js += _graphics(gfx_full, gfx_over, project, story_dir, doc.get("mode", "draft"))
     return js, html
+
+
+def _audio(clips, assets, cfg, story_dir, words_doc):
+    """Timeline audio clips (music, sound effects) mixed OFFLINE with ffmpeg under the narration, into the page's own
+    audio file story/narration.wav (the only audio the page plays): each clip from its 'in' frame, for its length, at its
+    gain_db (default -24 dB), with its fades, placed at its start frame; the narration itself is added at unity gain (its
+    samples unchanged); only if the sum peaks above -1 dBFS is it passed through a delay-compensated limiter at -1 dBFS. The format of narration.wav is
+    kept (rate, channels, 16-bit). <build>/audio_mix.json records every clip and the levels before / after.
+    Without audio clips this function is not called: the page and its audio stay byte-identical."""
+    from timeline import model as TM
+    sys.path.insert(0, str(NFP)) if str(NFP) not in sys.path else None
+    from voice import audiotools as AT
+    nar = Path(story_dir) / "narration.wav"
+    with __import__("wave").open(str(nar), "rb") as w:
+        rate, ch, sw = w.getframerate(), w.getnchannels(), w.getsampwidth()
+    if sw != 2:
+        raise SystemExit(f"ERROR (timeline audio): narration.wav is {8 * sw}-bit; 16-bit expected")
+    base = cfg["assets"].parent if "assets" in cfg else Path(".")
+    total = words_doc["duration"]
+    inputs, chains, rows = ["-i", str(nar)], [], []
+    lay = "mono" if ch == 1 else "stereo"
+    for n, c in enumerate(sorted(clips, key=lambda c: (c["start"], c["id"])), start=1):
+        a = assets.get(c.get("asset"))
+        if not a or not a.get("local_path"):
+            raise SystemExit(f"ERROR (timeline audio): clip {c['id']}: asset {c.get('asset')!r} has no local file")
+        f = base / a["local_path"]
+        if not f.is_file():
+            raise SystemExit(f"ERROR (timeline audio): clip {c['id']}: {f} not found")
+        t0, length, src = c["start"] / TM.FPS, (c["end"] - c["start"]) / TM.FPS, c.get("in", 0) / TM.FPS
+        g = float(c.get("gain_db", TM.AUDIO_GAIN_DEFAULT))
+        fi, fo = c.get("fade_in", 0) / TM.FPS, c.get("fade_out", 0) / TM.FPS
+        sch = next((int(x.get("channels") or 0) for x in json.loads(subprocess.run(
+            ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(f)], capture_output=True, text=True).stdout or "{}").get("streams", [])
+            if x.get("codec_type") == "audio"), 0)
+        if not sch:
+            raise SystemExit(f"ERROR (timeline audio): clip {c['id']}: {f} has no audio stream")
+        down = []
+        if ch == 1 and sch > 1:              # average the channels: gain_db is relative to the source's own level
+            down = ["pan=mono|c0=" + "+".join(f"{1 / sch:.6f}*c{k}" for k in range(sch))]
+        flt = [f"atrim=start={src:.6f}:duration={length:.6f}", "asetpts=PTS-STARTPTS", *down,
+               f"aformat=sample_fmts=fltp:sample_rates={rate}:channel_layouts={lay}", f"volume={g:.3f}dB"]
+        if fi > 0:
+            flt.append(f"afade=t=in:st=0:d={fi:.6f}")
+        if fo > 0:
+            flt.append(f"afade=t=out:st={max(0.0, length - fo):.6f}:d={fo:.6f}")
+        flt.append(f"adelay={int(round(t0 * 1000))}:all=1")
+        inputs += ["-i", str(f)]
+        chains.append(f"[{n}:a]" + ",".join(flt) + f"[a{n}]")
+        rows.append({"clip": c["id"], "asset": c["asset"], "file": str(a["local_path"]), "start_s": round(t0, 3), "length_s": round(length, 3),
+                     "in_s": round(src, 3), "gain_db": g, "fade_in_s": round(fi, 3), "fade_out_s": round(fo, 3)})
+    mix = "".join(f"[a{n}]" for n in range(1, len(rows) + 1))
+    before = AT.loudness(nar)
+    tmp = nar.with_name("narration.mix.wav")
+
+    def run(limit):
+        tail = ",alimiter=limit=0.891:level=false:latency=true:attack=5:release=50" if limit else ""
+        graph = ";".join([f"[0:a]aformat=sample_fmts=fltp:sample_rates={rate}:channel_layouts={lay}[nar]"] + chains
+                         + [f"[nar]{mix}amix=inputs={len(rows) + 1}:duration=first:normalize=0{tail},atrim=duration={total:.6f}[out]"])
+        r = subprocess.run(["ffmpeg", "-y", "-v", "error", *inputs, "-filter_complex", graph, "-map", "[out]", "-ar", str(rate), "-ac", str(ch),
+                            "-c:a", "pcm_s16le", str(tmp)], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise SystemExit(f"ERROR (timeline audio): ffmpeg mix failed: {r.stderr.strip()[-300:]}")
+        with __import__("wave").open(str(tmp), "rb") as w:
+            raw = w.readframes(w.getnframes())
+        return max((abs(int.from_bytes(raw[i:i + 2], "little", signed=True)) for i in range(0, len(raw), 2)), default=0)
+    peak = run(False)                       # the plain sum: the narration's samples stay exactly where they were
+    limited = peak > int(0.891 * 32767)
+    if limited:                             # only a sum above -1 dBFS goes through the (delay-compensated) limiter
+        peak = run(True)
+    after = AT.loudness(tmp)
+    tmp.replace(nar)
+    (Path(story_dir).parent / "audio_mix.json").write_text(json.dumps(
+        {"schema": "nfp.film.audiomix/1", "narration": {"rate": rate, "channels": ch, "before": before}, "mixed": after,
+         "limiter_dbfs": -1.0, "limited": limited, "peak": round(peak / 32768, 5), "default_gain_db": TM.AUDIO_GAIN_DEFAULT, "clips": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _graphics(full, over, project, story_dir, mode="draft"):
