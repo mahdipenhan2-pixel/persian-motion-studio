@@ -163,9 +163,16 @@ def timed_words(timing):
         rows = []
         for r in W:
             a, b, est = r.get("abs_start"), r.get("abs_end"), bool(r.get("est"))
-            if a is None:                # still untimed (as compose.py: placed at the next timed word, not highlighted)
-                a = next((x["abs_start"] for x in W[r["i"] + 1:] if x.get("abs_start") is not None), s["offset"] + s["duration"])
-                a, b, est = round(a, 3), round(a + 0.06, 3), True
+            if a is None:                # still untimed: placed just before the next timed word, not highlighted
+                nxt = next((x["abs_start"] for x in W[r["i"] + 1:] if x.get("abs_start") is not None), None)
+                if nxt is None:          # after the last timed word: at the sentence end (as compose.py)
+                    a = s["offset"] + s["duration"]
+                    a, b = round(a, 3), round(a + 0.06, 3)
+                else:                    # ends where the next word starts: never overlapping it (the QC below refuses that)
+                    prev = rows[-1]["end"] if rows else s["offset"]
+                    b = round(nxt, 3)
+                    a = min(b, round(max(prev, nxt - 0.06), 3))
+                est = True
             text = clean_word(r["text"])
             if text:
                 rows.append({"i": r["i"], "text": text, "start": a, "end": b, "est": est, "src": r["text"]})
