@@ -1,0 +1,7 @@
+# NFP: free third-party assets fetched by nfp/setup/fetch_assets.py (never committed)
+/assets/fonts/
+/assets/vendor/
+/assets/voices/
+/assets/SOURCES.json
+# the Stage 2 core's caches (scripts/story_stage2.py, scripts/stage2_whisper.py: ROOT/.cache/story)
+/.cache/
