@@ -14,7 +14,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SCHEMA = "nfp.voice.registry/1"
-PROVIDERS = {"synthetic", "prepared", "gemini"}
+PROVIDERS = {"synthetic", "prepared", "gemini", "piper"}
 PRESENTATIONS = {"female", "male", "neutral"}
 AGES = {"child", "teen", "adult", "elder"}
 VOICE_ID = re.compile(r"^[a-z]+:[A-Za-z0-9_.-]{1,64}$")
@@ -53,6 +53,9 @@ def validate_voice(vid, v, where="voice"):
     if v.get("provider") == "synthetic" and not (isinstance(v.get("params"), dict) and isinstance(v["params"].get("f0"), (int, float))
                                                  and 50 <= v["params"]["f0"] <= 1000):
         p.append(f"{where} '{vid}': a synthetic voice needs params.f0 (50-1000 Hz)")
+    if v.get("provider") == "piper" and not (isinstance(v.get("params"), dict) and isinstance(v["params"].get("model"), str)
+                                             and re.fullmatch(r"[A-Za-z0-9_.-]{1,80}", v["params"]["model"])):
+        p.append(f"{where} '{vid}': a piper voice needs params.model (the model's file name without .onnx)")
     return p
 
 

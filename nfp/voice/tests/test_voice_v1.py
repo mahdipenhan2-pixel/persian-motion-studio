@@ -94,7 +94,7 @@ def tone_wav(path, rate, seconds, channels=1, f=180.0):
 def main():
     print("== A registry")
     reg = load_registry()
-    check(len(reg.ids()) == 12 and reg.get("synthetic:male")["presentation"] == "male" and reg.speaks("synthetic:male", "de"),
+    check(len(reg.ids()) == 16 and len([v for v in reg.ids() if v.startswith("piper:")]) == 4 and reg.get("synthetic:male")["presentation"] == "male" and reg.speaks("synthetic:male", "de"),
           f"built-in registry valid ({len(reg.ids())} voices); synthetic voices speak any language ('*'), new languages need no code")
     check(not reg.get("gemini:Kore")["verified"] and reg.speaks("gemini:Kore", "fa") and not reg.speaks("gemini:Kore", "de"),
           "Gemini voices are listed with verified: false and their languages")

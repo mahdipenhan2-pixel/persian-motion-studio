@@ -12,7 +12,7 @@ script (the project's sentences, any language):
   audio     a prepared recording for that sentence (relative to base_dir): provider 'prepared', whatever the voice
   pauses    silence added before / after the sentence INSIDE its own file (the unchanged core keeps such silence and
             the word times stay exact - V0 / L0)
-Sources: 'synthetic' (offline test tones), 'prepared' (files). A 'gemini' voice can be cast and planned for review,
+Sources: 'synthetic' (offline test tones), 'prepared' (files), 'piper' (real speech from a local, free Piper model). A 'gemini' voice can be cast and planned for review,
 but this version has no API connection: producing it is refused with a clear message.
 cache_key = sha256 of everything that changes the audio (provider, voice, style, language, text, pauses, prepared file
 hash); the same input always gives the same plan (sorted, no clock).
@@ -116,13 +116,24 @@ def make_plan(casting, script, base_dir="."):
         elif voice["provider"] == "prepared":
             errors.append(f"{sid}: voice '{vid}' is a prepared-recording voice: the sentence needs 'audio'")
             continue
+        elif voice["provider"] == "piper":            # local real speech; the model file must be there (no download here)
+            from .providers.base import ProviderError
+            from .providers.piper import model_path
+            try:
+                mp = model_path(voice["params"]["model"])
+            except ProviderError as e:
+                errors.append(f"{sid}: {e}")
+                continue
+            source = {"kind": "piper", "model": voice["params"]["model"], "model_sha256": sha256_file(mp),
+                      **({"length_scale": voice["params"]["length_scale"]} if voice["params"].get("length_scale") else {})}
         else:
             source = {"kind": voice["provider"]}       # planned for review; producing it is refused (no API in this version)
         style = s.get("style") or (casting["narrator"].get("style") if spk == NARRATOR and casting["narrator"] else None)
         rows.append({"id": sid, "text": s["text"], "language": lang, "speaker": spk, "stage": stage, "voice": vid,
                      "provider": source["kind"], "source": source, "style": style, "pause_before_ms": pb, "pause_after_ms": pa,
                      "cache_key": cache_key(provider=source["kind"], voice=vid, style=style, language=lang, text=s["text"],
-                                            pause_before_ms=pb, pause_after_ms=pa, file_sha256=source.get("sha256"))})
+                                            pause_before_ms=pb, pause_after_ms=pa,
+                                            file_sha256=source.get("sha256") or source.get("model_sha256"))})
     blocks = [f for f in findings if f["level"] == "block"]
     if errors or blocks:
         raise VoiceError(errors + [f"BLOCK {f['role']}: {f['message']}" for f in blocks])

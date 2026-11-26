@@ -220,15 +220,15 @@ def _normalized(r, f, rate, base_dir, ns, cls):
             raise ProviderError(f"'{r['source']['file']}' changed after planning (sha256 differs); plan again")
         pcm, cinfo = convert(src, rate)
         words = None
-    else:                                           # synthetic: made at the run's rate, without pauses
+    else:                                           # synthetic / piper: made at the run's rate, without pauses
         with tempfile.TemporaryDirectory() as td:
             body = dict(r, pause_before_ms=0, pause_after_ms=0)
             pinfo = cls().produce(body, Path(td) / "b.wav", rate, base_dir=base_dir)
             with wave.open(str(Path(td) / "b.wav"), "rb") as w:
                 pcm = w.readframes(w.getnframes())
-        cinfo = {"input": {"format": "synthetic", "rate": rate, "channels": 1, "bits": 16, "frames": len(pcm) // 2,
+        cinfo = {"input": {"format": r["provider"], "rate": rate, "channels": 1, "bits": 16, "frames": len(pcm) // 2,
                            "duration": round(len(pcm) / 2 / rate, 6)}, "resampled": False, "downmixed": False, "requantized": False}
-        words = pinfo["synthetic_words"]
+        words = pinfo.get("synthetic_words")         # synthetic only; real speech (piper) has no recorded word times
     linfo = None
     if ns["loudness"]:
         pcm, linfo = match_loudness(pcm, rate, ns)

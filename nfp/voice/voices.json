@@ -1,6 +1,6 @@
 {
  "schema": "nfp.voice.registry/1",
- "note": "Voices the Voice Engine knows. 'presentation' (female | male | neutral) and 'age' (child | teen | adult | elder) describe how the voice is perceived; 'languages' lists ISO 639 codes the voice may speak ('*' = any). 'verified': false means the attributes are not yet confirmed against an official source or by listening - such a voice can be used, but every use is reported as a warning. Synthetic voices are test tones (no speech) for offline tests only. A project can add its own voices (for example prepared recordings) in its casting file.",
+ "note": "Voices the Voice Engine knows. 'presentation' (female | male | neutral) and 'age' (child | teen | adult | elder) describe how the voice is perceived; 'languages' lists ISO 639 codes the voice may speak ('*' = any). 'verified': false means the attributes are not yet confirmed against an official source or by listening - such a voice can be used, but every use is reported as a warning. Synthetic voices are test tones (no speech) for offline tests only. Piper voices are real speech from local, free models (no request); their dataset licenses differ - see each voice's license. A project can add its own voices (for example prepared recordings) in its casting file.",
  "voices": {
   "synthetic:female": {"provider": "synthetic", "presentation": "female", "age": "adult", "languages": ["*"], "verified": true,
                        "params": {"f0": 220}, "source": "generated test tone (not speech)"},
@@ -25,6 +25,18 @@
   "gemini:Fenrir": {"provider": "gemini", "presentation": "male", "age": "adult", "languages": ["fa", "en"], "verified": false,
                     "source": "perceived voice of the Gemini TTS voice list; to be confirmed"},
   "gemini:Orus": {"provider": "gemini", "presentation": "male", "age": "adult", "languages": ["fa", "en"], "verified": false,
-                  "source": "perceived voice of the Gemini TTS voice list; to be confirmed"}
+                  "source": "perceived voice of the Gemini TTS voice list; to be confirmed"},
+  "piper:fa-amir": {"provider": "piper", "presentation": "male", "age": "adult", "languages": ["fa"], "verified": false,
+                    "params": {"model": "fa_IR-amir-medium"}, "source": "Piper voice fa_IR-amir-medium (local, offline; nfp/setup/fetch_assets.py)",
+                    "license": "dataset CC0 (MODEL_CARD)"},
+  "piper:fa-gyro": {"provider": "piper", "presentation": "male", "age": "adult", "languages": ["fa"], "verified": false,
+                    "params": {"model": "fa_IR-gyro-medium"}, "source": "Piper voice fa_IR-gyro-medium (local, offline; nfp/setup/fetch_assets.py)",
+                    "license": "not stated in its MODEL_CARD (see https://github.com/gyroing) - check before publishing"},
+  "piper:en-lessac": {"provider": "piper", "presentation": "female", "age": "adult", "languages": ["en"], "verified": false,
+                      "params": {"model": "en_US-lessac-medium"}, "source": "Piper voice en_US-lessac-medium (local, offline; nfp/setup/fetch_assets.py)",
+                      "license": "Blizzard 2013 Lessac dataset license (MODEL_CARD) - check before publishing"},
+  "piper:en-ryan": {"provider": "piper", "presentation": "male", "age": "adult", "languages": ["en"], "verified": false,
+                    "params": {"model": "en_US-ryan-medium"}, "source": "Piper voice en_US-ryan-medium (local, offline; nfp/setup/fetch_assets.py)",
+                    "license": "dataset CC BY-NC-SA 4.0 (MODEL_CARD): non-commercial"}
  }
 }

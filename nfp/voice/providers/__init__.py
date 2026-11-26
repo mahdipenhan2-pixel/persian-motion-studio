@@ -3,5 +3,6 @@ with the planned silence before / after inside the file (the format the unchange
 from .base import FORMAT, ProviderError, write_wav  # noqa: F401
 from .prepared import PreparedProvider  # noqa: F401
 from .synthetic import SyntheticProvider  # noqa: F401
+from .piper import PiperProvider  # noqa: F401
 
-PROVIDERS = {"synthetic": SyntheticProvider, "prepared": PreparedProvider}
+PROVIDERS = {"synthetic": SyntheticProvider, "prepared": PreparedProvider, "piper": PiperProvider}
