@@ -90,8 +90,8 @@ def environment(pl, fonts=None, gsap=None):
         if needed:
             env[name] = {"ok": bool(ok), "detail": detail, "needed_by": needed}
 
-    put("ffmpeg", shutil.which("ffmpeg"), shutil.which("ffmpeg") or "not installed", ["prepare", "audio", "verify", "render"])
-    put("ffprobe", shutil.which("ffprobe"), shutil.which("ffprobe") or "not installed", ["prepare", "compose", "render", "verify"])
+    put("ffmpeg", shutil.which("ffmpeg"), shutil.which("ffmpeg") or "not installed", ["prepare", "audio", "verify", "render", "output"])
+    put("ffprobe", shutil.which("ffprobe"), shutil.which("ffprobe") or "not installed", ["prepare", "compose", "render", "verify", "output"])
     fw = importlib.util.find_spec("faster_whisper") is not None
     put("faster_whisper", fw, "importable (its model may be fetched once on first use)" if fw else "the faster_whisper module is not installed", ["whisper"])
     put("node", shutil.which("node"), shutil.which("node") or "not installed", ["compose", "smoke", "render"])

@@ -50,7 +50,7 @@ def main():
         shutil.rmtree(work)
     work.mkdir(parents=True)
     base = ["fit", "prepare", "whisper", "align"]
-    tail = ["compose", "smoke", "render", "verify"]
+    tail = ["compose", "smoke", "render", "verify", "output"]
 
     pl = PL.plan(FIX / "neutral-en")
     st = {s["name"]: s for s in pl["steps"]}

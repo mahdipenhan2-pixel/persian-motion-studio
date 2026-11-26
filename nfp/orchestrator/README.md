@@ -32,6 +32,7 @@ Chromium binary HyperFrames renders with (default: `$HYPERFRAMES_BROWSER_PATH`, 
 | smoke | `tools/render.py smoke`: the page in Chromium, outside requests refused | orchestrator | local |
 | render | `tools/render.py render`: HyperFrames 0.9.83, **npm offline** | film | heavy |
 | verify | `run.py verify` (Film's verify.py) | film | local |
+| output | `tools/output.py`: `nfp/output/check.py` in its own process (technical, loudness, sync, subtitle mode) | output | local |
 
 smoke and render work on `<build>/render-copy` (story/ with the CDN GSAP tag replaced by the local copy, the same one-line
 change Film's render tests make); `<build>/story` is never changed.
@@ -60,15 +61,26 @@ Nothing online or paid runs without `--allow-network`:
 fingerprint (file **contents** of the project keys, files, earlier outputs, code, fonts, GSAP its plan names) is unchanged
 and its outputs exist. A failed run resumes at the first step that is not up to date. The audio step never depends on
 code, so a code change never re-makes (possibly paid) audio. verify.py exits 1 when it lists problems: that step is
-`problems` (it ran to the end), the run `complete_with_problems`, and the report classifies them.
+`problems` (it ran to the end), the run `complete_with_problems`, and the report classifies them. The output step
+works the same way (its check exits 1 after writing `output_qc.json`); an output check that produced no result is
+`failed` for that step only - render keeps its `done`.
 
 ## Report (report.py)
 
 After every run: `<build>/production_report.json` and `.md`, built from the files the runner and engines wrote
-(preflight, steps, Voice QC, Subtitle QC, cast report, Map Motion / Graphics QC, smoke, ffprobe, verify). verify.py's
-problems are split into **known limitations** (`report.KNOWN`: documented, with their source and what a person should
-look at; they do not fail) and **new problems** (they fail). Verdicts: PASS, PASS_WITH_KNOWN_LIMITATIONS, FAIL, BLOCKED,
-INCOMPLETE. `production_ready` is false whenever a TEST-ONLY executor or synthetic voices made part of the build.
+(preflight, steps, Voice QC, Subtitle QC, cast report, Map Motion / Graphics QC, smoke, ffprobe, verify, output QC).
+verify.py's problems are split into **known limitations** (`report.KNOWN`: documented, with their source and what a
+person should look at; they do not fail), **not applicable** (caption-highlight problems in a project whose subtitle
+mode draws no karaoke highlight - sentence, word, off - only when the output QC is current and the check replacing them
+passed) and **new problems** (they fail).
+
+The output QC (`output_qc.json`) is used only when it is **current**: `nfp/output/check.py is_current` compares the sha256
+of story.mp4, verify.json and timing.json and the fingerprint of the project settings that decide the checks (meta, the
+chapter, the subtitles block as written and as the Subtitle Engine resolves it) with what the check recorded. An output
+error fails the report (a defect of the delivered file); warnings - sync offsets included, not yet validated on real
+speech - are listed and do not change the verdict; no current result (not run, failed, stale) makes it INCOMPLETE,
+never FAIL. Verdicts: PASS, PASS_WITH_KNOWN_LIMITATIONS, FAIL, BLOCKED, INCOMPLETE. `production_ready` is false whenever
+a TEST-ONLY executor or synthetic voices made part of the build.
 
 ## Tests (offline)
 

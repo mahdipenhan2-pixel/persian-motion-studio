@@ -18,6 +18,8 @@ Order: preflight first (written to <build>/preflight.json); a FAIL stops before 
   verify       verify.py exits 1 when it lists problems: the step is then "problems" (not "failed": it ran to the end and
                wrote verify.json) and the run "complete_with_problems"; the QC report (report.py) separates known
                limitations from new problems - the runner does not judge them
+  output       the same for the Output / Verify check (tools/output.py -> output_qc.json); a check that produced no result
+               is "failed" for that step only (render keeps its "done"); the report then says INCOMPLETE, not FAIL
   start=name   that step and all later ones run again;  until=name  stop after it;  force  every step runs again
 After every run (complete, failed or blocked) <build>/production_report.json / .md is written (report.py).
 executors: {step name: fn(step, ctx) -> (ok, detail, log)} replaces how a step is executed (the tests' TEST-ONLY whisper
@@ -60,7 +62,13 @@ def run_py(step, ctx):
     return p.returncode == 0, (f"exit {p.returncode}: {last}" if p.returncode else last)[:300], "$ " + " ".join(cmd[2:]) + "\n" + p.stdout + p.stderr
 
 
+CHECK_STEPS = {"verify": "verify.json", "output": "output_qc.json"}   # exit 1 after writing this file = "problems", not "failed"
+
+
 def tool(step, ctx):
+    if step["run"][1] == "output":
+        from .tools import output as O
+        return O.output(ctx["pl"], ctx["pl"]["build"], ctx["env"])
     from .tools import render as R
     fn = {"smoke": R.smoke, "render": R.render}[step["run"][1]]
     return fn(ctx["pl"], ctx["pl"]["build"], ctx["gsap"], ctx.get("browser"))
@@ -126,9 +134,9 @@ def run(pl, fonts=None, gsap=None, allow_network=False, until=None, start=None, 
             if ok and missing:
                 ok, detail = False, f"finished but did not write {', '.join(missing)}"
             status = "done" if ok else "failed"
-            vj = build / "verify.json"
-            if not ok and name == "verify" and not missing and vj.exists() and vj.stat().st_mtime >= t0:
-                status = "problems"              # verify.py ran to the end and listed problems (its exit 1): the QC report classifies them
+            vj = build / CHECK_STEPS.get(name, "-")
+            if not ok and name in CHECK_STEPS and not missing and vj.exists() and vj.stat().st_mtime >= t0:
+                status = "problems"              # the check ran to the end and listed problems (exit 1): the QC report classifies them
             (logs / f"{name}.log").write_text(log or "", encoding="utf-8")
             st["steps"][name] = {"status": status, "inputs": fp if status != "failed" else None, "executor": label,
                                  "seconds": round(time.time() - t0, 2), "log": str(logs / f"{name}.log"), "detail": detail,

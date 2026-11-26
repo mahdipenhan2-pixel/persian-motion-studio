@@ -26,6 +26,7 @@ import fixture as FX                              # noqa: E402
 from orchestrator import plan as PL               # noqa: E402
 from orchestrator import report as RP             # noqa: E402
 from orchestrator import runner as RN             # noqa: E402
+from output import check as OC                    # noqa: E402  (O2: an edited copy gets its own current output QC)
 
 RESULTS = []
 FIX = FX.NFP / "film" / "tests" / "fixtures"
@@ -90,6 +91,7 @@ def main():
         jedit(c / "verify.json", lambda d: d.update(problems=problems))
         if edit:
             edit(c)
+        OC.check(c, pl["project"], pl["chapter"])         # the copy's verify.json changed: its output QC is made again
         return RP.report(dict(pl, build=str(c)), fonts=fonts, gsap=gsap, write=False)
     r = variant("c-new", ["wrong fps 25.00", "s3: caption highlight too large for the first word (153 px, expected about 76)",
                           "s1: caption highlight is not visible (reference word shows 0 px)"])

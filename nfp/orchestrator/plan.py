@@ -18,6 +18,7 @@ The steps are the existing ones - the orchestrator owns only their order, state,
   smoke    tool smoke      the composed page in Chromium: page errors, Director warnings, duration (before rendering)
   render   tool render     story.mp4 with the local HyperFrames (offline; local GSAP copy)
   verify   run.py verify   verify.json (Film's own verify.py)
+  output   tool output     output_qc.json (nfp/output/check.py: the final MP4's technical / loudness / sync / subtitle checks)
 Cost classes: light = file checks; local = local processing; heavy = minutes of local CPU; network? = may call an online
 (possibly paid) service - decided at run time (D3): the core's TTS (Gemini), Voice Engine projects whose casting asks
 Gemini and whose voice.providers enables it, a HyperFrames that is not in the local cache.
@@ -34,7 +35,7 @@ NFP = HERE.parent
 ROOT = NFP.parent
 ENGINE = NFP / "film" / "engine"
 PLAN_SCHEMA = "nfp.orchestrator.plan/1"
-ORDER = ("audio", "fit", "prepare", "whisper", "align", "subs", "compose", "smoke", "render", "verify")
+ORDER = ("audio", "fit", "prepare", "whisper", "align", "subs", "compose", "smoke", "render", "verify", "output")
 CORE = ["code", "scripts/story_stage2.py"]
 RENDER_CODE = ["code", "nfp/film", "nfp/character/runtime", "nfp/character/renderers", "nfp/timeline", "nfp/mapmotion", "nfp/location",
                "nfp/graphics", "nfp/voice", "scripts/story_stage2.py"]
@@ -116,5 +117,9 @@ def plan(project, chapter=None, build=None):
          "story.mp4 with the local HyperFrames (npm offline; the page's GSAP from the local copy)")
     step("verify", ["run.py", "verify"], "film", "local", ["render"], [["build", "story.mp4"], ["build", "timing.json"], ["code", "nfp/film/engine/verify.py"]],
          ["verify.json"], "Film's own verify.py on the MP4")
+    step("output", ["tool", "output"], "output", "local", ["verify"],
+         [["build", "story.mp4"], ["build", "verify.json"], ["build", "timing.json"], ["project", "meta", "subtitles", "chapter"],
+          ["code", "nfp/output"]],
+         ["output_qc.json"], "the Output / Verify check of the final MP4 (nfp/output/check.py)")
     return {"schema": PLAN_SCHEMA, "project": proj["_dir"], "name": proj["_name"], "chapter": ch["id"], "build": str(b),
             "lang": proj["meta"]["lang"], "features": f, "steps": steps}
