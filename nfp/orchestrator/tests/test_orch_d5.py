@@ -99,6 +99,11 @@ def main():
           == ["wrong fps 25.00", "s1: caption highlight is not visible (reference word shows 0 px)"]
           and [x["id"] for x in r["verify"]["known_limitations"]] == ["verify.highlight_first_word"],
           "new problems (wrong fps, an invisible highlight) fail it; only the documented T4 highlight problem is classed as known")
+    def untimed_first(c):
+        jedit(c / "timing.json", lambda t: t["sentences"][1]["words"][0].update(abs_start=None, abs_end=None))
+    r = variant("c-early", ["s2: caption highlight already on before the first word (156 px)"], untimed_first)
+    check(r["verdict"] != "FAIL" and [x.get("rule") for x in r["verify"]["not_applicable"]] == ["estimated_first_word"],
+          f"an early highlight on a sentence that starts with an untimed word: not applicable (estimated_first_word) -> {r['verdict']}")
     r = variant("c-none", [])
     check(r["verdict"] == "PASS" and not r["production_ready"], "no problem -> PASS (still not production-ready: substitutes)")
 

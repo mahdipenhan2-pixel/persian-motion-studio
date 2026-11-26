@@ -18,6 +18,28 @@ preflight FAIL, 2 blocked, 3 usage, 4 complete but verify.py listed problems (se
 `preflight` exits 1 on FAIL; `report` exits 0 for PASS / PASS_WITH_KNOWN_LIMITATIONS, otherwise 1. `--browser` sets the
 Chromium binary HyperFrames renders with (default: `$HYPERFRAMES_BROWSER_PATH`, else the local headless shell).
 
+## Setup (once, free)
+
+```
+pip install -r nfp/setup/requirements.txt        # faster-whisper, piper-tts, av 16.1 (av 19 breaks faster-whisper 1.2.1)
+python3 nfp/setup/fetch_assets.py                # fonts, GSAP 3.12.5, Piper voices, the Whisper model -> ROOT/assets (git-ignored)
+python3 nfp/setup/fetch_assets.py --check
+```
+`--fonts` / `--gsap` then default to `ROOT/assets/fonts` and `ROOT/assets/vendor/gsap/gsap.min.js`; the Piper provider
+reads `ROOT/assets/voices/piper`. GSAP is under GreenSock's no-charge license (fetched, not committed).
+
+## A film of several chapters (film.py)
+
+```
+python3 nfp/orchestrator/cli.py run --film film.json [--build dir]    # every chapter, then the assembled, verified film
+```
+`film.json` (`nfp.film.manifest/1`) lists chapters, each a standard Film project (<= 40 sentences / 180 s, the core's
+limit per run): `{"schema": "nfp.film.manifest/1", "title": "...", "chapters": [{"id": "c1", "project": "ch1"}, ...]}`.
+Each chapter runs exactly as above into `<build>/<id>`; then `<build>/film/film.mp4` is assembled with Film's
+`assemble.py` (whole-frame audio slots, no drift at a join; video stream copy), checked with verify.py and the Output
+check, and reported in `<build>/film/film_report.md` (a black frame verify.py lists only at a chapter join is that join's
+fade: not applicable). A film is as long as its chapters; an unchanged film is not assembled again.
+
 ## Steps (plan.py)
 
 | step | runs | engine | cost |
@@ -91,16 +113,20 @@ python3 nfp/orchestrator/tests/test_orch_d2.py --fonts <woff2> --gsap <js> --wor
 python3 nfp/orchestrator/tests/test_orch_d3.py --fonts <woff2> --gsap <js> --work <dir>  # runner, Resume, cost guard, CLI
 python3 nfp/orchestrator/tests/test_orch_d4.py --fonts <woff2> --gsap <js> --work <dir>  # smoke, REAL render, verify
 python3 nfp/orchestrator/tests/test_orch_d5.py --fonts <woff2> --gsap <js> --work <dir>  # the report
+python3 nfp/orchestrator/tests/test_orch_o2.py --fonts <woff2> --gsap <js> --work <dir>  # the output step
+python3 nfp/orchestrator/tests/test_orch_film.py --fonts <woff2> --gsap <js> --work <dir>  # a film of chapters (assembly)
+python3 nfp/orchestrator/tests/test_orch_integration.py --work <dir>   # ONE command: every engine, real speech, a 2-chapter film
 ```
-`--work` must be outside the repository. The tests use synthetic voices (test tones) and, because faster-whisper is not
-installed here (and a test tone cannot be recognised), a **TEST-ONLY whisper substitute** (`tests/fixture.py`) that
-writes Whisper words from the synthetic voice's recorded word times. It is injected as an executor, recorded under its
-own name in production.json, and makes every report `production_ready: NO`.
+`--work` must be outside the repository. D0-D5, O2 and the film test use synthetic voices (test tones) and a
+**TEST-ONLY whisper substitute** (`tests/fixture.py`) that writes Whisper words from the synthetic voice's recorded word
+times; it is injected as an executor, recorded under its own name in production.json, and makes every report
+`production_ready: NO`. The integration test uses neither: real Piper speech and the real whisper step (assets of
+nfp/setup/fetch_assets.py).
 
 ## Limits
 
-- One chapter per run; multi-chapter assembly is out of scope.
-- No real speech recognition or Gemini TTS has run in these tests (no faster-whisper, no key — on purpose).
+- One chapter per project run; several chapters are a film (film.py).
+- Real speech: local Piper voices + faster-whisper (integration test). Gemini TTS has never run (no key; off by default).
 - Found by D4 and fixed in Film (`cast_plan.snap`): a shot starting exactly on a half frame (e.g. 9.35 s = frame 280.5)
   was rounded to even by `cast_plan.py` but up by the Director (`Math.round`), and the cast page threw. D4 now renders
   that Persian fixture unchanged; the rounding is tested by `nfp/film/tests/film_cast_halfframe_check.py`.

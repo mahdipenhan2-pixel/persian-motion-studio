@@ -70,7 +70,9 @@ def main():
           f"legacy (core TTS): OK; 3 TTS requests forecast (no sentence cached): {r['cost']['network'].get('audio')}")
     v = FX.voice_project(work, "voice", "en")
     r = pf(v)
-    check(r["status"] == "OK" and r["cost"]["gemini_requests"] == 0 and not r["cost"]["network"], "synthetic Voice Engine project: OK, nothing online")
+    check(r["status"] == "OK" and r["cost"]["gemini_requests"] == 0 and set(r["cost"]["network"]) <= {"whisper"},
+          "synthetic Voice Engine project: OK, nothing online (with faster-whisper installed, only its possible model download is "
+          f"listed; the runner runs that step offline): {sorted(r['cost']['network'])}")
     sys.path.insert(0, str(FX.NFP / "graphics" / "tests"))
     import test_graphics_g5_film as T5
     T5.make_image(work / "wide.png", 3200, 1800)

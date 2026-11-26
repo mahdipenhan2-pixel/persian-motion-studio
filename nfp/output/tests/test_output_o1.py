@@ -125,6 +125,21 @@ def main():
     r = OC.check(c, v, write=False)
     check(r["subtitles"]["still_applicable"] == vj["problems"] and not r["subtitles"]["not_applicable"],
           "karaoke: a highlight problem in verify.json stays applicable")
+    c = work / "c-karaoke-early"                                   # an untimed first word: its estimated highlight comes first
+    shutil.copytree(b, c)
+    tj = json.loads((c / "timing.json").read_text(encoding="utf-8"))
+    tj["sentences"][1]["words"][0].update(abs_start=None, abs_end=None)
+    (c / "timing.json").write_text(json.dumps(tj, ensure_ascii=False), encoding="utf-8")
+    early = "s2: caption highlight already on before the first word (156 px)"
+    vj2 = json.loads((c / "verify.json").read_text(encoding="utf-8"))
+    vj2["problems"] = [early, "s3: caption highlight already on before the first word (150 px)"]
+    (c / "verify.json").write_text(json.dumps(vj2), encoding="utf-8")
+    r = OC.check(c, v, write=False)
+    na = r["subtitles"]["not_applicable"]
+    check([x["problem"] for x in na] == [early] and na[0]["rule"] == "estimated_first_word"
+          and r["subtitles"]["still_applicable"] == ["s3: caption highlight already on before the first word (150 px)"],
+          "karaoke: an early highlight where the sentence starts with an untimed (estimated) word is not applicable; "
+          "the same problem on a sentence whose first word is timed stays applicable")
     vl, bl = builds["en-legacy"]
     c = work / "c-legacy-hl"
     shutil.copytree(bl, c)

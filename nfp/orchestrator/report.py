@@ -184,9 +184,10 @@ def report(pl, fonts=None, gsap=None, write=True):
         na = []
         sb = (oq or {}).get("subtitles") or {}
         rows = (sb.get("replacement") or {}).get("sentences")
-        if oq and sb.get("not_applicable") and rows and not any(r.get("problem") for r in rows):
+        rows_ok = bool(rows) and not any(r.get("problem") for r in rows)
+        if oq and sb.get("not_applicable"):         # mode rule: only when the mode's own check passed; estimated_first_word: a fact
             for x in sb["not_applicable"]:
-                if x["problem"] in probs:
+                if x["problem"] in probs and (x.get("rule") == "estimated_first_word" or rows_ok):
                     probs.remove(x["problem"])
                     na.append(x)
         pending = []

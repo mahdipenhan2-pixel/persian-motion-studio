@@ -25,6 +25,9 @@ Sections (each issue: {level: error | warning | info, check, code, message}):
                 sentence / word  caption text visible (white text pixels in the caption band) at the middle of each
                                  sentence's longest word -> otherwise error
                 off              no karaoke highlight pixels anywhere it was sampled -> otherwise error
+              In every mode: "caption highlight already on before the first word" of a sentence whose first script
+              word Whisper did not time (timing.json: no abs_start) is not_applicable too (rule estimated_first_word):
+              verify.py checks from the first TIMED word, so the estimated word's own highlight comes before it.
               verify.json is read, never changed; every other verify.py problem stays as it is.
   inputs      what the result was made from, so a reader can tell whether it is still current (is_current):
               sha256 of the MP4, verify.json and timing.json, and the fingerprint of the project settings that decide
@@ -248,10 +251,22 @@ def subtitles(mp4, build, timing, project, chapter, issues):
     raw = (vj or {}).get("problems", [])
     hl = [p for p in raw if any(k in p for k in HIGHLIGHT_PROBLEMS)]
     applies = mode in (None, "legacy", "karaoke")
+    na = [] if applies else [{"problem": p, "rule": "mode", "reason": f"subtitles.mode '{mode}' ({source}) draws no karaoke highlight"} for p in hl]
+    if applies and timing:                # a sentence that starts with a word Whisper did not time: its estimated slot lies
+        lead = {}                         # before the first TIMED word, the one verify.py checks - that highlight is that word's
+        for s in timing["sentences"]:
+            W = s["words"]
+            if W and W[0].get("abs_start") is None and any(w.get("abs_start") is not None for w in W):
+                lead[s["id"]] = next(w for w in W if w.get("abs_start") is None)["text"]
+        for p in hl:
+            sid = p.split(":", 1)[0]
+            if "caption highlight already on before the first word" in p and sid in lead:
+                na.append({"problem": p, "rule": "estimated_first_word",
+                           "reason": f"{sid} starts with '{lead[sid]}', which Whisper did not time: the highlight verify.py sees before "
+                                     "the first timed word is that word's own estimated highlight"})
     out = {"mode": mode, "mode_source": source, "verify_json": str(vj_path) if vj else None, "verify_problems": raw,
-           "highlight_check_applies": applies,
-           "not_applicable": [] if applies else [{"problem": p, "reason": f"subtitles.mode '{mode}' ({source}) draws no karaoke highlight"} for p in hl],
-           "still_applicable": [p for p in raw if applies or p not in hl], "replacement": None}
+           "highlight_check_applies": applies, "not_applicable": na,
+           "still_applicable": [p for p in raw if p not in {x["problem"] for x in na}], "replacement": None}
     if mode is None:
         issues.append({"level": "info", "check": "subtitles", "code": "no_project", "message": "no project given: verify.py's problems are kept as they are"})
     if applies or not timing:
